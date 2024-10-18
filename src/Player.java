@@ -1,14 +1,10 @@
 import java.util.*;
-
-
 /**
- * This class is the board class which will display the board as the game goes along.
- * It will check to make sure that a tile can be put in a specific area of the board.
- * Will update the board when a tile has been added.
  *
- * Author: Rami Ayoub
- * Student Number: 101261583
- * Date: October 15th, 2024
+ *
+ * Author:
+ * Student Number:
+ * Date:
  *
  */
 
@@ -32,10 +28,18 @@ public class Player {
         return tiles;
     }
 
-    public void displayTiles(){
-        System.out.println(name + "'s " + "Tiles: ");
+    public void displayPlayer(){
+        System.out.print(name + "'s " + "Tiles: ");
         for(Tiles t : tiles){
-            System.out.print(t.getLetter() + ":" + t.getNumber() + " ");
+            System.out.print(t.toString());
+        }
+        System.out.println(name + "'s score: " + score);
+    }
+
+    public void displayTiles(){
+        System.out.print(name + "'s " + "Tiles: ");
+        for(Tiles t : tiles){
+            System.out.print(t.toString());
         }
     }
 

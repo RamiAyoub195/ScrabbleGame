@@ -33,14 +33,14 @@ public class Board {
         return board[row][col].equals("-");
     }
 
-    public void placeBoardTile(int row, int col, String tile){
-        board[row][col] = tile;
+    public void placeBoardTile(int row, int col, String letter){
+        board[row][col] = letter;
     }
 
     public void displayBoard(){
         for(int i = 0; i < rows; i++){
             for(int j = 0; j < cols; j++){
-                System.out.print("  " + board[i][j] + "  ");
+                System.out.print(board[i][j]);
             }
             System.out.println();
         }

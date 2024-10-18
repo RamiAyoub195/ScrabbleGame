@@ -1,16 +1,33 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * This class contains all tiles in a game, there are 100 tiles in a typical scrabble game according to Hasbro's online guide.
+ * For the first milestone we disregard the 2 empty spaces so we have 98 tiles. Each letter tile has a value associated with it
+ * which can also be found on Hasbro's online guide. This bag class will contain all 98 tiles each having a letter and an
+ * associated value.
+ *
+ * Author: Rami Ayoub
+ * Student Number: 101261583
+ * Date: Wednesday, October 16, 2024
+ *
+ */
+
 public class TilesBag {
 
-    private HashMap<String, Integer> scrabbleTiles;
-    private ArrayList<Tiles> tilesBag;
+    private HashMap<String, Integer> scrabbleTiles; //This will store how many letter tiles we have in the game
+    private ArrayList<Tiles> tilesBag; //will store each letter tile and its associated value
 
+    /**
+     * This is the constructor of the class that will be adding all the tiles in the game to a hashtable, where each key is
+     * a letter and the value is how many of those letters we have. The Each letter will be assigned its associated value and
+     * added to an ArrayList.
+     */
     public TilesBag() {
         scrabbleTiles = new HashMap();
         tilesBag = new ArrayList();
 
-        scrabbleTiles.put("A", 9);
+        scrabbleTiles.put("A", 9); //All of these can be found according to Hasbro online, we have 9 A's and so on...
         scrabbleTiles.put("B", 2);
         scrabbleTiles.put("C", 2);
         scrabbleTiles.put("D", 4);
@@ -37,33 +54,52 @@ public class TilesBag {
         scrabbleTiles.put("Y", 2);
         scrabbleTiles.put("Z", 1);
 
-        for(String s: scrabbleTiles.keySet()){
-            if (s.equals("A") || s.equals("E") || s.equals("I") || s.equals("O") ||
-                    s.equals("U") || s.equals("L") || s.equals("S") || s.equals("T") ||
-                    s.equals("R")){
-                tilesBag.add(new Tiles(s, 1));
+        for(HashMap.Entry<String, Integer> s: scrabbleTiles.entrySet()){
+            if (s.getKey().equals("A") || s.getKey().equals("E") || s.getKey().equals("I") || s.getKey().equals("O") ||
+                    s.getKey().equals("U") || s.getKey().equals("L") || s.getKey().equals("S") || s.getKey().equals("T") ||
+                    s.getKey().equals("R")){
+                for (int i = 0; i < s.getValue(); i++){
+                    tilesBag.add(new Tiles(s.getKey(), 1));
+                }
             }
-            else if (s.equals("D") || s.equals("G")) {
-                tilesBag.add(new Tiles(s, 2));
+            else if (s.getKey().equals("D") || s.getKey().equals("G")) {
+                for (int i = 0; i < s.getValue(); i++){
+                    tilesBag.add(new Tiles(s.getKey(), 2));
+                }
             }
-            else if (s.equals("B") || s.equals("C") || s.equals("M") || s.equals("P")) {
-                tilesBag.add(new Tiles(s, 3));
+            else if (s.getKey().equals("B") || s.getKey().equals("C") || s.getKey().equals("M") || s.getKey().equals("P")) {
+                for (int i = 0; i < s.getValue(); i++){
+                    tilesBag.add(new Tiles(s.getKey(), 3));
+                }
             }
-            else if (s.equals("F") || s.equals("H") || s.equals("V") || s.equals("W") || s.equals("Y")) {
-                tilesBag.add(new Tiles(s, 4));
+            else if (s.getKey().equals("F") || s.getKey().equals("H") || s.getKey().equals("V") ||
+                    s.getKey().equals("W") || s.getKey().equals("Y")) {
+                for (int i = 0; i < s.getValue(); i++){
+                    tilesBag.add(new Tiles(s.getKey(), 4));
+                }
             }
-            else if (s.equals("K")) {
-                tilesBag.add(new Tiles(s, 5));
+            else if (s.getKey().equals("K")) {
+                for (int i = 0; i < s.getValue(); i++){
+                    tilesBag.add(new Tiles(s.getKey(), 5));
+                }
             }
-            else if (s.equals("J") || s.equals("X")) {
-                tilesBag.add(new Tiles(s, 8));
+            else if (s.getKey().equals("J") || s.getKey().equals("X")) {
+                for (int i = 0; i < s.getValue(); i++){
+                    tilesBag.add(new Tiles(s.getKey(), 8));
+                }
             }
             else{
-                tilesBag.add(new Tiles(s, 10));
+                for (int i = 0; i < s.getValue(); i++){
+                    tilesBag.add(new Tiles(s.getKey(), 10));
+                }
             }
         }
     }
 
+    /**
+     * Returns the array list of tiles that we formed in the constructor
+     * @return Arraylist of tiles
+     */
     public ArrayList<Tiles> bagArraylist(){
         return tilesBag;
     }
