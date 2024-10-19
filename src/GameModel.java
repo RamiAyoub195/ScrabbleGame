@@ -92,24 +92,52 @@ public class GameModel {
 
         System.out.println("You will now be entering the word to place tile by tile make sure to enter it in the right order!");
 
-        System.out.println("Which direction is the word being placed (Horizontal/Vertical):");
-        String direction = userInput.next();
+//        System.out.println("Which direction is the word being placed (Horizontal/Vertical):");
+//        String direction = userInput.next();
+        String direction = "does_nothing_right_now_just_need_placeholder";
+
+
 
         for (int i = 1; i <= choiceNumTiles; i++){
-            System.out.println("Please enter tile " + i + " (index 0-6):");
-            int tileIndex = userInput.nextInt();
-            tempTiles.add(player.getTiles().get(tileIndex));
-            System.out.println("Please enter the row position for tile " + i + " :");
-            int rowIndex = userInput.nextInt();
-            tempRowPositions.add(rowIndex);
-            System.out.println("Please enter the column position for tile " + i + " :");
-            int columnIndex = userInput.nextInt();
-            tempColPositions.add(columnIndex);
-            //checkPlacement(tempTiles, tempRowPositions, tempColPositions, direction);
+            System.out.println("Available tiles: ");
+            for (int j = 0; j < player.getTiles().size(); j++) {
+                System.out.println((j + 1) + ": " + player.getTiles().get(j).getLetter()); // Display tile with index
+            }
+
+            System.out.println("Please enter the letter you want to place (or enter 0 to cancel):");
+            String letterInput = userInput.next();
+
+            if (letterInput.equals("0")) {
+                System.out.println("Action cancelled.");
+                return; // Exit if player chooses to cancel
+            }
+
+            // Find the tile with the specified letter
+            boolean tileFound = false;
+            for (int j = 0; j < player.getTiles().size(); j++) {
+                if (player.getTiles().get(j).getLetter().equalsIgnoreCase(letterInput)) {
+                    tempTiles.add(player.getTiles().get(j));
+                    System.out.println("Please enter the row position for tile " + letterInput + ":");
+                    int rowIndex = userInput.nextInt();
+                    tempRowPositions.add(rowIndex);
+                    System.out.println("Please enter the column position for tile " + letterInput + ":");
+                    int columnIndex = userInput.nextInt();
+                    tempColPositions.add(columnIndex);
+                    tileFound = true;
+                    player.getTiles().remove(j); // Remove the tile from player's hand
+                    break;
+                }
+            }
+
+            if (!tileFound) {
+                System.out.println("Tile not found. Please try again.");
+                i--; // Repeat the iteration for this tile
+            }
         }
 
         // Check if the placement is valid
         if (checkPlacement(tempTiles, tempRowPositions, tempColPositions, direction)) {
+
             // Validate all words on the board after placing tiles
             if (!validateAllWords(checkBoard)) {
                 // If any word is invalid, revert the changes and notify the player
@@ -124,6 +152,8 @@ public class GameModel {
             }
         }
         refillPlayerHand(player);
+        checkBoard.copyBoard(gameBoard);
+
     }
 
     public void refillPlayerHand(Player player) {
