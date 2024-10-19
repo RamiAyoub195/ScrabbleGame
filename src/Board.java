@@ -80,6 +80,13 @@ public class Board {
             System.out.println();
         }
     }
+
+    public void copyBoard(Board source) {
+        for (int i = 0; i < 15; i++) {
+            System.arraycopy(source.board[i], 0, this.board[i], 0, 15);
+        }
+    }
+
 }
 
 

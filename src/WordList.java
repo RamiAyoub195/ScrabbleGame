@@ -48,7 +48,7 @@ public class WordList {
      * @return true if the word is found and false if the word is not found
      */
     public boolean isValidWord(String word){
-        return words.contains(word);
+        return words.contains(word.toLowerCase());
     }
 
 }
