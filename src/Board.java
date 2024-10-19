@@ -34,38 +34,12 @@ public class Board {
         return board[row][col].equals("  -  ");
     }
 
-    /**
-     *
-     * Returns false if legal and true if illegal
-     * @param row
-     * @param col
-     * @return
-     */
-    public boolean checkIllegalPlacement(int row, int col){
-        if (row == 0 && col == 0 ){
-            return board[row + 1][col + 1].equals("  -  ") && board[row + 1][col].equals("  -  ");
-        }
-        else if (row == 15 && col == 0){
-            return board[row][col + 1].equals("  -  ") && board[row - 1][col].equals("  -  ");
-        }
-        else if (row == 0 && col == 15){
-            return board[row + 1][col].equals("  -  ") && board[row][col - 1].equals("  -  ");
-        }
-        else if (row == 15 && col == 15){
-            return board[row - 1][col].equals("  -  ") && board[row][col - 1].equals("  -  ");
-        }
-        else {
-            return board[row + 1][col].equals("  -  ") && board[row - 1][col].equals("  -  ") &&
-                    board[row][col + 1].equals("  -  ") && board[row][col - 1].equals("  -  ");
-        }
-    }
-
     public void placeBoardTile(int row, int col, String letter){
         board[row][col] = "  " + letter + "  ";
     }
 
     public boolean checkMiddleBoardEmpty(){
-        return board[8][8].equals("  -  ");
+        return board[7][7].equals("  -  ");
     }
 
     public String[][] getBoard(){

@@ -13,10 +13,13 @@ public class GameModel {
     private Board checkBoard;
     private TilesBag tilesBag;
     private WordList wordList;
-    private int numOfPlayers;
+    private boolean firstWordPlaced;
+    private Random rand;
 
-
-
+    /**
+     * Initializes the list of players, the boards, the user input scanner, the bag of tiles,
+     * the list of words and starts the game.
+     */
     public GameModel(){
         userInput = new Scanner(System.in);
         players = new ArrayList<>();
@@ -24,21 +27,20 @@ public class GameModel {
         checkBoard = new Board(15, 15);
         tilesBag = new TilesBag();
         wordList = new WordList();
-        numOfPlayers = 0;
+        firstWordPlaced = false;
+        rand = new Random();
         playGame();
     }
 
+    /**
+     * Starts the game of Scrabble by asking for the players names, then iterates through
+     * each player until the game has finished.
+     */
     public void playGame(){
 
-        System.out.println("Welcome to the game of Scrabble! Please enter the number of players (2-4):");
-        int numOfPlayers = userInput.nextInt();
+        System.out.println("Welcome to the game of Scrabble!");
 
-        while(numOfPlayers < 2 || numOfPlayers > 4){
-            System.out.println("Please enter a number between 2 and 4:");
-            numOfPlayers = userInput.nextInt();
-        }
-
-        for(int i = 1; i <= numOfPlayers; i++){
+        for(int i = 1; i <= 2; i++){
             System.out.println("Please enter player " + i + " name:");
             String playerName = userInput.next();
             players.add(new Player(playerName));
@@ -52,45 +54,67 @@ public class GameModel {
                 playerTurn(player);
             }
         }
+
     }
 
+    /**
+     * This function displays the user of their choices when it's their turn.
+     * The player may choose to play tile(s), swap tile(s) or skip their turn.
+     * @param player the player's current turn
+     */
     public void playerTurn(Player player){
         System.out.println("Here are your options: Place Tile(s) (0), Swap Tiles (1), Skip Turn (2)");
         Scanner userInput = new Scanner(System.in);
 
-        int choice = userInput.nextInt();
+        int choice = userInput.nextInt(); //gets the user choice
 
-        while (choice < 0 || choice > 2){
+        while (choice < 0 || choice > 2){ //choice must be a valid choice from the options
             System.out.println("Please enter a number between 0 and 2:");
             choice = userInput.nextInt();
         }
 
-        if (choice == 0){
+        if (choice == 0){ //player plays a tile
             playerPlaceTile(player);
         }
 
-        else if (choice == 1){
-            playerSwapTile(player);
+        else if (choice == 1){ //player swaps a tile
+            if(tilesBag.bagOfTileIsEmpty()){ //makes sure that the bag of tiles is not empty for swapping
+                System.out.println("The bag of tiles is empty! cannot swap tile(s)");
+            }
+            else{
+                playerSwapTile(player);
+            }
+        }
+
+        else{ //player passes their turn
+            System.out.println("Player turn passed.");
         }
     }
 
+    /**
+     * Takes care of the players decision to place a tile. The tile being placed
+     * must be entered horizontally/vertically and the word being inserted or words after
+     * tile is inserted must be a valid word.
+     *
+     * @param player the player's current turn
+     */
     public void playerPlaceTile(Player player){
-        ArrayList<Tiles> tempTiles = new ArrayList<>();
-        ArrayList<Integer> tempRowPositions = new ArrayList<>();
-        ArrayList<Integer> tempColPositions = new ArrayList<>();
+        ArrayList<Tiles> tempTiles = new ArrayList<>(); //temp tiles to place on a temp board
+        ArrayList<Integer> tempRowPositions = new ArrayList<>(); //temp row position of temp tile
+        ArrayList<Integer> tempColPositions = new ArrayList<>(); //temp column position of temp tile
 
         Scanner userInput = new Scanner(System.in);
         System.out.println("How many tile(s) would you like to place: ");
-        int choiceNumTiles = userInput.nextInt();
+        int choiceNumTiles = userInput.nextInt(); //player tile(s) they would like to place
 
-        while(choiceNumTiles > player.getTiles().size()) {
+        while(choiceNumTiles > player.getTiles().size()) { //make sure the user selects a valid amount of tiles to play
             System.out.println("Invalid, user does not have enough tiles! Please enter the number of tile(s) you would like to place: ");
             choiceNumTiles = userInput.nextInt();
         }
 
         System.out.println("You will now be entering the word to place tile by tile make sure to enter it in the right order!");
 
-        for (int i = 1; i <= choiceNumTiles; i++){
+        for (int i = 1; i <= choiceNumTiles; i++){ //stores each tile and their position to be checked on a temp board for placement and real word
             System.out.println("Please enter tile " + i + " (index 0-6):");
             int tileIndex = userInput.nextInt();
             tempTiles.add(player.getTiles().get(tileIndex));
@@ -100,30 +124,61 @@ public class GameModel {
             System.out.println("Please enter the column position for tile " + i + " :");
             int columnIndex = userInput.nextInt();
             tempColPositions.add(columnIndex);
-            System.out.println("Which direction is the word being placed (Horizontal/Vertical):");
-            String direction = userInput.next();
-            checkPlacement(tempTiles, tempRowPositions, tempColPositions, direction);
         }
+
+        placeWord(tempTiles, tempRowPositions, tempColPositions);
+
     }
 
+    /**
+     * Places a word on the board, the first word needs to go through the middle square.
+     * Then all words must also be connected horizontally or vertically and must be a valid word
+     * from the word list.
+     *
+     * @param tempTiles a list of the tiles
+     * @param tempRowPositions a list of row positions for the tiles
+     * @param tempColPositions a list of column positions for the tiles
+     */
+    public void placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions){
+    }
+
+
+    /**
+     * Checks to see if the added word is a valid word from the list of words in the
+     * txt file. Checks each row and column of the board to make sure that all added words and
+     * subwords match the word list.
+     *
+     */
+    public void checkValidWord(){
+
+    }
+
+    /**
+     * Takes care of when a player decides to swap tile(s). The tile(s) are swapped
+     * with the tiles in the tile bag. A player may swap tiles a
+     * @param player
+     */
     public void playerSwapTile(Player player){
-        Scanner userInput = new Scanner(System.in);
         System.out.println("How many tile(s) would you like to swap: ");
         int choiceNumTiles = userInput.nextInt();
 
-        while(choiceNumTiles > 0){
-            System.out.println("Select a tile to swap (Enter the index (0-6)): ");
+        while(choiceNumTiles > player.getTiles().size()) { //make sure the user selects a valid amount of tiles to play
+            System.out.println("Invalid, user does not have enough tiles! Please enter the number of tile(s) you would like to swap: ");
+            choiceNumTiles = userInput.nextInt();
+        }
+
+        for (int i = 1; i <= choiceNumTiles; i++){
+            System.out.println("Select tile " + i + " to swap (Enter the index (0-6)): ");
             int tileIndex = userInput.nextInt();
 
             Tiles t = player.getTiles().get(tileIndex);
             player.getTiles().remove(tileIndex);
 
-            getRandomTiles( 1, player);
+            replaceSwappedTile(player, tileIndex);
             tilesBag.bagArraylist().add(t);
-            gameBoard.displayBoard();
-            player.displayPlayer();
-            choiceNumTiles--;
         }
+        System.out.println("Tile(s) successfully swapped!");
+        player.displayTiles();
     }
 
     /**
@@ -131,17 +186,24 @@ public class GameModel {
      * @return a boolean true of bag is empty and false if not empty
      */
     public boolean checkGameFinished(){
-        return tilesBag.bagArraylist().isEmpty();
+        boolean status = true;
+        for(Player p : players){
+            if(!p.getTiles().isEmpty()){
+                status = false;
+            }
+        }
+        return status;
     }
 
     /**
-     * Gets a random tile from the bag of tiles to a player
+     * Gets a random number of tiles from the bag of tiles to a player at the beginning
+     * of the game and assigns it to the players. It is also used when a player places tile(s)
+     * and gets new random tiles to replace the placed tiles.
      *
      * @param numOfTiles number of tiles needed from bag
      * @param player player who needs the tiles
      */
     public void getRandomTiles(int numOfTiles, Player player){
-        Random rand = new Random();
         for (int i = 0; i < numOfTiles; i++){
             int rnd = rand.nextInt(tilesBag.bagArraylist().size());
             player.getTiles().add(tilesBag.bagArraylist().get(rnd));
@@ -149,52 +211,16 @@ public class GameModel {
         }
     }
 
-    public boolean checkPlacement(ArrayList<Tiles> tiles, ArrayList<Integer> rows, ArrayList<Integer> cols, String direction){
-        if(gameBoard.checkMiddleBoardEmpty()){
-            checkBoard.placeBoardTile(rows.get(0), cols.get(0), tiles.get(0).getLetter());
-            for(int i = 1; i < tiles.size() - 1; i++){
-                if(checkBoard.checkIllegalPlacement(rows.get(i),cols.get(i))){
-                    System.out.println("Words must be connected horizontally or vertically! and the first word must cover over the center of the board");
-                    return false;
-                }
-                checkBoard.placeBoardTile(rows.get(i), cols.get(i), tiles.get(i).getLetter());
-                checkWord(checkBoard, rows.get(i), cols.get(i), direction, false);
-            }
-            checkWord(checkBoard,rows.get(rows.size() - 1), cols.get(cols.size() - 1), direction, true);
-        }
-        else if (board.checkBoardTileEmpty(row, column) && !board.checkIllegalPlacement(row, column)){
-            board.placeBoardTile(row, column, t.getLetter());
-            board.displayBoard();
-            player.displayPlayer();
-            player.getTiles().remove(tileIndex);
-            getRandomTiles( 1, player);
-            choiceNumTiles--;
-        }
-    }
-
-    public boolean checkWord(Board board, int row, int col, String direction, boolean lastLetter){
-        String wordLeftToRight = "";
-        String wordRightToLeft = "";
-        StringBuilder wordTopToBottom = new StringBuilder();
-        StringBuilder wordBottomToTop = new StringBuilder();
-
-        if (direction.equals("Horizontal") && !lastLetter){
-            int i = 1;
-            while(!board.getBoard()[row + i][col].equals("  -  ") && row + i < 15){
-                wordTopToBottom.append(board.getBoard()[row + i][col]);
-                i++;
-            }
-            int j = 1;
-            while(!board.getBoard()[row - j][col].equals("  -  ") && row - j >= 0){
-                wordBottomToTop.append(board.getBoard()[row - j][col]);
-                j++;
-            }
-            wordTopToBottom.reverse().append(wordBottomToTop);
-
-        }
-        else if (direction.equals("Vertical") && !lastLetter){
-
-        }
+    /**
+     * Replaces a players tile(s) with tile(s) from the bag placing them
+     * at the right index.
+     * @param player the player who is swapping
+     * @param index the index of the tile being replaced
+     */
+    public void replaceSwappedTile(Player player, int index){
+        int rnd = rand.nextInt(tilesBag.bagArraylist().size());
+        player.getTiles().add(index, tilesBag.bagArraylist().get(rnd));
+        tilesBag.bagArraylist().remove(rnd);
     }
 
     public static void main(String[] args){

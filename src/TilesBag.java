@@ -103,5 +103,13 @@ public class TilesBag {
     public ArrayList<Tiles> bagArraylist(){
         return tilesBag;
     }
+
+    /**
+     * Checks to see if the bag of tiles is empty.
+     * @return true if bag is empty, false otherwise.
+     */
+    public boolean bagOfTileIsEmpty(){
+        return tilesBag.isEmpty();
+    }
 }
 

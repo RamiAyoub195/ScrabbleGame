@@ -41,6 +41,7 @@ public class Player {
         for(Tiles t : tiles){
             System.out.print(t.toString());
         }
+        System.out.println();
     }
 
     public int getScore() {
