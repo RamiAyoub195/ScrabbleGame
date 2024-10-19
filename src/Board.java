@@ -19,22 +19,31 @@ public class Board {
         this.rows = rows;
         this.cols = cols;
         board = new String[rows][cols];
+        setUpBoard();
     }
 
     public void setUpBoard(){
         for(int i = 0; i < rows; i++){
             for(int j = 0; j < cols; j++){
-                board[i][j] = "-";
+                board[i][j] = "  -  ";
             }
         }
     }
 
     public boolean checkBoardTileEmpty(int row, int col){
-        return board[row][col].equals("-");
+        return board[row][col].equals("  -  ");
+    }
+
+    public boolean checkLegalPlacement(int row, int col){
+        if (board[row][col + 1].equals("  -  ") && board[row][col - 1].equals("  -  ") &&
+                board[row + 1][col].equals("  -  ") && board[row - 1][col].equals("  -  ") ){
+            return false;
+        }
+        return true;
     }
 
     public void placeBoardTile(int row, int col, String letter){
-        board[row][col] = letter;
+        board[row][col] = "  " + letter + "  ";
     }
 
     public void displayBoard(){
