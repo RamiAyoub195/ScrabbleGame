@@ -72,14 +72,31 @@ public class Board {
         return board;
     }
 
-    public void displayBoard(){
-        for(int i = 0; i < rows; i++){
-            for(int j = 0; j < cols; j++){
-                System.out.print(board[i][j]);
+    public void displayBoard() {
+        // Print column indices
+        for (int col = 0; col < 15; col++) {
+            System.out.printf("%6d", col); // Single digit (0-9): 3 characters width
+        }
+        System.out.println();
+
+        // Print each row with row index
+        for (int row = 0; row < 15; row++) {
+            // Determine spacing based on whether the row index is single or double digit
+            if (row < 10) {
+                System.out.printf(" %d ", row); // Single digit (0-9): Add space before the index
+            } else {
+                System.out.printf("%d ", row); // Double digit (10-14): No extra space
             }
-            System.out.println();
+
+            for (int col = 0; col < 15; col++) {
+                System.out.print(board[row][col] + " "); // Print the tile or empty space
+            }
+            System.out.println(); // Move to the next line after each row
         }
     }
+
+
+
 
     public void copyBoard(Board source) {
         for (int i = 0; i < 15; i++) {

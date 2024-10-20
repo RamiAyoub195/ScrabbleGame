@@ -46,4 +46,9 @@ public class Player {
     public int getScore() {
         return score;
     }
+
+    // Method to add score after a turn
+    public void addScore(int points) {
+        this.score += points;
+    }
 }
