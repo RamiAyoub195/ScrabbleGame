@@ -13,6 +13,8 @@ import java.util.*;
 public class GameModel {
     private Scanner userInput; //for userInput
     private ArrayList<Player> players; //list of players in the game
+    private Player winner; //player who win the game
+    private int highestScore; //player with the highest score
     private Board gameBoard; //the actual game board displayed
     private Board checkBoard; //a board used to check for adjacency, valid word, etc.
     private TilesBag tilesBag; //a bag of tiles in the game
@@ -26,6 +28,8 @@ public class GameModel {
     public GameModel(){
         userInput = new Scanner(System.in);
         players = new ArrayList<>();
+        winner = null;
+        highestScore = 0;
         gameBoard = new Board(15, 15);
         checkBoard = new Board(15, 15);
         tilesBag = new TilesBag();
@@ -58,6 +62,15 @@ public class GameModel {
             }
         }
 
+        System.out.println("Thanks for playing! The results are:"); //Tells the players the game is done
+        for(Player player : players){ //traverses through players
+            System.out.println(player.getName() + " with a score of " + player.getScore()); //gets the score of players
+            if(player.getScore() > highestScore){
+                highestScore = player.getScore(); //gets the winner
+                winner = player;
+            }
+        }
+        System.out.println("The winner is " + winner.getName() + " with a score of " + winner.getScore()); //displays the winner
     }
 
     /**
@@ -111,12 +124,14 @@ public class GameModel {
         System.out.println("How many tile(s) would you like to place: ");
         int choiceNumTiles = userInput.nextInt(); //player tile(s) they would like to place
 
-        while(choiceNumTiles > player.getTiles().size()) { //make sure the user selects a valid amount of tiles to play
-            System.out.println("Invalid, user does not have enough tiles! Please enter the number of tile(s) you would like to place: ");
+        while(choiceNumTiles <= 0 || choiceNumTiles > player.getTiles().size()) { //make sure the user selects a valid amount of tiles to play
+            System.out.println("Invalid, player does not have enough tiles or entered an invalid number! Please enter the number of tile(s) you would like to place: ");
             choiceNumTiles = userInput.nextInt();
         }
 
-        System.out.println("You will now be entering the word to place tile by tile make sure to enter it in the right order!");
+        System.out.println("You will now be entering the word to place tile by tile make sure to enter it in the right order!"); //player must enter the word from left to right
+        player.displayPlayerTiles(); //displays the players tiles
+        System.out.println(); //a line to separate the spacing
 
         for (int i = 1; i <= choiceNumTiles; i++){ //gets a tiles index from player tiles
             System.out.println("Please enter tile " + i + " (index 0-6):");
@@ -184,7 +199,7 @@ public class GameModel {
             }
             else{
                 System.out.println("A tile is already in place! please place a tile on an empty board space!");
-                checkBoard = savedCheckBoard; //restores the original board
+                checkBoard = savedCheckBoard.copyBoard(); //restores the original board
                 return false;
             }
         }
@@ -194,14 +209,14 @@ public class GameModel {
             for (int i = 0; i < tempTiles.size(); i++){
                 if(!checkBoard.checkAdjacentBoardConnected(tempRowPositions.get(i), tempColPositions.get(i))){ //checks for tile adjacency
                     System.out.println("Cannot place word as it is not connected horizontally/vertically!");
-                    checkBoard = savedCheckBoard; //restores the original board
+                    checkBoard = savedCheckBoard.copyBoard(); //restores the original board
                     return false;
                 }
             }
         }
         else{ //the middle of the board was not covered
             System.out.println("The first word must cover the middle of the board!");
-            checkBoard = savedCheckBoard; //restores the original board
+            checkBoard = savedCheckBoard.copyBoard(); //restores the original board
             return false;
         }
 
@@ -209,7 +224,7 @@ public class GameModel {
 
         if (!checkValidWord()){ //checks to make sure that a word is valid
             System.out.println("Invalid word! Please enter a valid word or the word must !");
-            checkBoard = savedCheckBoard; //restores the original board
+            checkBoard = savedCheckBoard.copyBoard(); //restores the original board
             return false;
         }
 

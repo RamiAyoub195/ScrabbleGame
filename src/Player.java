@@ -34,6 +34,22 @@ public class Player {
     }
 
     /**
+     * Returns the name of a player
+     * @return player name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Returns the score of the player
+     * @return player score
+     */
+    public int getScore() {
+        return score;
+    }
+
+    /**
      * Displays a player including their name, their tiles and current score.
      */
     public void displayPlayer(){
@@ -42,6 +58,15 @@ public class Player {
             System.out.print(t.toString());
         }
         System.out.println(name + "'s score: " + score);
+    }
+
+    /**
+     * Displays the tiles of a player
+     */
+    public void displayPlayerTiles(){
+        for(Tiles t : tiles){
+            System.out.print(t.toString());
+        }
     }
 
     /**
