@@ -7,8 +7,8 @@ import java.util.HashMap;
  * which can also be found on Hasbro's online guide. This bag class will contain all 98 tiles each having a letter and an
  * associated value.
  *
- * Author: Rami Ayoub
- * Student Number: 101261583
+ * Author(s): Rami Ayoub
+ * Version: 1.0
  * Date: Wednesday, October 16, 2024
  *
  */
@@ -20,14 +20,14 @@ public class TilesBag {
 
     /**
      * This is the constructor of the class that will be adding all the tiles in the game to a hashtable, where each key is
-     * a letter and the value is how many of those letters we have. The Each letter will be assigned its associated value and
+     * a letter and the value is how many of those letters we have. Each letter will be assigned its associated value and
      * added to an ArrayList.
      */
     public TilesBag() {
         scrabbleTiles = new HashMap();
         tilesBag = new ArrayList();
 
-        scrabbleTiles.put("A", 9); //All of these can be found according to Hasbro online, we have 9 A's and so on...
+        scrabbleTiles.put("A", 9); //All of these can be found according to Hasbro online, we have 9 A's in a game, 2 B's in a game and so on...
         scrabbleTiles.put("B", 2);
         scrabbleTiles.put("C", 2);
         scrabbleTiles.put("D", 4);
@@ -54,6 +54,7 @@ public class TilesBag {
         scrabbleTiles.put("Y", 2);
         scrabbleTiles.put("Z", 1);
 
+        //Assigns each letter their associated value based on information online (Hasbro's online guide for scrabble)
         for(HashMap.Entry<String, Integer> s: scrabbleTiles.entrySet()){
             if (s.getKey().equals("A") || s.getKey().equals("E") || s.getKey().equals("I") || s.getKey().equals("O") ||
                     s.getKey().equals("U") || s.getKey().equals("L") || s.getKey().equals("S") || s.getKey().equals("T") ||

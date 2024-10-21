@@ -24,22 +24,17 @@ public class WordList {
         File filename = new File("wordlist.txt"); //Creates a file that the scanner will scan
 
         try(Scanner scanner = new Scanner(filename)){ //Scanner will scan the file line by line
-            while(scanner.hasNextLine()){ //checks to see if there is a next line
-                words.add(scanner.nextLine().trim()); //add the word and gets rid of extra spaces/characters
+            while(scanner.hasNextLine()){//checks to see if there is a next line
+                String word = scanner.nextLine().trim().toUpperCase(); //gets rid of extra spaces/characters
+                if (word.length() > 1){ //only add 2-letter minimum words as the document has 1-letter words
+                    words.add(word);
+                }
             }
         }
         catch(FileNotFoundException e){ //If the file cannot be found in the directory raise exception
             System.out.println(e);
         }
 
-    }
-
-    /**
-     * Returns the list of words that were obtained from the text file.
-     * @return ArrayList of words
-     */
-    public ArrayList<String> getWords() {
-        return words;
     }
 
     /**

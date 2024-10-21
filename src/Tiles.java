@@ -3,8 +3,8 @@
  * an associated value. When a word is formed, the values of the letter are added up to give a score to the player.
  *
  * Author: Rami Ayoub
- * Student Number:
- * Date:
+ * Version: 1.0
+ * Date: Wednesday, October 16, 2024
  */
 
 public class Tiles{
@@ -26,7 +26,7 @@ public class Tiles{
 
     /**
      * Returns the letter of a tile.
-     * @return String letter
+     * @return letter tile
      */
     public String getLetter() {
         return letter;
@@ -34,7 +34,7 @@ public class Tiles{
 
     /**
      * Returns the value of a tile.
-     * @return int value
+     * @return value tile
      */
     public int getNumber() {
         return value;
