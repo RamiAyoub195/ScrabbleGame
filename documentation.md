@@ -15,16 +15,16 @@ The trade-off is increased memory usage since two board states need to be mainta
 ## 2. Handling of the First Turn Special Rule
  
 ### Design Decision: 
-The second notable design decision is the way the game handles the special rule for the first turn, where the player is required to place the first word so that it covers the center of the board (position 7, 7). The flag firstTurn is used to ensure this rule is strictly enforced.
+The second notable design decision is the way the game handles the special rule for the first turn, where the player is required to place the first word so that it covers the center of the board (position 7, 7). The checkMiddleBoardEmpty() method helps with this check.
 
 ### Benefits:
 
 - Ensures adherence to Scrabble’s rules from the very first turn.
 - Provides user-friendly feedback if the rule is not followed, allowing players to adjust their move without the game advancing incorrectly.
-- The firstTurn flag is simple yet effective in differentiating between the first and next turns, after which standard rules apply.
+- The method is simple yet effective in differentiating between the first and next turns, after which standard rules apply.
 
 ### Trade-off: 
-The logic for checking the first move adds some complexity and edge cases to handle (e.g., ensuring the flag is reset after the first move), but it ensures the game rules are followed, which is critical for an authentic Scrabble experience.
+The logic for checking the first move adds some complexity and edge cases to handle.
 
 ## 3. Tile Validation and Word Scoring System
 

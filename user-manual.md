@@ -8,13 +8,10 @@ This user manual will guide you through how to play this text-based Scrabble gam
 ## 1. Starting the Game
 
 1. Launch the game by running the program.
-2. You will be prompted to enter the number of players. You can choose between 2 to 4 players.
-   - Input a number between 2 and 4 to continue.
 
-3. Each player will then be prompted to enter their name.
-   - Input the player name when prompted.
+2. You will be prompted to enter the name of the 2 players.
 
-4. After all players have been initialized, each player will be given 7 random tiles from the tile bag to start their hand.
+3. After all players have been initialized, each player will be given 7 random tiles from the tile bag to start their hand.
 
 ## 2. Taking a Turn
 
@@ -44,7 +41,7 @@ During each player's turn, the board will be displayed, showing the current stat
 
 ### 1. First Turn Rule
    - On the first turn of the game, the player must place a word that covers the center of the board (position 7, 7).
-   - If the player does not place a word covering this tile, the turn will be canceled, and they must try again until they do.
+   - If the player does not place a word covering this tile, they must try again until they do.
 
 ### 2. Scoring
    - After placing tiles, the game checks for new words formed horizontally and vertically.
@@ -52,12 +49,11 @@ During each player's turn, the board will be displayed, showing the current stat
 
 ## 4. Ending the Game
 
-- The game continues in rounds until no more tiles are available in the tile bag, and one player uses all their tiles.
+- The game continues in rounds until no more tiles are available in the tile bag, and both player use all their tiles.
 - At the end of the game, the player with the highest score wins.
 
 ## 5. Additional Notes
 
-- Players can cancel their move at any time by entering "0" when prompted to place a tile.
 - Invalid moves will be automatically reverted, and players will have another chance to place valid tiles.
 
 Enjoy your game of Scrabble!
