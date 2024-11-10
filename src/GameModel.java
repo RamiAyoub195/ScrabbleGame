@@ -1,3 +1,5 @@
+
+
 import java.util.*;
 
 /**
@@ -11,7 +13,6 @@ import java.util.*;
  */
 
 public class GameModel {
-    private Scanner userInput; //for userInput
     private ArrayList<Player> players; //list of players in the game
     private Player winner; //player who win the game
     private int highestScore; //player with the highest score
@@ -26,7 +27,6 @@ public class GameModel {
      * the list of words and starts the game.
      */
     public GameModel(){
-        userInput = new Scanner(System.in);
         players = new ArrayList<>();
         winner = null;
         highestScore = 0;
@@ -35,78 +35,39 @@ public class GameModel {
         tilesBag = new TilesBag();
         wordList = new WordList();
         rand = new Random();
-        playGame();
     }
 
-    /**
-     * Starts the game of Scrabble by asking for the players names, then iterates through
-     * each player until the game has finished. The game finishes when both players no longer
-     * have any tiles left.
-     */
-    public void playGame(){
-
-        System.out.println("Welcome to the game of Scrabble!"); //Into to user
-
-        for(int i = 1; i <= 2; i++){ //Based it of a two player game
-            System.out.println("Please enter player " + i + " name:");
-            String playerName = userInput.next(); //gets a players name
-            players.add(new Player(playerName)); //creates the new player
-            getRandomTiles(7, players.get(i - 1)); //assigns 7 random tiles from the bag to each player at the start
-        }
-
-        while (!checkGameFinished()){ //keep playing the game until it is finished
-            for(Player player : players){ //traverses through each player getting a turn
-                gameBoard.displayBoard(); //displays the game board
-                player.displayPlayer(); //displays the player
-                playerTurn(player); //plays the playes turn
-            }
-        }
-
-        System.out.println("Thanks for playing! The results are:"); //Tells the players the game is done
-        for(Player player : players){ //traverses through players
-            System.out.println(player.getName() + " with a score of " + player.getScore()); //gets the score of players
-            if(player.getScore() > highestScore){
-                highestScore = player.getScore(); //gets the winner
-                winner = player;
-            }
-        }
-        System.out.println("The winner is " + winner.getName() + " with a score of " + winner.getScore()); //displays the winner
+    public Board getGameBoard() {
+        return gameBoard;
     }
 
-    /**
-     * This function displays the user of their choices when it's their turn.
-     * The player may choose to play tile(s), swap tile(s) or skip their turn.
-     * @param player the player's current turn
-     */
-    public void playerTurn(Player player){
-        System.out.println("Here are your options: Place Tile(s) (0), Swap Tiles (1), Skip Turn (2)"); //user options
-        Scanner userInput = new Scanner(System.in);
-
-        int choice = userInput.nextInt(); //gets the user choice
-
-        while (choice < 0 || choice > 2){ //choice must be a valid choice from the options
-            System.out.println("Please enter a number between 0 and 2:");
-            choice = userInput.nextInt();
-        }
-
-        if (choice == 0){ //player plays a tile
-            playerPlaceTile(player);
-        }
-
-        else if (choice == 1){ //player swaps a tile
-            if(tilesBag.bagOfTileIsEmpty()){ //makes sure that the bag of tiles is not empty for swapping
-                System.out.println("The bag of tiles is empty! cannot swap tile(s)");
-                playerTurn(player);
-            }
-            else{
-                playerSwapTile(player);
-            }
-        }
-
-        else{ //player passes their turn
-            System.out.println("Player turn passed.");
-        }
+    public void addPlayer(String playerName)
+    {
+        Player player = new Player(playerName);
+        players.add(player);
+        getRandomTiles(7, player);
     }
+
+    public ArrayList<Player> getPlayers()
+    {
+        return players;
+    }
+
+    public boolean isGameFinished()
+    {
+        if(tilesBag.bagOfTileIsEmpty())
+        {
+            for(Player player: players)
+            {
+                if(player.getTiles().isEmpty())
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
     /**
      * Takes care of the players decision to place a tile. The tile being placed
@@ -115,66 +76,20 @@ public class GameModel {
      *
      * @param player the player's current turn
      */
-    public void playerPlaceTile(Player player){
-        ArrayList<Tiles> tempTiles = new ArrayList<>(); //temp tiles to place on a temp board
-        ArrayList<Integer> tempRowPositions = new ArrayList<>(); //temp row position of temp tile
-        ArrayList<Integer> tempColPositions = new ArrayList<>(); //temp column position of temp tile
-
-        Scanner userInput = new Scanner(System.in);
-        System.out.println("How many tile(s) would you like to place: ");
-        int choiceNumTiles = userInput.nextInt(); //player tile(s) they would like to place
-
-        while(choiceNumTiles <= 0 || choiceNumTiles > player.getTiles().size()) { //make sure the user selects a valid amount of tiles to play
-            System.out.println("Invalid, player does not have enough tiles or entered an invalid number! Please enter the number of tile(s) you would like to place: ");
-            choiceNumTiles = userInput.nextInt();
-        }
-
-        System.out.println("You will now be entering the word to place tile by tile make sure to enter it in the right order!"); //player must enter the word from left to right
-        player.displayPlayerTiles(); //displays the players tiles
-        System.out.println(); //a line to separate the spacing
-
-        for (int i = 1; i <= choiceNumTiles; i++){ //gets a tiles index from player tiles
-            System.out.println("Please enter tile " + i + " (index 0-6):");
-            int tileIndex = userInput.nextInt();
-
-            while(tileIndex < 0 || tileIndex > 6){ //must be a valid index
-                System.out.println("Invalid index, please enter a valid index (index 0-6):");
-                tileIndex = userInput.nextInt();
-            }
-
-            tempTiles.add(player.getTiles().get(tileIndex)); //adds it to temporary list of tiles
-            System.out.println("Please enter the row position for tile (index 0-14) " + i + " :");
-            int rowIndex = userInput.nextInt(); //row position of tiles
-
-            while(rowIndex < 0 || rowIndex > 14){ //must be valid within the board
-                System.out.println("Invalid row, please enter a valid index (index 0-14):");
-                rowIndex = userInput.nextInt();
-            }
-
-            tempRowPositions.add(rowIndex); //adds row positions
-            System.out.println("Please enter the column position for tile (index 0-14) " + i + " :");
-            int columnIndex = userInput.nextInt(); //column position of tiles
-
-            while(columnIndex < 0 || columnIndex > 14){ //must be a valid column position
-                System.out.println("Invalid column, please enter a valid index (index 0-14):");
-                columnIndex = userInput.nextInt();
-            }
-
-            tempColPositions.add(columnIndex); //adds column position
-        }
-
-        if(placeWord(tempTiles, tempRowPositions, tempColPositions, player)){ //if the word was sucessfully placed
+    public void playerPlaceTile(Player player, ArrayList<Tiles> tiles, ArrayList<Integer> rowPositions,ArrayList<Integer> colPositions){
+        if (placeWord(tiles, rowPositions, colPositions, player)){ //if the word was sucessfully placed
             gameBoard = checkBoard.copyBoard(); //real board gets the checked board
-            for (int i = 0; i < tempTiles.size(); i++){
-                player.getTiles().remove(tempTiles.get(i)); //remove the tiles from the player
-                player.addScore(tempTiles.get(i).getNumber()); //adds the score
+            for (Tiles tile : tiles) {
+                player.getTiles().remove(tile);
+                player.addScore(tile.getNumber());
             }
-            if(!tilesBag.bagOfTileIsEmpty()){
-                getRandomTiles(tempTiles.size(), player); //replaces placed tiles
+            if (!tilesBag.bagOfTileIsEmpty()) {
+                getRandomTiles(tiles.size(), player);
             }
         }
-        else{
-           playerPlaceTile(player); //if the word was not placed, player plays again
+        else
+        {
+            playerPlaceTile(player, tiles, rowPositions, colPositions); //if the word was not placed, player plays again
         }
     }
 
@@ -192,38 +107,29 @@ public class GameModel {
      */
     public boolean placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions, Player player){
         Board savedCheckBoard = checkBoard.copyBoard(); //saves the board while checking the conditions
-
         for (int i = 0; i < tempTiles.size(); i++){ //checks to make sure that the board space is not already occupied
             if(checkBoard.checkBoardTileEmpty(tempRowPositions.get(i), tempColPositions.get(i))){
                 checkBoard.placeBoardTile(tempRowPositions.get(i), tempColPositions.get(i), tempTiles.get(i).getLetter());
             }
             else{
-                System.out.println("A tile is already in place! please place a tile on an empty board space!");
                 checkBoard = savedCheckBoard.copyBoard(); //restores the original board
                 return false;
             }
         }
-
-
         if (!checkBoard.checkMiddleBoardEmpty()){ //the middle board was covered
             for (int i = 0; i < tempTiles.size(); i++){
                 if(!checkBoard.checkAdjacentBoardConnected(tempRowPositions.get(i), tempColPositions.get(i))){ //checks for tile adjacency
-                    System.out.println("Cannot place word as it is not connected horizontally/vertically!");
                     checkBoard = savedCheckBoard.copyBoard(); //restores the original board
                     return false;
                 }
             }
         }
         else{ //the middle of the board was not covered
-            System.out.println("The first word must cover the middle of the board!");
             checkBoard = savedCheckBoard.copyBoard(); //restores the original board
             return false;
         }
 
-
-
         if (!checkValidWord()){ //checks to make sure that a word is valid
-            System.out.println("Invalid word! Please enter a valid word or the word must !");
             checkBoard = savedCheckBoard.copyBoard(); //restores the original board
             return false;
         }
@@ -241,7 +147,8 @@ public class GameModel {
      *
      */
     public boolean checkValidWord(){
-        for(int row = 0; row < 15; row++){ //goes throw each row
+        for(int row = 0; row < 15; row++)
+        { //goes throw each row
             StringBuilder word = new StringBuilder(); //creates a string for each row
             for(int col = 0; col < 15; col++){
                 if(!checkBoard.getBoard()[row][col].equals("  -  ")){
@@ -261,28 +168,24 @@ public class GameModel {
                 }
             }
         }
-
         for(int col = 0; col < 15; col++){ //goes through each column
             StringBuilder word = new StringBuilder(); //creates a string for each column
             for(int row = 0; row < 15; row++){
                 if(!checkBoard.getBoard()[row][col].equals("  -  ")){
                     word.append(checkBoard.getBoard()[row][col].trim()); //adds and trims each letter in the column
-                }
-                else if (word.length() > 1) { //must be at least a two-letter word
+                } else if (word.length() > 1) { //must be at least a two-letter word
                     if(!wordList.isValidWord(word.toString()) && !wordList.isValidWord(word.reverse().toString())){ //checks both sides of the word
                         return false;
                     }
                     word.setLength(0); //resets the string size back
                 }
             }
-
             if (word.length() > 1){ //in case a word ended at the end of a column checks for the word
                 if(!wordList.isValidWord(word.toString()) && !wordList.isValidWord(word.reverse().toString())){
                     return false;
                 }
             }
         }
-
         return true;
     }
 
@@ -292,40 +195,16 @@ public class GameModel {
      * and that the bag of tiles is not empty.
      * @param player who currently has a turn
      */
-    public void playerSwapTile(Player player){
-        System.out.println("How many tile(s) would you like to swap: ");
-        int choiceNumTiles = userInput.nextInt(); //the number of tiles player wants to swap
-
-        while(choiceNumTiles > player.getTiles().size()) { //make sure the user selects a valid amount of tiles to play
-            System.out.println("Invalid, user does not have enough tiles! Please enter the number of tile(s) you would like to swap: ");
-            choiceNumTiles = userInput.nextInt(); //must swap valid number of tiles
+    public void playerSwapTile(Player player, List<Integer> tileIndices) {
+        if (tilesBag.bagOfTileIsEmpty()) {
+            return; // No tiles to swap
         }
-
-        for (int i = 1; i <= choiceNumTiles; i++){
-            System.out.println("Select tile " + i + " to swap (Enter the index (0-6)): ");
-            int tileIndex = userInput.nextInt(); //gets the tile
-
-            Tiles t = player.getTiles().get(tileIndex);
-            player.getTiles().remove(tileIndex); //removes the tile
-
-            replaceSwappedTile(player, tileIndex); //gets a tile from the bag
-            tilesBag.bagArraylist().add(t); //adds the tiles
+        for (int index : tileIndices) {
+            Tiles t = player.getTiles().get(index);
+            player.getTiles().remove(index);
+            replaceSwappedTile(player, index);
+            tilesBag.bagArraylist().add(t);
         }
-    }
-
-    /**
-     * Signals that the game has finished when all players have placed all of their tiles.
-     *
-     * @return a boolean true if both players have no more tiles, false otherwise
-     */
-    public boolean checkGameFinished(){
-        boolean status = true;
-        for(Player p : players){
-            if(!p.getTiles().isEmpty()){ //the player still has tiles
-                status = false;
-            }
-        }
-        return status;
     }
 
     /**
@@ -355,7 +234,93 @@ public class GameModel {
         tilesBag.bagArraylist().remove(rnd); //removes from bag
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
         GameModel gameModel = new GameModel();
+
+        // Add players through user input
+        for (int i = 1; i <= 2; i++) { // Assuming a 2-player game for simplicity
+            System.out.print("Enter name for Player " + i + ": ");
+            String playerName = scanner.nextLine();
+            gameModel.addPlayer(playerName);
+        }
+
+        Board board = gameModel.getGameBoard();
+        boolean gameOver = false;
+        int currentPlayerIndex = 0;
+
+        while (!gameOver) {
+            Player currentPlayer = gameModel.getPlayers().get(currentPlayerIndex);
+            System.out.println(currentPlayer.getName() + "'s turn:");
+            board.displayBoard();
+            currentPlayer.displayPlayer();
+
+            System.out.println("Choose an action: 1) Place Tiles 2) Swap Tiles 3) Pass");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            if (choice == 1) {
+                // Simulate placing tiles (ask for user input for simplicity)
+                System.out.print("Enter number of tiles to place: ");
+                int numTiles = scanner.nextInt();
+                scanner.nextLine(); // Consume newline
+
+                ArrayList<Tiles> tiles = new ArrayList<>(); // Mock tiles, you may need to add logic to select actual tiles
+                ArrayList<Integer> rowPositions = new ArrayList<>();
+                ArrayList<Integer> colPositions = new ArrayList<>();
+
+                for (int i = 0; i < numTiles; i++) {
+                    System.out.print("Enter tile index (0-6): ");
+                    int tileIndex = scanner.nextInt();
+                    tiles.add(currentPlayer.getTiles().get(tileIndex));
+
+                    System.out.print("Enter row position (0-14): ");
+                    int row = scanner.nextInt();
+                    rowPositions.add(row);
+
+                    System.out.print("Enter column position (0-14): ");
+                    int col = scanner.nextInt();
+                    colPositions.add(col);
+                }
+
+                gameModel.playerPlaceTile(currentPlayer, tiles, rowPositions, colPositions);
+            } else if (choice == 2) {
+                // Swap tiles logic
+                System.out.print("Enter number of tiles to swap: ");
+                int numTiles = scanner.nextInt();
+                scanner.nextLine(); // Consume newline
+
+                List<Integer> tileIndices = new ArrayList<>();
+                for (int i = 0; i < numTiles; i++) {
+                    System.out.print("Enter tile index (0-6) to swap: ");
+                    tileIndices.add(scanner.nextInt());
+                }
+                gameModel.playerSwapTile(currentPlayer, tileIndices);
+            }
+            else if (choice == 3) {
+                System.out.println(currentPlayer.getName() + " passes their turn.");
+            }
+
+            // Check if the game is finished
+            gameOver = gameModel.isGameFinished();
+
+            // Move to the next player
+            currentPlayerIndex = (currentPlayerIndex + 1) % gameModel.getPlayers().size();
+
+            // Get updated gameboard
+            board = gameModel.getGameBoard();
+        }
+
+        // Display game results
+        System.out.println("The game has ended. Final results:");
+        for (Player player : gameModel.getPlayers()) {
+            System.out.println(player.getName() + " scored " + player.getScore());
+        }
+
+        Player winner = gameModel.getPlayers().stream().max(Comparator.comparingInt(Player::getScore)).orElse(null);
+        if (winner != null) {
+            System.out.println("The winner is " + winner.getName() + " with a score of " + winner.getScore());
+        }
     }
 }
+
