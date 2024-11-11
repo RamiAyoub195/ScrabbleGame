@@ -146,6 +146,10 @@ public class Board {
             System.out.println();
         }
     }
+
+    public Cell getCell(int row, int col) {
+        return board[row][col];
+    }
 }
 
 

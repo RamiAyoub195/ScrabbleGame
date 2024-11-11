@@ -79,7 +79,7 @@ public class GameModel {
             for (Tiles tile : tiles)
             {
                 player.getTiles().remove(tile);
-                player.addScore(tile.getNumber());
+                //player.addScore(turnScore(rowPositions, colPositions));
             }
             if (!tilesBag.bagOfTileIsEmpty())
             {
@@ -90,6 +90,43 @@ public class GameModel {
         {
             playerPlaceTile(player, tiles, rowPositions, colPositions); //if the word was not placed, player plays again
         }
+    }
+
+    public int turnScore(int row, int col){
+        int score = gameBoard.getCell(row, col).getTile().getNumber();
+        for (int i = row + 1; i < 15; i++){
+            if (gameBoard.getCell(i, col).getTile() != null){
+                score += gameBoard.getCell(i, col).getTile().getNumber();
+            }
+            else{
+                break;
+            }
+        }
+        for (int i = row - 1; i >= 0; i--){
+            if (gameBoard.getCell(i, col).getTile() != null){
+                score += gameBoard.getCell(i, col).getTile().getNumber();
+            }
+            else{
+                break;
+            }
+        }
+        for (int i = col + 1; i < 15; i++){
+            if (gameBoard.getCell(row, i).getTile() != null){
+                score += gameBoard.getCell(row, i).getTile().getNumber();
+            }
+            else{
+                break;
+            }
+        }
+        for (int i = col - 1; i >= 0; i--){
+            if (gameBoard.getCell(row, i).getTile() != null){
+                score += gameBoard.getCell(row, i).getTile().getNumber();
+            }
+            else{
+                break;
+            }
+        }
+        return score;
     }
 
     /**
@@ -111,6 +148,7 @@ public class GameModel {
         { // checks to make sure that the board space is not already occupied
             if (checkBoard.checkBoardTileEmpty(tempRowPositions.get(i), tempColPositions.get(i))) {
                 checkBoard.placeBoardTile(tempRowPositions.get(i), tempColPositions.get(i), tempTiles.get(i));
+                gameBoard.placeBoardTile(tempRowPositions.get(i), tempColPositions.get(i), tempTiles.get(i));
             } else {
                 checkBoard = savedCheckBoard.copyBoard(); // restores the original board
                 return false;
@@ -287,21 +325,25 @@ public class GameModel {
                 ArrayList<Integer> rowPositions = new ArrayList<>();
                 ArrayList<Integer> colPositions = new ArrayList<>();
 
+                int row = 0;
+                int col = 0;
                 for (int i = 0; i < numTiles; i++) {
                     System.out.print("Enter tile index (0-6): ");
                     int tileIndex = scanner.nextInt();
                     tiles.add(currentPlayer.getTiles().get(tileIndex));
 
                     System.out.print("Enter row position (0-14): ");
-                    int row = scanner.nextInt();
+                    row = scanner.nextInt();
                     rowPositions.add(row);
 
                     System.out.print("Enter column position (0-14): ");
-                    int col = scanner.nextInt();
+                    col = scanner.nextInt();
                     colPositions.add(col);
                 }
 
                 gameModel.playerPlaceTile(currentPlayer, tiles, rowPositions, colPositions);
+                currentPlayer.addScore(gameModel.turnScore(row, col));
+
             } else if (choice == 2) {
                 // Swap tiles logic
                 System.out.print("Enter number of tiles to swap: ");
