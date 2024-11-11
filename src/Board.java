@@ -88,6 +88,11 @@ public class Board {
         board[row][col].placeTile(tile);
     }
 
+    public void removeBoardTile(int row, int col, Tiles tile)
+    {
+        board[row][col].removeTile();
+    }
+
     /**
      * Checks to see if the middle of the board is empty
      * @return true if middle empty, false otherwise

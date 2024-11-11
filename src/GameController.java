@@ -22,7 +22,7 @@ public class GameController implements ActionListener {
         this.view.setAllButtonsActionListener(this); //sets the controller as the action listener for all buttons in the view
 
         for(String playerName : view.getPlayerNames()){
-            model.createPlayer(playerName); //creates players in the game model after getting the names from the view
+            model.addPlayer(playerName); //creates players in the game model after getting the names from the view
         }
 
         view.setUpPlayerTilesPanel(model.getPlayers().get(0)); // Set up the first player's tiles
