@@ -23,6 +23,8 @@ public class GameView extends JFrame {
     private JTextField tileBagCount; //represents a count for the number of tiles remaining in the bag
     private JButton[][] boardFields; //represents the open slots where the tiles can be placed by selecting a tile an open spot
     private JButton[][] playerTiles; //represents the buttons that will have the players tiles on them as a label
+    private HashMap<String, JTextField> playerScoreFields; //will store the players name and their score
+    private JTextField playerTurn; //the player who has the current turn;
     private JPanel wordPlacedPanel; //this panel will have the words placed in the game and a count of the words
     private JPanel playerPanel; //this panel will have the players names and their scores
     private JPanel tileBagPanel; //this panel will have the number of tiles in the bag during the game
@@ -44,7 +46,13 @@ public class GameView extends JFrame {
 
         boardFields = new JButton[16][16]; //creates the 16 slots that will be on the board game (1 slot each for row and column)
 
+        playerTiles = new JButton[1][7]; //will be the buttons that represent the 7 tiles of a player
+
         playerNames = new ArrayList<>(); //initializes the arrayList of names
+
+        playerScoreFields = new HashMap<>(); //initializes the hashmap for the players score
+
+        playerTurn = new JTextField(); //initializes the text field for the players turn which will say which player has their turn
 
         bottomPanel = new JPanel(); //will display the players tiles and their options of playing such as play, pass and swap
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS)); //makes it a box layout where content is added horizontally
@@ -64,12 +72,11 @@ public class GameView extends JFrame {
 
         setUpButtonsPanel(); //sets up the button options for the player
 
-        this.add(boardPanel, BorderLayout.CENTER);
+        this.add(boardPanel, BorderLayout.CENTER); //add the board field in the middle
         this.add(rightSidePanel, BorderLayout.EAST); // Adds the right-side panel to the main frame
-        this.add(bottomPanel, BorderLayout.SOUTH);
+        this.add(bottomPanel, BorderLayout.SOUTH); //adds the tiles and the buttons of choice for play in the bottom
         this.setSize(500, 400);
         this.setVisible(true);
-
     }
 
 
@@ -162,8 +169,8 @@ public class GameView extends JFrame {
     public void setUpPlayerPanel(){
         playerPanel = new JPanel(); //this panel will have all the players and their scores
         playerPanel.setLayout(new BoxLayout(playerPanel, BoxLayout.X_AXIS)); //will add their name and score on an x-axis
-        for(int i = 0; i < playerNames.size(); i++){
-            JLabel playerScoreLabel = new JLabel(playerNames.get(i) + "'s" + " Score:"); //the label for the player i score
+        for(String playerName: playerNames){
+            JLabel playerScoreLabel = new JLabel(playerName + "'s" + " Score:"); //the label for the player i score
             JTextField playerScoreText = new JTextField("0"); //the actual display for the score
             playerScoreText.setEditable(false); //disables the text field so that it cant be editable just see the players score
             playerScoreText.setBackground(Color.WHITE); //makes the background of the text field white
@@ -171,8 +178,11 @@ public class GameView extends JFrame {
             playerScoreText.setHorizontalAlignment(SwingConstants.CENTER); // centers the text horizontally
             playerPanel.add(playerScoreLabel); //adds the label
             playerPanel.add(playerScoreText); //adds the score
-            rightSidePanel.add(playerPanel); //adds the player panel to the right side panel
+
+            playerScoreFields.put(playerName, playerScoreText); //adds it to the hashmap with the players name and their score
+
         }
+        rightSidePanel.add(playerPanel); //adds the player panel to the right side panel
     }
 
     /**
@@ -198,21 +208,19 @@ public class GameView extends JFrame {
     public void setUpPlayerTilesPanel(Player player){
         playerTilesPanel = new JPanel(); //creates the panel that will display the players tiles
         playerTilesPanel.setLayout(new BoxLayout(playerTilesPanel, BoxLayout.X_AXIS)); //makes it a box layout that will have the tiles added horizontally
-        JTextField playerTurn = new JTextField(player.getName() + "'s Tiles: "); //shows a text field for the current players turn
+        playerTurn = new JTextField(player.getName() + "'s Tiles: "); //shows a text field for the current players turn
         playerTurn.setEditable(false); //makes it non editable
         playerTurn.setBackground(Color.WHITE); //makes the background colour while
         playerTurn.setMaximumSize(new Dimension(150, 20)); //makes the dimensions of the text label
         playerTurn.setHorizontalAlignment(SwingConstants.CENTER); // centers the text horizontally
-        playerTilesPanel.add(playerTurn);
-        playerTiles = new JButton[1][7]; //will be the buttons that represent the 7 tiles of a player
-        for(int i = 0; i < 1; i++){
-            for(int j = 0; j < 7; j++){
-                playerTiles[i][j] = new JButton(); //creates the new buttons
-                playerTiles[i][j].setEnabled(true);
-                playerTiles[i][j].setText(player.getTiles().get(j).toString()); //will display the tiles of the player
-                playerTiles[i][j].setBackground(Color.LIGHT_GRAY); //makes the color of the tile buttons light grey
-                playerTilesPanel.add(playerTiles[i][j]); //adds the button to the tiles panel
-            }
+        playerTilesPanel.add(playerTurn); //adds the text box saying which players turn it is
+
+        for(int i = 0; i < 7; i++){
+            playerTiles[0][i] = new JButton(); //creates the new buttons
+            playerTiles[0][i].setEnabled(true); //makes them clickable
+            playerTiles[0][i].setText(player.getTiles().get(i).toString()); //will display the tiles of the player
+            playerTiles[0][i].setBackground(Color.LIGHT_GRAY); //makes the color of the tile buttons light grey
+            playerTilesPanel.add(playerTiles[0][i]); //adds the button to the tiles pane
         }
         bottomPanel.add(playerTilesPanel); //adds the tiles to the bottom panel
     }
@@ -299,8 +307,8 @@ public class GameView extends JFrame {
      * @return the index of tile represented as a button selected by player
      */
     public int getTileIndex(JButton button){
-        for (int i = 0; i < playerTiles[1].length; i++) { //traverses through the players tiles
-                if(playerTiles[1][i] == button){ //if it was the button pressed
+        for (int i = 0; i < playerTiles[0].length; i++) { //traverses through the players tiles
+                if(playerTiles[0][i] == button){ //if it was the button pressed
                     return i; //return the index of the tile
                 }
         }
@@ -349,26 +357,27 @@ public class GameView extends JFrame {
      * @param player who is at turn to play
      */
     public void updatePlayerTiles(Player player){
-        for (int i = 0; i < playerTiles[1].length; i++) { //traverses through the player tiles panel of buttons
+        playerTurn.setText(player.getName() + "'s Tiles: ");
+        for (int i = 0; i < playerTiles[0].length; i++) { //traverses through the player tiles panel of buttons
             if(i < player.getTiles().size()){ //if the player has enough tiles to be displayed the update the button with the tile
-                playerTiles[1][i].setText(player.getTiles().get(i).toString()); //updates the tiles with the current players tiles
+                playerTiles[0][i].setText(player.getTiles().get(i).toString()); //updates the tiles with the current players tiles
             }
             else { //The player does not have enough tiles to be displayed on the button panel
-                playerTiles[1][i].setText(""); //makes it have no text
-                playerTiles[1][i].setEnabled(false); //makes it not clickable
+                playerTiles[0][i].setText(""); //makes it have no text
+                playerTiles[0][i].setEnabled(false); //makes it not clickable
             }
         }
     }
 
     /**
-     * Temporarily suspends the other player tiles when a player has clicked on one of the
+     * Temporarily suspends the player tiles when a player has clicked on one of the
      * tiles that they will place on the board or swap with tiles in the bag.
      * @param tile the tile selected by the player
      */
     public void tempDisablePlayerTiles(Tiles tile){
-        for(int i = 0; i < playerTiles[1].length; i++){ //traverses through the tiles of the player
-            if(!(playerTiles[1][i].getText().equals(tile.toString()))){ //if the tile is not the one that was selected
-                playerTiles[1][i].setEnabled(false); //temporarily disable it
+        for(int i = 0; i < playerTiles[0].length; i++){ //traverses through the tiles of the player
+            if((playerTiles[0][i].getText().equals(tile.toString()))){ //if the tile is one that was selected
+                playerTiles[0][i].setEnabled(false); //temporarily disable it
             }
         }
     }
@@ -378,9 +387,9 @@ public class GameView extends JFrame {
      * @param tile the tile that was previously selected marking the others disabled
      */
     public void enablePlayerTiles(Tiles tile){
-        for(int i = 0; i < playerTiles[1].length; i++){ //traverses through the players tiles
-            if(!(playerTiles[1][i].getText().equals(tile.toString()))){ //if it was not the previously selected tile
-                playerTiles[1][i].setEnabled(true); //enables it again
+        for(int i = 0; i < playerTiles[0].length; i++){ //traverses through the players tiles
+            if((playerTiles[0][i].getText().equals(tile.toString()))){ //if it was not the previously selected tile
+                playerTiles[0][i].setEnabled(true); //enables it again
             }
         }
     }
@@ -396,8 +405,20 @@ public class GameView extends JFrame {
         boardFields[row][col].setText(tile.toString()); //adds the string of the tile
         boardFields[row][col].setBackground(Color.GRAY); //makes the button color gray
         boardFields[row][col].setFont(new Font("Arial", Font.BOLD, 14)); //makes it bolded to be seen after the button becomes gray
-        boardFields[row][col].setEnabled(false); //makes the button not clickable
+
     }
+
+    /**
+     * Clear the temporary placed tiles after a player attempt to add a word to the board.
+     * @param tile the tile being cleared.
+     * @param row the row position of tile.
+     * @param col the column position of tile.
+     */
+    public void removeTempTilesOnBoardField(Tiles tile, int row, int col) {
+        boardFields[row][col].setText(""); //sets the text as empty
+        boardFields[row][col].setBackground(Color.WHITE); //makes the colour of the board white
+    }
+
 
     /**
      * Sets up the action listeners for board field buttons when a player clicks on
@@ -415,8 +436,8 @@ public class GameView extends JFrame {
         swapButton.addActionListener(listener); //adds an action listener to the play button
         passButton.addActionListener(listener); //adds an action listener to the play button
 
-        for(int i = 0; i < playerTiles[1].length; i++){ //traverses through the buttons of the player tiles
-            playerTiles[1][i].addActionListener(listener); //adds an action listener to all the tiles of the player
+        for(int i = 0; i < playerTiles[0].length; i++){ //traverses through the buttons of the player tiles
+            playerTiles[0][i].addActionListener(listener); //adds an action listener to all the tiles of the player
         }
     }
 
@@ -462,6 +483,26 @@ public class GameView extends JFrame {
     public JButton getSpecificPlayerTileButton(int col) {
         return playerTiles[0][col];
     }
+
+    /**
+     * Displays a message to the player teeling them if they placed an invalid word, or violated one of the rules
+     * etc.
+     * @param message the message to the player
+     */
+    public void displayMessageToPlayer(String message){
+        JOptionPane.showMessageDialog(null, message); //displays the message to the player
+    }
+
+    /**
+     * Updates the players score after they have placed a successful word on the board fields.
+     * @param playerName the name of the player
+     * @param newScore the new score that will be updated
+     */
+    public void updatePlayerScore(String playerName, int newScore){
+        JTextField scoreField = playerScoreFields.get(playerName); //gets the reference of the player score text field
+        scoreField.setText(String.valueOf(newScore)); //sets the new score
+    }
+
 }
 
 
