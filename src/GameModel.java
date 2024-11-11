@@ -1,3 +1,4 @@
+
 import java.util.*;
 
 /**
@@ -19,6 +20,7 @@ public class GameModel {
     private TilesBag tilesBag; //a bag of tiles in the game
     private WordList wordList; //valid word list of words from example txt file
     private Random rand; //to get random tiles from the bag when swapping or replacing placed tiles
+    private String statusMessage;
 
     /**
      * Initializes the list of players, the boards, the user input scanner, the bag of tiles,
@@ -86,11 +88,15 @@ public class GameModel {
                 getRandomTiles(tiles.size(), player);
             }
         }
-        else
-        {
-            playerPlaceTile(player, tiles, rowPositions, colPositions); //if the word was not placed, player plays again
-        }
+        // Print or log the status message
+        System.out.println(statusMessage);
     }
+
+    public String getStatusMessage()
+    {
+        return statusMessage;
+    }
+
 
     /**
      * Places a word on the board, the first word needs to go through the middle square.
@@ -104,37 +110,70 @@ public class GameModel {
      *
      * @return boolean true if the word was placed, false otherwise
      */
-    public boolean placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions, Player player)
-    {
-        Board savedCheckBoard = checkBoard.copyBoard(); // saves the board while checking the conditions
-        for (int i = 0; i < tempTiles.size(); i++)
-        { // checks to make sure that the board space is not already occupied
-            if (checkBoard.checkBoardTileEmpty(tempRowPositions.get(i), tempColPositions.get(i))) {
-                checkBoard.placeBoardTile(tempRowPositions.get(i), tempColPositions.get(i), tempTiles.get(i));
-            } else {
-                checkBoard = savedCheckBoard.copyBoard(); // restores the original board
+    public boolean placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions, Player player) {
+        Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
+        boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
+        boolean isAdjacent = false;
+
+        // Attempt to place each tile and check for valid conditions
+        for (int i = 0; i < tempTiles.size(); i++) {
+            int row = tempRowPositions.get(i);
+            int col = tempColPositions.get(i);
+
+            // Ensure the board space is empty
+            if (!checkBoard.checkBoardTileEmpty(row, col)) {
+                checkBoard = savedCheckBoard.copyBoard(); // Restore board state
+                statusMessage = "Error: Board space already occupied.";
                 return false;
             }
-        }
-        if (!checkBoard.checkMiddleBoardEmpty()) { // the middle board was covered
-            for (int i = 0; i < tempTiles.size(); i++) {
-                if (!checkBoard.checkAdjacentBoardConnected(tempRowPositions.get(i), tempColPositions.get(i))) { // checks for tile adjacency
-                    checkBoard = savedCheckBoard.copyBoard(); // restores the original board
-                    return false;
-                }
+
+            // Temporarily place tile to check adjacency and center coverage
+            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
+
+            // Check if the middle cell is covered on the first move
+            if (isFirstWord && row == 7 && col == 7) {
+                isAdjacent = true; // Middle cell is covered, so first word placement is valid
             }
-        } else { // the middle of the board was not covered
-            checkBoard = savedCheckBoard.copyBoard(); // restores the original board
+
+            // For subsequent words, check if the tile is adjacent to any occupied cell
+            if (!isFirstWord && checkBoard.checkAdjacentBoardConnected(row, col)) {
+                isAdjacent = true; // Tile is adjacent to an existing tile, making placement valid
+            }
+            checkBoard.removeBoardTile(row, col, tempTiles.get(i));
+        }
+
+        // Restore the board if conditions are not met
+        if (isFirstWord && !isAdjacent) {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Middle cell not covered for the first word.";
+            return false;
+        } else if (!isFirstWord && !isAdjacent) {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Word placement is not adjacent to any existing words.";
             return false;
         }
 
-        if (!checkValidWord()) { // checks to make sure that a word is valid
-            checkBoard = savedCheckBoard.copyBoard(); // restores the original board
+        // Validate the formed word
+        if (!checkValidWord())
+        {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Invalid word.";
             return false;
         }
 
+        for (int i = 0; i < tempTiles.size(); i++)
+        {
+            int row = tempRowPositions.get(i);
+            int col = tempColPositions.get(i);
+
+            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
+
+        }
+
+        statusMessage = "Word placed successfully.";
         return true;
     }
+
 
     /**
      * Checks to see if the added word is a valid word from the list of words in the
@@ -158,6 +197,14 @@ public class GameModel {
         return true;
     }
 
+
+    /**
+     * Checks if all the words formed in the specified row are valid according to
+     * the word list. Words are validated both forwards and backwards.
+     *
+     * @param row the row index to validate
+     * @return true if all words in the row are valid, false otherwise
+     */
     private boolean isValidWordInRow(int row) {
         StringBuilder word = new StringBuilder();
         for (int col = 0; col < 15; col++) {
@@ -176,6 +223,13 @@ public class GameModel {
         return true;
     }
 
+    /**
+     * Checks if all the words formed in the specified column are valid according to
+     * the word list. Words are validated both forwards and backwards.
+     *
+     * @param col the column index to validate
+     * @return true if all words in the column are valid, false otherwise
+     */
     private boolean isValidWordInColumn(int col) {
         StringBuilder word = new StringBuilder();
         for (int row = 0; row < 15; row++) {
@@ -194,6 +248,13 @@ public class GameModel {
         return true;
     }
 
+    /**
+     * Checks if the provided word is valid in either forward or reverse direction
+     * according to the word list.
+     *
+     * @param word the word to validate
+     * @return true if the word or its reverse is valid, false otherwise
+     */
     private boolean isWordValidBothDirections(StringBuilder word) {
         return wordList.isValidWord(word.toString()) || wordList.isValidWord(word.reverse().toString());
     }
@@ -244,18 +305,40 @@ public class GameModel {
         tilesBag.bagArraylist().remove(rnd); //removes from bag
     }
 
+    /**
+     * Returns the check board, used for validating word placements and
+     * ensuring adjacency requirements.
+     *
+     * @return the current check board
+     */
     public Board getCheckBoard() {
         return checkBoard;
     }
 
+    /**
+     * Returns the bag containing all tiles used in the game.
+     *
+     * @return the tile bag for the game
+     */
     public TilesBag getTilesBag() {
         return tilesBag;
     }
 
+    /**
+     * Returns the word list containing all valid words for the game.
+     *
+     * @return the word list for validating words
+     */
     public WordList getWordList() {
         return wordList;
     }
 
+    /**
+     * Retrieves a player from the game by their name.
+     *
+     * @param name the name of the player to retrieve
+     * @return the Player object if a match is found; null otherwise
+     */
     public Player getPlayerByName(String name) {
         for (Player player : players) {
             if (player.getName().equals(name)) {
@@ -355,4 +438,3 @@ public class GameModel {
         }
     }
 }
-
