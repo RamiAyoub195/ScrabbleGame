@@ -13,7 +13,7 @@ public class Board {
 
     private int rows; //rows of the board
     private int cols; //columns of the board
-    private String[][] board; //the board
+    private Cell[][] board; //the board
 
     /**
      * Initialized the board for the game, the board is a 15 by 15 board and sets up each
@@ -25,7 +25,7 @@ public class Board {
     public Board(int rows, int cols) {
         this.rows = rows;
         this.cols = cols;
-        board = new String[rows][cols];
+        board = new Cell[rows][cols];
         setUpBoard();
     }
 
@@ -37,9 +37,14 @@ public class Board {
      */
     public Board copyBoard() {
         Board newBoard = new Board(this.rows, this.cols);
-        for (int i = 0; i < this.rows; i++) {
-            for (int j = 0; j < this.cols; j++) {
-                newBoard.board[i][j] = this.board[i][j];
+        for (int i = 0; i < this.rows; i++)
+        {
+            for (int j = 0; j < this.cols; j++)
+            {
+                if (this.board[i][j].isOccupied())
+                {
+                    newBoard.board[i][j].placeTile(new Tiles(this.board[i][j].getTile().getLetter(), this.board[i][j].getTile().getNumber()));
+                }
             }
         }
         return newBoard;
@@ -48,10 +53,13 @@ public class Board {
     /**
      * initializes a board where each row and column entry are empty to begin with.
      */
-    public void setUpBoard(){
-        for(int i = 0; i < rows; i++){
-            for(int j = 0; j < cols; j++){
-                board[i][j] = "  -  ";
+    public void setUpBoard()
+    {
+        for(int i = 0; i < rows; i++)
+        {
+            for(int j = 0; j < cols; j++)
+            {
+                board[i][j] = new Cell();
             }
         }
     }
@@ -64,8 +72,9 @@ public class Board {
      * @param col col of the tile to be placed
      * @return true of the board placement is empty, false otherwise
      */
-    public boolean checkBoardTileEmpty(int row, int col){
-        return board[row][col].equals("  -  ");
+    public boolean checkBoardTileEmpty(int row, int col)
+    {
+        return !board[row][col].isOccupied();
     }
 
     /**
@@ -74,23 +83,25 @@ public class Board {
      * @param col column to place tile on the board
      * @param letter the letter of the tile to be placed
      */
-    public void placeBoardTile(int row, int col, String letter){
-        board[row][col] = "  " + letter + "  ";
+    public void placeBoardTile(int row, int col, Tiles tile)
+    {
+        board[row][col].placeTile(tile);
     }
 
     /**
      * Checks to see if the middle of the board is empty
      * @return true if middle empty, false otherwise
      */
-    public boolean checkMiddleBoardEmpty(){
-        return board[7][7].equals("  -  ");
+    public boolean checkMiddleBoardEmpty()
+    {
+        return !board[7][7].isOccupied();
     }
 
     /**
      * Returns the board in the game to access the board
      * @return board
      */
-    public String[][] getBoard(){
+    public Cell[][] getBoard(){
         return board;
     }
 
@@ -101,52 +112,36 @@ public class Board {
      * @param col column of the tile being placed
      * @return true if the tile is adjacently connected, false otherwise
      */
-    public boolean checkAdjacentBoardConnected(int row, int col){
-        if (row == 0 && col == 0){ //Top Left Corner
-            return !board[row + 1][col].equals("  -  ") || !board[row][col + 1].equals("  -  ");
+    public boolean checkAdjacentBoardConnected(int row, int col) {
+        if (row == 0 && col == 0) { // Top left corner
+            return board[row + 1][col].isOccupied() || board[row][col + 1].isOccupied();
+        } else if (row == rows - 1 && col == 0) { // Bottom left corner
+            return board[row - 1][col].isOccupied() || board[row][col + 1].isOccupied();
+        } else if (row == 0 && col == cols - 1) { // Top right corner
+            return board[row][col - 1].isOccupied() || board[row + 1][col].isOccupied();
+        } else if (row == rows - 1 && col == cols - 1) { // Bottom right corner
+            return board[row - 1][col].isOccupied() || board[row][col - 1].isOccupied();
+        } else if (col == 0 && (row > 0 && row < rows - 1)) { // Left edge
+            return board[row - 1][col].isOccupied() || board[row + 1][col].isOccupied() || board[row][col + 1].isOccupied();
+        } else if (col == cols - 1 && (row > 0 && row < rows - 1)) { // Right edge
+            return board[row - 1][col].isOccupied() || board[row + 1][col].isOccupied() || board[row][col - 1].isOccupied();
+        } else if (row == 0 && (col > 0 && col < cols - 1)) { // Top edge
+            return board[row][col - 1].isOccupied() || board[row][col + 1].isOccupied() || board[row + 1][col].isOccupied();
+        } else if (row == rows - 1 && (col > 0 && col < cols - 1)) { // Bottom edge
+            return board[row][col - 1].isOccupied() || board[row][col + 1].isOccupied() || board[row - 1][col].isOccupied();
         }
-
-        else if (row == 14 && col == 0){ //Bottom left Corner
-            return !board[row - 1][col].equals("  -  ") || !board[row][col + 1].equals("  -  ");
-        }
-
-        else if (row == 0 && col == 14){ //Top Right Corner
-            return !board[row][col - 1].equals("  -  ") || !board[row + 1][col].equals("  -  ");
-        }
-
-        else if (row == 14 && col == 14){ //Bottom Right Corner
-            return !board[row - 1][col].equals("  -  ") || !board[row][col - 1].equals("  -  ");
-
-        }
-
-        else if (col == 0 && (row > 0 && row < 14)) { //Left Edge
-            return !board[row - 1][col].equals("  -  ") || !board[row + 1][col].equals("  -  ") || !board[row][col + 1].equals("  -  ");
-        }
-
-        else if (col == 14 && (row > 0 && row < 14)) { //Right Edge
-            return !board[row - 1][col].equals("  -  ") || !board[row + 1][col].equals("  -  ") || !board[row][col - 1].equals("  -  ");
-        }
-
-        else if (row == 0 && (col > 0 && col < 14)) { //Top Edge
-            return !board[row][col - 1].equals("  -  ") || !board[row][col + 1].equals("  -  ") || !board[row + 1][col].equals("  -  ");
-        }
-
-        else if (row == 14 && (col > 0 && col < 14)) { //Bottom Edge
-            return !board[row][col - 1].equals("  -  ") || !board[row][col + 1].equals("  -  ") || !board[row - 1][col].equals("  -  ");
-        }
-
-        //Anywhere else
-        return !board[row + 1][col].equals("  -  ") || !board[row][col + 1].equals("  -  ") ||
-                !board[row - 1][col].equals("  -  ") || !board[row][col - 1].equals("  -  ");
+        // Anywhere else
+        return board[row + 1][col].isOccupied() || board[row][col + 1].isOccupied() ||
+                board[row - 1][col].isOccupied() || board[row][col - 1].isOccupied();
     }
 
     /**
      * Displays the board of the game showing each row and column
      */
-    public void displayBoard(){
-        for(int i = 0; i < rows; i++){
-            for(int j = 0; j < cols; j++){
-                System.out.print(board[i][j]);
+    public void displayBoard() {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                System.out.print(board[i][j].toString());
             }
             System.out.println();
         }
