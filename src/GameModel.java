@@ -81,7 +81,7 @@ public class GameModel {
             for (Tiles tile : tiles)
             {
                 player.getTiles().remove(tile);
-                player.addScore(tile.getNumber());
+                //player.addScore(tile.getNumber());
             }
             if (!tilesBag.bagOfTileIsEmpty())
             {
@@ -171,7 +171,67 @@ public class GameModel {
         }
 
         statusMessage = "Word placed successfully.";
+        player.addScore(turnScore(tempTiles, tempRowPositions, tempColPositions));
         return true;
+    }
+
+
+    /**
+     * When a word/words are placed on the board, this method will be called to calculate
+     * the score earned by these moves. It will achieve this by adding the score values of all tiles
+     * placed, as well as adjacent tiles to give points for the entire words created, not
+     * just newly placed tiles
+     *
+     * @param tempTiles a list of the tiles
+     * @param tempRowPositions a list of row positions for the tiles
+     * @param tempColPositions a list of column positions for the tiles
+     * @return the total score earned in the move
+     */
+    public int turnScore(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions){
+        int score = 0; //Create a variable for the score to be returned
+        ArrayList<Cell> visitedCells = new ArrayList<>(); //Keep track of cells used to add to score
+        for (Tiles t : tempTiles){
+            score += t.getNumber(); //Add the combined score of all the new tiles placed to score
+        }
+        for (int j = 0; j < tempTiles.size(); j++){ //For each tile, we will see the words that they formed, and add to the score for the whole word
+            for (int i = tempRowPositions.get(j) + 1; i < 15; i++){ //Starting from the placed tile, look for tiles to the right
+                if (gameBoard.getCell(i, tempColPositions.get(j)).getTile() != null && !(visitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j))))){ //Check that the cell is has a tile placed
+                    score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber(); //For all other tiles in the word to the right of the placed tiles, add their score, as they are a part of the newly placed word
+                    visitedCells.add(gameBoard.getCell(i, tempColPositions.get(j))); //Mark this tile as visited so we don't add it's score twice in one move
+                }
+                else{
+                    break;
+                }
+            }
+            for (int i = tempRowPositions.get(j) - 1; i >= 0; i--){ //Starting from the placed tile, look for tiles to the left
+                if (gameBoard.getCell(i, tempColPositions.get(j)).getTile() != null && !(visitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j))))){
+                    score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
+                    visitedCells.add(gameBoard.getCell(i, tempColPositions.get(j)));//Mark this tile as visited so we don't add it's score twice in one move
+                }
+                else{
+                    break;
+                }
+            }
+            for (int i = tempColPositions.get(j) + 1; i < 15; i++){ //Starting from the placed tile, look for tiles down
+                if (gameBoard.getCell(tempRowPositions.get(j), i).getTile() != null && !(visitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i)))){
+                    score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                    visitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i)); //Mark this tile as visited so we don't add it's score twice in one move
+                }
+                else{
+                    break;
+                }
+            }
+            for (int i = tempColPositions.get(j) - 1; i >= 0; i--){ //Starting from the placed tile, look for tiles up
+                if (gameBoard.getCell(tempRowPositions.get(j), i).getTile() != null && !(visitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i)))){
+                    score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                    visitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i)); //Mark this tile as visited so we don't add it's score twice in one move
+                }
+                else{
+                    break;
+                }
+            }
+        }
+        return score;
     }
 
 
