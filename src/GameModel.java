@@ -1,5 +1,3 @@
-
-
 import java.util.*;
 
 /**
@@ -106,9 +104,11 @@ public class GameModel {
      *
      * @return boolean true if the word was placed, false otherwise
      */
-    public boolean placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions, Player player) {
+    public boolean placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions, Player player)
+    {
         Board savedCheckBoard = checkBoard.copyBoard(); // saves the board while checking the conditions
-        for (int i = 0; i < tempTiles.size(); i++) { // checks to make sure that the board space is not already occupied
+        for (int i = 0; i < tempTiles.size(); i++)
+        { // checks to make sure that the board space is not already occupied
             if (checkBoard.checkBoardTileEmpty(tempRowPositions.get(i), tempColPositions.get(i))) {
                 checkBoard.placeBoardTile(tempRowPositions.get(i), tempColPositions.get(i), tempTiles.get(i));
             } else {
@@ -229,6 +229,28 @@ public class GameModel {
         player.getTiles().add(index, tilesBag.bagArraylist().get(rnd)); //places at correct index
         tilesBag.bagArraylist().remove(rnd); //removes from bag
     }
+
+    public Board getCheckBoard() {
+        return checkBoard;
+    }
+
+    public TilesBag getTilesBag() {
+        return tilesBag;
+    }
+
+    public WordList getWordList() {
+        return wordList;
+    }
+
+    public Player getPlayerByName(String name) {
+        for (Player player : players) {
+            if (player.getName().equals(name)) {
+                return player;
+            }
+        }
+        return null; // Return null if no player with the given name is found
+    }
+
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
