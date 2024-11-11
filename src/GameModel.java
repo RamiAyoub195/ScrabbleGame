@@ -145,45 +145,59 @@ public class GameModel {
      *
      */
     public boolean checkValidWord() {
-        for (int row = 0; row < 15; row++) { // goes through each row
-            StringBuilder word = new StringBuilder(); // creates a string for each row
-            for (int col = 0; col < 15; col++) {
-                if (checkBoard.getBoard()[row][col].isOccupied()) {
-                    word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim()); // appends and trims a letter in a row
-                } else if (word.length() > 1) { // if the word is at least two letters
-                    if (!wordList.isValidWord(word.toString()) && !wordList.isValidWord(word.reverse().toString())) { // checks for both directions of the words
-                        return false;
-                    }
-                    word.setLength(0); // resets the string size to 0
-                }
-            }
-
-            if (word.length() > 1) { // in case a word ended at the end of a row checks for the word
-                if (!wordList.isValidWord(word.toString()) && !wordList.isValidWord(word.reverse().toString())) { // checks for both directions of the word
-                    return false;
-                }
+        for (int row = 0; row < 15; row++) {
+            if (!isValidWordInRow(row)) {
+                return false;
             }
         }
-        for (int col = 0; col < 15; col++) { // goes through each column
-            StringBuilder word = new StringBuilder(); // creates a string for each column
-            for (int row = 0; row < 15; row++) {
-                if (checkBoard.getBoard()[row][col].isOccupied()) {
-                    word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim()); // adds and trims each letter in the column
-                } else if (word.length() > 1) { // must be at least a two-letter word
-                    if (!wordList.isValidWord(word.toString()) && !wordList.isValidWord(word.reverse().toString())) { // checks both sides of the word
-                        return false;
-                    }
-                    word.setLength(0); // resets the string size back
-                }
-            }
-            if (word.length() > 1) { // in case a word ended at the end of a column checks for the word
-                if (!wordList.isValidWord(word.toString()) && !wordList.isValidWord(word.reverse().toString())) {
-                    return false;
-                }
+        for (int col = 0; col < 15; col++) {
+            if (!isValidWordInColumn(col)) {
+                return false;
             }
         }
         return true;
     }
+
+    private boolean isValidWordInRow(int row) {
+        StringBuilder word = new StringBuilder();
+        for (int col = 0; col < 15; col++) {
+            if (checkBoard.getBoard()[row][col].isOccupied()) {
+                word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim());
+            } else if (word.length() > 1) {
+                if (!isWordValidBothDirections(word)) {
+                    return false;
+                }
+                word.setLength(0);
+            }
+        }
+        if (word.length() > 1 && !isWordValidBothDirections(word)) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isValidWordInColumn(int col) {
+        StringBuilder word = new StringBuilder();
+        for (int row = 0; row < 15; row++) {
+            if (checkBoard.getBoard()[row][col].isOccupied()) {
+                word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim());
+            } else if (word.length() > 1) {
+                if (!isWordValidBothDirections(word)) {
+                    return false;
+                }
+                word.setLength(0);
+            }
+        }
+        if (word.length() > 1 && !isWordValidBothDirections(word)) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isWordValidBothDirections(StringBuilder word) {
+        return wordList.isValidWord(word.toString()) || wordList.isValidWord(word.reverse().toString());
+    }
+
 
     /**
      * Takes care of when a player decides to swap tile(s). The tile(s) are swapped
