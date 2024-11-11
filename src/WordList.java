@@ -21,7 +21,7 @@ public class WordList {
 
         words = new ArrayList<>(); //Initializes the ArrayList
 
-        File filename = new File("wordlist.txt"); //Creates a file that the scanner will scan
+        File filename = new File("src/wordlist.txt"); //Creates a file that the scanner will scan
 
         try(Scanner scanner = new Scanner(filename)){ //Scanner will scan the file line by line
             while(scanner.hasNextLine()){//checks to see if there is a next line
