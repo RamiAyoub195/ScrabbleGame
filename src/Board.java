@@ -81,7 +81,7 @@ public class Board {
      * Places a tile on the board.
      * @param row row to place tile on the board
      * @param col column to place tile on the board
-     * @param letter the letter of the tile to be placed
+     * @param tile the letter of the tile to be placed
      */
     public void placeBoardTile(int row, int col, Tiles tile)
     {

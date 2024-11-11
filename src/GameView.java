@@ -485,7 +485,7 @@ public class GameView extends JFrame {
     }
 
     /**
-     * Displays a message to the player teeling them if they placed an invalid word, or violated one of the rules
+     * Displays a message to the player telling them if they placed an invalid word, or violated one of the rules
      * etc.
      * @param message the message to the player
      */
