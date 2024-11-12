@@ -21,6 +21,7 @@ public class GameModel {
     private WordList wordList; //valid word list of words from example txt file
     private Random rand; //to get random tiles from the bag when swapping or replacing placed tiles
     private String statusMessage;
+    private ArrayList<String> placedWords;
 
     /**
      * Initializes the list of players, the boards, the user input scanner, the bag of tiles,
@@ -35,6 +36,7 @@ public class GameModel {
         tilesBag = new TilesBag();
         wordList = new WordList();
         rand = new Random();
+        placedWords = new ArrayList<>();
     }
 
     public Board getGameBoard() {
@@ -81,7 +83,6 @@ public class GameModel {
             for (Tiles tile : tiles)
             {
                 player.getTiles().remove(tile);
-                //player.addScore(tile.getNumber());
             }
             if (!tilesBag.bagOfTileIsEmpty())
             {
@@ -153,14 +154,6 @@ public class GameModel {
             return false;
         }
 
-        // Validate the formed word
-        if (!checkValidWord())
-        {
-            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Invalid word.";
-            return false;
-        }
-
         for (int i = 0; i < tempTiles.size(); i++)
         {
             int row = tempRowPositions.get(i);
@@ -168,6 +161,14 @@ public class GameModel {
 
             checkBoard.placeBoardTile(row, col, tempTiles.get(i));
 
+        }
+
+        // Validate the formed word
+        if (!checkValidWord())
+        {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Invalid word.";
+            return false;
         }
 
         statusMessage = "Word placed successfully.";
@@ -244,13 +245,24 @@ public class GameModel {
      *
      */
     public boolean checkValidWord() {
+        ArrayList<String> temp = new ArrayList<>(placedWords);
+        placedWords.clear();
         for (int row = 0; row < 15; row++) {
             if (!isValidWordInRow(row)) {
+                placedWords.clear();
+                for (String s : temp){
+                    placedWords.add(s);
+                }
                 return false;
             }
         }
         for (int col = 0; col < 15; col++) {
             if (!isValidWordInColumn(col)) {
+                placedWords.clear();
+                placedWords.clear();
+                for (String s : temp){
+                    placedWords.add(s);
+                }
                 return false;
             }
         }
@@ -273,6 +285,9 @@ public class GameModel {
             } else if (word.length() > 1) {
                 if (!isWordValidBothDirections(word)) {
                     return false;
+                }
+                if (word.length() > 1){
+                    addPlacedWord(word);
                 }
                 word.setLength(0);
             }
@@ -298,6 +313,9 @@ public class GameModel {
             } else if (word.length() > 1) {
                 if (!isWordValidBothDirections(word)) {
                     return false;
+                }
+                if (word.length() > 1){
+                    addPlacedWord(word);
                 }
                 word.setLength(0);
             }
@@ -408,6 +426,19 @@ public class GameModel {
         return null; // Return null if no player with the given name is found
     }
 
+    public ArrayList<String> getPlacedWords(){
+        return placedWords;
+    }
+
+    public void addPlacedWord(StringBuilder word){
+        if (wordList.isValidWord(word.toString())){
+            placedWords.add(word.toString());
+        }
+        else{
+            placedWords.add(word.reverse().toString());
+        }
+    }
+
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -459,6 +490,7 @@ public class GameModel {
                 }
 
                 gameModel.playerPlaceTile(currentPlayer, tiles, rowPositions, colPositions);
+                System.out.println(gameModel.getPlacedWords());
             } else if (choice == 2) {
                 // Swap tiles logic
                 System.out.print("Enter number of tiles to swap: ");
