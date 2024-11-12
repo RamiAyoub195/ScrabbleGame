@@ -15,16 +15,25 @@ import java.util.*;
 public class GameController implements ActionListener {
     GameModel model;
     GameView view;
+    private ArrayList<Integer> listOfRows;
+    private ArrayList<Integer> listOfCols;
+    private ArrayList<Tiles> listOfTiles;
     boolean aTileIsSelected = false;
+    private Player currentPlayer;
     private int selectedTileCol = 0;
     private int currentTurn = 0;
     private int numPlayers;
     private int numTilesInBag;
     private int numTilesPlacedThisTurn = 0;
+    private int tileIndex;
 
     public GameController(GameModel model, GameView view) {
         this.model = model;
         this.view = view;
+
+        listOfRows = new ArrayList<Integer>();
+        listOfCols = new ArrayList<Integer>();
+        listOfTiles = new ArrayList<Tiles>();
 
         for(String playerName : view.getPlayerNames()){
             model.addPlayer(playerName); //creates players in the game model after getting the names from the view
@@ -33,7 +42,7 @@ public class GameController implements ActionListener {
         numTilesInBag = 100 - (7 * view.getPlayerNames().size()); // Get size of tiles bag initially
         numPlayers = view.getNumPlayers(); // Get number of players
         model.setNumPlayers(numPlayers);   // Set number of players in model
-        model.getCurrentPlayer(currentTurn); // Update current player in model to start game
+        currentPlayer = model.getCurrentPlayer(currentTurn); // Update current player in model to start game
 
         view.setUpPlayerTilesPanel(model.getPlayers().get(0)); // Set up the first player's tiles
 
@@ -95,6 +104,8 @@ public class GameController implements ActionListener {
         // if not valid return the tiles to player hand and remove from board, next player turn
         // handle removing tiles from hand and replacing with new random ones from model
         // then update view with new tiles
+
+        // if word is not valid
         if (model.checkValidWord()) {
             // check that the entire board's tiles are connected
             if (model.getCheckBoard().checkMiddleBoardEmpty()) {
@@ -113,7 +124,8 @@ public class GameController implements ActionListener {
                         }
                     }
                 }
-                model.updateGameBoard();
+
+//                model.updateGameBoard();
                 // remove tiles from player hand in model
                 model.removeTilesFromPlayerHand();
                 model.getRandomTiles(numTilesPlacedThisTurn, model.getCurrentPlayer(currentTurn));
@@ -126,12 +138,19 @@ public class GameController implements ActionListener {
                 // update player tiles
                 nextTurn();
                 resetPlayerTile();
+                String word = model.buildWordFromCoordinates();
+                System.out.println(word);
             }
         }
         else {
             model.updateCheckBoard();
             handleError("Invalid word!");
         }
+        //model.printCheckBoard();
+        //model.printGameBoard();
+        listOfTiles.clear();
+        listOfRows.clear();
+        listOfCols.clear();
     }
 
     private void swapButtonAction() {}
@@ -143,6 +162,8 @@ public class GameController implements ActionListener {
     }
 
     private void handleSpecificTileButtonAction(int col) {
+        // update tile index
+        tileIndex = col;
         // Check if selected tile is gray
         if (view.getSpecificPlayerTileColour(col) == Color.GRAY) {
             // do nothing

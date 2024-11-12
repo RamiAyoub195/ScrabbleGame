@@ -198,8 +198,21 @@ public class Board {
         }
     }
 
+    /**
+     * Gets number of rows on the board
+     * @return number of rows
+     */
+    public int getRows() {
+        return rows;
+    }
 
-
+    /**
+     * Gets number of columns on the board
+     * @return number of columns
+     */
+    public int getCols() {
+        return cols;
+    }
 
 
 
@@ -264,4 +277,20 @@ public class Board {
         // If we visited all occupied spots, return true
         return true;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

@@ -24,6 +24,7 @@ public class GameModel {
     private Player currentPlayer;  // current player
     private int numPlayers;
     private ArrayList<Tiles> tilesToRemove; // list of tiles to remove from a players hand
+    Set<Pair<Integer, Integer>> newestLettersCoordinates; // keeps track of the newest word placed letter coordinates
     /**
      * Initializes the list of players, the boards, the user input scanner, the bag of tiles,
      * the list of words and starts the game.
@@ -38,6 +39,7 @@ public class GameModel {
         tilesBag = new TilesBag();
         wordList = new WordList();
         rand = new Random();
+        newestLettersCoordinates = new HashSet<>();
     }
 
     public Board getGameBoard() {
@@ -407,6 +409,27 @@ public class GameModel {
 
 
     /**
+     * Creates a set of the coordinates of the letters placed on a given turn.
+     * @param row row number of letter
+     * @param col column number of letter
+     */
+    public void addLetterToSet(int row, int col) {
+        newestLettersCoordinates.add(new Pair<>(row, col));
+    }
+
+    /**
+     * Resets the set of letter coordinates
+     */
+    public void resetLetterSet() {
+        newestLettersCoordinates.clear();
+    }
+
+    public void getWordPlaced() {
+
+    }
+
+
+    /**
      * Gets the current player based on the current game turn
      * @param currentTurn the current game turn
      * @return the current player
@@ -435,6 +458,197 @@ public class GameModel {
             System.out.println();
         }
     }
+
+
+
+
+
+
+
+
+
+
+    public boolean searchWordDirection() {
+        // First, we'll check if the set of coordinates form a horizontal or vertical line
+        boolean isHorizontal = isHorizontal();   // Check if the letters form a horizontal line
+        boolean isVertical = isVertical();      // Check if the letters form a vertical line
+
+        if (isHorizontal) {
+            // Check for horizontal line: find any adjacent occupied grid spots in the left or right direction
+            return checkAdjacentInDirection(true);  // 'true' for horizontal direction (left/right)
+        } else if (isVertical) {
+            // Check for vertical line: find any adjacent occupied grid spots in the up or down direction
+            return checkAdjacentInDirection(false); // 'false' for vertical direction (up/down)
+        }
+
+        // If not horizontal or vertical, return false (invalid word placement)
+        return false;
+    }
+
+
+    private boolean isHorizontal() {
+        // Assume the letters are ordered by row/col in your set, check if all rows are the same (horizontal)
+        int firstRow = newestLettersCoordinates.iterator().next().getKey();  // Get row of the first coordinate
+        for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+            if (!coordinate.getKey().equals(firstRow)) {
+                return false;  // If rows are not the same, it's not horizontal
+            }
+        }
+        return true;  // All rows are the same, so it's horizontal
+    }
+
+    private boolean isVertical() {
+        // Assume the letters are ordered by row/col in your set, check if all columns are the same (vertical)
+        int firstCol = newestLettersCoordinates.iterator().next().getValue();  // Get column of the first coordinate
+        for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+            if (!coordinate.getValue().equals(firstCol)) {
+                return false;  // If columns are not the same, it's not vertical
+            }
+        }
+        return true;  // All columns are the same, so it's vertical
+    }
+
+
+    private boolean checkAdjacentInDirection(boolean isHorizontal) {
+        // Check each coordinate in the set and see if there are adjacent occupied cells in the same direction
+        for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+            int row = coordinate.getKey();
+            int col = coordinate.getValue();
+
+            // If checking horizontally, check adjacent cells to the left and right
+            if (isHorizontal) {
+                // Check left
+                if (col > 0 && gameBoard.getBoard()[row][col - 1].isOccupied()) {
+                    return true;  // Found an adjacent occupied cell
+                }
+                // Check right
+                if (col < 16 - 1 && gameBoard.getBoard()[row][col + 1].isOccupied()) {
+                    return true;  // Found an adjacent occupied cell
+                }
+            } else {
+                // If checking vertically, check adjacent cells above and below
+                // Check up
+                if (row > 0 && gameBoard.getBoard()[row - 1][col].isOccupied()) {
+                    return true;  // Found an adjacent occupied cell
+                }
+                // Check down
+                if (row < 16 - 1 && gameBoard.getBoard()[row + 1][col].isOccupied()) {
+                    return true;  // Found an adjacent occupied cell
+                }
+            }
+        }
+        return false;  // No adjacent occupied cells found in the specified direction
+    }
+
+    public String buildWordFromCoordinates() {
+        StringBuilder word = new StringBuilder();  // To build the word
+
+        // First, determine if the new letters form a horizontal or vertical line.
+        boolean isHorizontal = isHorizontalLine(newestLettersCoordinates);
+
+        // Determine the direction and find the full set of coordinates forming the word
+        Set<Pair<Integer, Integer>> fullCoordinates = new HashSet<>(newestLettersCoordinates);  // Start with the new letters' coordinates
+
+        if (isHorizontal) {
+            // Collect adjacent existing letters horizontally (to the left and right)
+            for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+                int row = coordinate.getKey();
+                int col = coordinate.getValue();
+
+                // Check to the left
+                int leftCol = col - 1;
+                while (leftCol >= 0 && gameBoard.getBoard()[row][leftCol].isOccupied()) {
+                    fullCoordinates.add(new Pair<>(row, leftCol));  // Add left letters to the set
+                    leftCol--;
+                }
+
+                // Check to the right
+                int rightCol = col + 1;
+                while (rightCol < gameBoard.getCols() && gameBoard.getBoard()[row][rightCol].isOccupied()) {
+                    fullCoordinates.add(new Pair<>(row, rightCol));  // Add right letters to the set
+                    rightCol++;
+                }
+            }
+
+            // Now, build the word starting from the leftmost coordinate and moving right
+            int minCol = Integer.MAX_VALUE;
+            for (Pair<Integer, Integer> coord : fullCoordinates) {
+                minCol = Math.min(minCol, coord.getValue());  // Find the leftmost coordinate
+            }
+
+            // Start from the leftmost column and iterate right until an empty space is encountered
+            for (int col = minCol; col < gameBoard.getCols(); col++) {
+                boolean foundLetter = false;
+                for (int row = 0; row < gameBoard.getRows(); row++) {
+                    if (fullCoordinates.contains(new Pair<>(row, col)) && gameBoard.getBoard()[row][col].isOccupied()) {
+                        word.append(gameBoard.getBoard()[row][col].getTile().getLetter());
+                        foundLetter = true;
+                        break;  // Move to the next column after finding the letter in this row
+                    }
+                }
+                if (!foundLetter) break;  // Stop once we hit an empty square (end of the word)
+            }
+
+        } else {
+            // Collect adjacent existing letters vertically (above and below)
+            for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+                int row = coordinate.getKey();
+                int col = coordinate.getValue();
+
+                // Check above
+                int topRow = row - 1;
+                while (topRow >= 0 && gameBoard.getBoard()[topRow][col].isOccupied()) {
+                    fullCoordinates.add(new Pair<>(topRow, col));  // Add top letters to the set
+                    topRow--;
+                }
+
+                // Check below
+                int bottomRow = row + 1;
+                while (bottomRow < gameBoard.getRows() && gameBoard.getBoard()[bottomRow][col].isOccupied()) {
+                    fullCoordinates.add(new Pair<>(bottomRow, col));  // Add bottom letters to the set
+                    bottomRow++;
+                }
+            }
+
+            // Now, build the word starting from the topmost coordinate and moving down
+            int minRow = Integer.MAX_VALUE;
+            for (Pair<Integer, Integer> coord : fullCoordinates) {
+                minRow = Math.min(minRow, coord.getKey());  // Find the topmost coordinate
+            }
+
+            // Start from the topmost row and iterate down until an empty space is encountered
+            for (int row = minRow; row < gameBoard.getRows(); row++) {
+                boolean foundLetter = false;
+                for (int col = 0; col < gameBoard.getCols(); col++) {
+                    if (fullCoordinates.contains(new Pair<>(row, col)) && gameBoard.getBoard()[row][col].isOccupied()) {
+                        word.append(gameBoard.getBoard()[row][col].getTile().getLetter());
+                        foundLetter = true;
+                        break;  // Move to the next row after finding the letter in this column
+                    }
+                }
+                if (!foundLetter) break;  // Stop once we hit an empty square (end of the word)
+            }
+        }
+        System.out.println("Test");
+        System.out.println(word);
+        return word.toString();  // Return the built word
+    }
+
+    // Utility method to check if the set of coordinates form a horizontal line
+    private boolean isHorizontalLine(Set<Pair<Integer, Integer>> coordinates) {
+        // Check if all the coordinates share the same row, i.e., they form a horizontal line
+        int row = -1;
+        for (Pair<Integer, Integer> coordinate : coordinates) {
+            if (row == -1) {
+                row = coordinate.getKey();
+            } else if (row != coordinate.getKey()) {
+                return false;  // If any coordinate is in a different row, it's not horizontal
+            }
+        }
+        return true;  // All coordinates are in the same row
+    }
+
+
 
 
     public static void main(String[] args) {
