@@ -57,6 +57,10 @@ public class GameController implements ActionListener {
 
     }
 
+    /**
+     * Gets the button that was clicked
+     * @param e the event to be processed
+     */
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == view.getPlayButton()) {
             playButtonAction();
@@ -103,7 +107,9 @@ public class GameController implements ActionListener {
     }
 
 
-
+    /**
+     * Handler for pressing the play button
+     */
     private void playButtonAction() {
         // confirms we are done current turn
         // must call model to check the new word validity
@@ -178,6 +184,9 @@ public class GameController implements ActionListener {
         listOfCols.clear();
     }
 
+    /**
+     * Handler for clicking the swap button
+     */
     private void swapButtonAction() {
         // if swap button has been clicked
         if (numTimesSwapClicked % 2 == 0) {
@@ -196,12 +205,19 @@ public class GameController implements ActionListener {
         numTimesSwapClicked++;
     }
 
+    /**
+     * Handler for clicking the pass button
+     */
     private void passButtonAction() {
         // proceed to next player turn
         nextTurn();
         view.resetPlayerTile();
     }
 
+    /**
+     * Handler for clicking a tile button
+     * @param col column number of tile clicked
+     */
     private void handleSpecificTileButtonAction(int col) {
         // if swap tile has been selected
         if (swapTileSelected) {
@@ -236,6 +252,11 @@ public class GameController implements ActionListener {
         }
     }
 
+    /**
+     * Handler for clicking a board button
+     * @param row row number of board button clicked
+     * @param col column number of board button clicked
+     */
     private void handleSpecificBoardFieldAction(int row, int col) {
         // add temp tile to board
         if (aTileIsSelected) {
@@ -275,13 +296,19 @@ public class GameController implements ActionListener {
     }
 
 
-
+    /**
+     * Goes to the next turn
+     */
     private void nextTurn() {
         currentTurn++;
         view.updatePlayerTiles(model.getCurrentPlayer(currentTurn));
         numTilesPlacedThisTurn = 0;
     }
 
+    /**
+     * Displays error messages
+     * @param errorMessage message to display
+     */
     private void handleError(String errorMessage) {
         // error message
         for (int row = 0; row < 16; row++) {
@@ -298,6 +325,9 @@ public class GameController implements ActionListener {
         view.resetPlayerTile();
     }
 
+    /**
+     * Main
+     */
     public static void main(String[] args) {
         GameModel model = new GameModel();
         GameView view = new GameView();
