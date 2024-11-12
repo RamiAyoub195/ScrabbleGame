@@ -1,4 +1,3 @@
-
 import java.util.*;
 
 /**
@@ -35,10 +34,19 @@ public class GameModel {
         rand = new Random();
     }
 
+    /**
+     * returns the board of the game.
+     * @return the game board
+     */
     public Board getGameBoard() {
         return gameBoard;
     }
 
+    /**
+     * Creates a new player and adds it to the array list of players in the game.
+     * Each player is assigned 7 random tiles at the start.
+     * @param playerName the name of the player
+     */
     public void addPlayer(String playerName)
     {
         Player player = new Player(playerName);
@@ -46,18 +54,28 @@ public class GameModel {
         getRandomTiles(7, player);
     }
 
+    /**
+     * Returns the array list of players in the game
+     * @return list of players in game
+     */
     public ArrayList<Player> getPlayers()
     {
         return players;
     }
 
+    /**
+     * Checks to see when the game has finished, when a game is finished there are no more tiles in the bag
+     * and at least one player has no more tiles.
+     * @return true if the game is finished, false otherwise
+     */
+
     public boolean isGameFinished()
     {
-        if(tilesBag.bagOfTileIsEmpty())
+        if(tilesBag.bagOfTileIsEmpty()) //if the bag of tiles is empty
         {
-            for(Player player: players)
+            for(Player player: players) //traverses through array list of players
             {
-                if(player.getTiles().isEmpty())
+                if(player.getTiles().isEmpty()) //at least one of the players doesn't have tiles anymore
                 {
                     return true;
                 }
@@ -74,27 +92,29 @@ public class GameModel {
      * @param player the player's current turn
      */
     public void playerPlaceTile(Player player, ArrayList<Tiles> tiles, ArrayList<Integer> rowPositions,ArrayList<Integer> colPositions){
-        if (placeWord(tiles, rowPositions, colPositions, player)){ //if the word was sucessfully placed
+        if (placeWord(tiles, rowPositions, colPositions, player)){ //if the word was successfully placed
             gameBoard = checkBoard.copyBoard(); //real board gets the checked board
-            for (Tiles tile : tiles)
+            for (Tiles tile : tiles) //traverses through the tiles that were placed
             {
-                player.getTiles().remove(tile);
-                player.addScore(tile.getNumber());
+                player.getTiles().remove(tile); //removes them from the player
+                player.addScore(tile.getNumber()); //adds it to teh score of the player
             }
-            if (!tilesBag.bagOfTileIsEmpty())
+            if (!tilesBag.bagOfTileIsEmpty()) //if the bag of tiles is not empty
             {
-                getRandomTiles(tiles.size(), player);
+                getRandomTiles(tiles.size(), player); //gets random tiles again to the player to restore the ones they placed
             }
         }
-        // Print or log the status message
-        System.out.println(statusMessage);
     }
 
+    /**
+     * Returns the error message is the player does something illegal such as not placing and adjacent word,
+     * not covering middle etc.
+     * @return the error message
+     */
     public String getStatusMessage()
     {
         return statusMessage;
     }
-
 
     /**
      * Places a word on the board, the first word needs to go through the middle square.
@@ -109,27 +129,26 @@ public class GameModel {
      * @return boolean true if the word was placed, false otherwise
      */
     public boolean placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions, Player player) {
-        Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
-        boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
-        boolean isAdjacent = false;
+        Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state to go back if it was not placed
+        boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move needs to be done first
+        boolean isAdjacent = false; // checks for adjacency with other letters
 
-        // Attempt to place each tile and check for valid conditions
-        for (int i = 0; i < tempTiles.size(); i++) {
-            int row = tempRowPositions.get(i);
-            int col = tempColPositions.get(i);
+        // Attempt to place each tile and check for valid conditions such as adjacency and covers the middle word
+        for (int i = 0; i < tempTiles.size(); i++) { //traverses through the tiles
+            int row = tempRowPositions.get(i); //gets the row of where the tile is going
+            int col = tempColPositions.get(i); //gets the column of where the tile is going
 
-            // Ensure the board space is empty
-            if (!checkBoard.checkBoardTileEmpty(row, col)) {
+            if (!checkBoard.checkBoardTileEmpty(row, col)) {  //if the tile is occupied
                 checkBoard = savedCheckBoard.copyBoard(); // Restore board state
-                statusMessage = "Error: Board space already occupied.";
+                statusMessage = "Error: Board space already occupied."; //saves the error message
                 return false;
             }
 
-            // Temporarily place tile to check adjacency and center coverage
+            // Temporarily place tile to check adjacency and center coverage of the letter
             checkBoard.placeBoardTile(row, col, tempTiles.get(i));
 
             // Check if the middle cell is covered on the first move
-            if (isFirstWord && row == 7 && col == 7) {
+            if (isFirstWord && row == 8 && col == 8) {
                 isAdjacent = true; // Middle cell is covered, so first word placement is valid
             }
 
@@ -137,38 +156,39 @@ public class GameModel {
             if (!isFirstWord && checkBoard.checkAdjacentBoardConnected(row, col)) {
                 isAdjacent = true; // Tile is adjacent to an existing tile, making placement valid
             }
-            //checkBoard.removeBoardTile(row, col, tempTiles.get(i));
+            checkBoard.removeBoardTile(row, col); //remove the tile after checking the individal tile that they condictions were met ie sdjacency and middle coverage
         }
 
         // Restore the board if conditions are not met
-        if (isFirstWord && !isAdjacent) {
+        if (isFirstWord && !isAdjacent) { //if the middle was not covered and was not adjacent
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Middle cell not covered for the first word.";
+            statusMessage = "Error: Middle cell not covered for the first word.";  //saved the error message for the player
             return false;
-        } else if (!isFirstWord && !isAdjacent) {
+        } else if (!isFirstWord && !isAdjacent) { //if its middle was covered but it is not adjacent
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Word placement is not adjacent to any existing words.";
+            statusMessage = "Error: Word placement is not adjacent to any existing words."; //saves the error message for the player
             return false;
         }
 
         // Validate the formed word
-        if (!checkValidWord())
+        if (!checkValidWord()) //checks to see if the word is valid form the array list of words
         {
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Invalid word.";
+            statusMessage = "Error: Invalid word."; // saves the error message for the player
             return false;
         }
 
-        for (int i = 0; i < tempTiles.size(); i++)
+        //If all conditions have been met then the tiles can be placed on the board
+        for (int i = 0; i < tempTiles.size(); i++) //traverses through tiles
         {
-            int row = tempRowPositions.get(i);
-            int col = tempColPositions.get(i);
+            int row = tempRowPositions.get(i); //gets the row position
+            int col = tempColPositions.get(i); //gets the column position
 
-            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
+            checkBoard.placeBoardTile(row, col, tempTiles.get(i)); //places it on the check board which then is updated to the real board
 
         }
 
-        statusMessage = "Word placed successfully.";
+        statusMessage = "Word placed successfully."; //optional message to the view that the word was successfully place might only show the error message and just display word
         return true;
     }
 
@@ -176,23 +196,22 @@ public class GameModel {
     /**
      * Checks to see if the added word is a valid word from the list of words in the
      * txt file. Checks each row and column of the board to make sure that all added words and
-     * subwords match the word list.
+     * supports match the word list.
      *
      * @return true if the word is a valid word, false otherwise
-     *
      */
     public boolean checkValidWord() {
-        for (int row = 0; row < 15; row++) {
-            if (!isValidWordInRow(row)) {
+        for (int row = 0; row < 15; row++) { //traverses through each row on the board
+            if (!isValidWordInRow(row)) { //if the specific row does not have a valid word returns false
                 return false;
             }
         }
-        for (int col = 0; col < 15; col++) {
-            if (!isValidWordInColumn(col)) {
+        for (int col = 0; col < 15; col++) { //traverses through each column on the board
+            if (!isValidWordInColumn(col)) { //if the specified column does not have a valid word returns false
                 return false;
             }
         }
-        return true;
+        return true; //if all words are valid in each row and column then return true
     }
 
 
@@ -204,21 +223,21 @@ public class GameModel {
      * @return true if all words in the row are valid, false otherwise
      */
     private boolean isValidWordInRow(int row) {
-        StringBuilder word = new StringBuilder();
-        for (int col = 0; col < 15; col++) {
-            if (checkBoard.getBoard()[row][col].isOccupied()) {
-                word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim());
-            } else if (word.length() > 1) {
-                if (!isWordValidBothDirections(word)) {
+        StringBuilder word = new StringBuilder(); //creates a string builder that will combine all tiles on a speciic row
+        for (int col = 0; col < 15; col++) { //traverses through all columns of a specific row
+            if (checkBoard.getBoard()[row][col].isOccupied()) { // if there is a tile on the specific row
+                word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim()); //appends it to the string builder
+            } else if (word.length() > 1) { //only checks for minimum two-letter words as txt file only has two letter words
+                if (!isWordValidBothDirections(word)) { //if it's not a valid word from both directions
                     return false;
                 }
-                word.setLength(0);
+                word.setLength(0); //resets the string builder
             }
         }
-        if (word.length() > 1 && !isWordValidBothDirections(word)) {
+        if (word.length() > 1 && !isWordValidBothDirections(word)) { //if the word was at the end of the column and is not valid from both directions
             return false;
         }
-        return true;
+        return true; //all conditions have passed and it's a valid word
     }
 
     /**
@@ -229,21 +248,21 @@ public class GameModel {
      * @return true if all words in the column are valid, false otherwise
      */
     private boolean isValidWordInColumn(int col) {
-        StringBuilder word = new StringBuilder();
-        for (int row = 0; row < 15; row++) {
-            if (checkBoard.getBoard()[row][col].isOccupied()) {
-                word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim());
-            } else if (word.length() > 1) {
-                if (!isWordValidBothDirections(word)) {
+        StringBuilder word = new StringBuilder(); //creates a string builder that will combine all tiles on a speciic column
+        for (int row = 0; row < 15; row++) { //traverses through all rows of a specific column
+            if (checkBoard.getBoard()[row][col].isOccupied()) { //checks to see tha the board is occupied with a tile
+                word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim()); //adds it the string builder
+            } else if (word.length() > 1) { // if there is at least a 2 two-letter word as the txt file only has two-letter words
+                if (!isWordValidBothDirections(word)) { //if the word is not valid from both directions
                     return false;
                 }
-                word.setLength(0);
+                word.setLength(0); //makes the length of the string builder 0
             }
         }
-        if (word.length() > 1 && !isWordValidBothDirections(word)) {
+        if (word.length() > 1 && !isWordValidBothDirections(word)) { //if there was a word at the end of the column
             return false;
         }
-        return true;
+        return true; //returns true if the words were valid
     }
 
     /**
@@ -254,7 +273,7 @@ public class GameModel {
      * @return true if the word or its reverse is valid, false otherwise
      */
     private boolean isWordValidBothDirections(StringBuilder word) {
-        return wordList.isValidWord(word.toString()) || wordList.isValidWord(word.reverse().toString());
+        return wordList.isValidWord(word.toString()) || wordList.isValidWord(word.reverse().toString()); //checks the direction of the word from front to reverse from the list of words
     }
 
 
@@ -266,13 +285,13 @@ public class GameModel {
      */
     public void playerSwapTile(Player player, List<Integer> tileIndices) {
         if (tilesBag.bagOfTileIsEmpty()) {
-            return; // No tiles to swap
+            return; // No tiles to swap so return
         }
-        for (int index : tileIndices) {
-            Tiles t = player.getTiles().get(index);
-            player.getTiles().remove(index);
-            replaceSwappedTile(player, index);
-            tilesBag.bagArraylist().add(t);
+        for (int index : tileIndices) { //traverses through the indexes of the player tiles to be swapped
+            Tiles t = player.getTiles().get(index); //gets those tiles
+            player.getTiles().remove(index); //removes them from the player
+            replaceSwappedTile(player, index); //replaces them with ones from the bag
+            tilesBag.bagArraylist().add(t); //adds it bag to the array list of tiles
         }
     }
 

@@ -3,9 +3,9 @@
  * It will check to make sure that a tile can be put in a specific area of the board.
  * Will update the board when a tile has been added.
  *
- * Author(s): Rami Ayoub
- * Version: 1.0
- * Date: Wednesday, October 16th, 2024
+ * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam bennet
+ * Version: 2.0
+ * Date: Wednesday, November 6th, 2024
  *
  */
 
@@ -13,7 +13,7 @@ public class Board {
 
     private int rows; //rows of the board
     private int cols; //columns of the board
-    private Cell[][] board; //the board
+    private Cell[][] board; //the board of cells where a cell has a tile or empty
 
     /**
      * Initialized the board for the game, the board is a 15 by 15 board and sets up each
@@ -23,35 +23,14 @@ public class Board {
      * @param cols the columns of the board
      */
     public Board(int rows, int cols) {
-        this.rows = rows;
-        this.cols = cols;
-        board = new Cell[rows][cols];
-        setUpBoard();
+        this.rows = rows; //assigns the rows
+        this.cols = cols; //assigns column
+        board = new Cell[rows][cols]; //creates a 2d array of cells
+        setUpBoard(); //set up the board
     }
 
     /**
-     * Copies from one board to another which is useful to retrieve back to a board in case
-     * a word couldn't be placed.
-     *
-     * @return a copy of a board
-     */
-    public Board copyBoard() {
-        Board newBoard = new Board(this.rows, this.cols);
-        for (int i = 0; i < this.rows; i++)
-        {
-            for (int j = 0; j < this.cols; j++)
-            {
-                if (this.board[i][j].isOccupied())
-                {
-                    newBoard.board[i][j].placeTile(new Tiles(this.board[i][j].getTile().getLetter(), this.board[i][j].getTile().getNumber()));
-                }
-            }
-        }
-        return newBoard;
-    }
-
-    /**
-     * initializes a board where each row and column entry are empty to begin with.
+     * initializes a board where each row and column entry are an empty cell to begin with.
      */
     public void setUpBoard()
     {
@@ -62,6 +41,27 @@ public class Board {
                 board[i][j] = new Cell();
             }
         }
+    }
+
+    /**
+     * Copies from one board to another which is useful to retrieve back to a board in case
+     * a word couldn't be placed.
+     *
+     * @return a copy of a board
+     */
+    public Board copyBoard() {
+        Board newBoard = new Board(this.rows, this.cols); //creates a new board
+        for (int i = 0; i < this.rows; i++)
+        {
+            for (int j = 0; j < this.cols; j++)
+            {
+                if (this.board[i][j].isOccupied()) //if there is a tile on the other board
+                {
+                    newBoard.board[i][j].placeTile(new Tiles(this.board[i][j].getTile().getLetter(), this.board[i][j].getTile().getNumber())); //copy the tile to the new board
+                }
+            }
+        }
+        return newBoard; //returns the new board
     }
 
     /**
@@ -100,6 +100,15 @@ public class Board {
     public boolean checkMiddleBoardEmpty()
     {
         return !board[7][7].isOccupied();
+    }
+
+    /**
+     * Removes a tile from the board.
+     * @param row row to place tile on the board
+     * @param col column to place tile on the board
+     */
+    public void removeBoardTile(int row, int col){
+        board[row][col].removeTile();
     }
 
     /**
@@ -151,6 +160,8 @@ public class Board {
             System.out.println();
         }
     }
+
+
 }
 
 

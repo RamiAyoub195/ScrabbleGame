@@ -7,9 +7,9 @@ import java.util.HashMap;
  * which can also be found on Hasbro's online guide. This bag class will contain all 98 tiles each having a letter and an
  * associated value.
  *
- * Author(s): Rami Ayoub
- * Version: 1.0
- * Date: Wednesday, October 16, 2024
+ * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
+ * Version: 2.0
+ * Date: Wednesday, November 6, 2024
  *
  */
 

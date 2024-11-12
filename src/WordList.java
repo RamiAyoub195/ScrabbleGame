@@ -7,6 +7,9 @@ import java.util.*;
  * It will be checked by the list of valid words in this class. It opens a text file that contains a list
  * of words from the example in the milestone project document on brightspace "https://www.mit.edu/~ecprice/wordlist.10000"
  *
+ * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
+ * Version: 2.0
+ * Date: Wednesday, November 6, 2024
  */
 
 public class WordList {

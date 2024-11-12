@@ -12,8 +12,8 @@ import java.util.*;
  */
 
 public class GameController implements ActionListener {
-    GameModel model;
-    GameView view;
+    private GameModel model;
+    private GameView view;
 
     public GameController(GameModel model, GameView view) {
         this.model = model;

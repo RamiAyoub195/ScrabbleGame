@@ -3,9 +3,9 @@ import java.util.*;
  * The player class of the game, each player has a name, a set of tiles and
  * a score. Each player can play tile(s), can swap tile(s) or skip their turn.
  *
- * Author(s): Rami Ayoub
- * Version: 1.0
- * Date: Wednesday, October 16, 2024
+ * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
+ * Version: 2.0
+ * Date: Wednesday, November 6, 2024
  *
  */
 
