@@ -17,6 +17,7 @@ public class TilesBag {
 
     private HashMap<String, Integer> scrabbleTiles; //This will store how many letter tiles we have in the game
     private ArrayList<Tiles> tilesBag; //will store each letter tile and its associated value
+    private HashMap<String, Integer> valueOfTiles;
 
     /**
      * This is the constructor of the class that will be adding all the tiles in the game to a hashtable, where each key is
@@ -26,6 +27,7 @@ public class TilesBag {
     public TilesBag() {
         scrabbleTiles = new HashMap();
         tilesBag = new ArrayList();
+        valueOfTiles = new HashMap();
 
         scrabbleTiles.put("A", 9); //All of these can be found according to Hasbro online, we have 9 A's in a game, 2 B's in a game and so on...
         scrabbleTiles.put("B", 2);
@@ -61,37 +63,44 @@ public class TilesBag {
                     s.getKey().equals("R")){
                 for (int i = 0; i < s.getValue(); i++){
                     tilesBag.add(new Tiles(s.getKey(), 1));
+                    valueOfTiles.put(s.getKey(), 1);
                 }
             }
             else if (s.getKey().equals("D") || s.getKey().equals("G")) {
                 for (int i = 0; i < s.getValue(); i++){
                     tilesBag.add(new Tiles(s.getKey(), 2));
+                    valueOfTiles.put(s.getKey(), 2);
                 }
             }
             else if (s.getKey().equals("B") || s.getKey().equals("C") || s.getKey().equals("M") || s.getKey().equals("P")) {
                 for (int i = 0; i < s.getValue(); i++){
                     tilesBag.add(new Tiles(s.getKey(), 3));
+                    valueOfTiles.put(s.getKey(), 3);
                 }
             }
             else if (s.getKey().equals("F") || s.getKey().equals("H") || s.getKey().equals("V") ||
                     s.getKey().equals("W") || s.getKey().equals("Y")) {
                 for (int i = 0; i < s.getValue(); i++){
                     tilesBag.add(new Tiles(s.getKey(), 4));
+                    valueOfTiles.put(s.getKey(), 4);
                 }
             }
             else if (s.getKey().equals("K")) {
                 for (int i = 0; i < s.getValue(); i++){
                     tilesBag.add(new Tiles(s.getKey(), 5));
+                    valueOfTiles.put(s.getKey(), 5);
                 }
             }
             else if (s.getKey().equals("J") || s.getKey().equals("X")) {
                 for (int i = 0; i < s.getValue(); i++){
                     tilesBag.add(new Tiles(s.getKey(), 8));
+                    valueOfTiles.put(s.getKey(), 8);
                 }
             }
             else{
                 for (int i = 0; i < s.getValue(); i++){
                     tilesBag.add(new Tiles(s.getKey(), 10));
+                    valueOfTiles.put(s.getKey(), 10);
                 }
             }
         }
@@ -111,6 +120,13 @@ public class TilesBag {
      */
     public boolean bagOfTileIsEmpty(){
         return tilesBag.isEmpty();
+    }
+
+    /**
+     *
+     */
+    public HashMap<String, Integer> getValueOfTiles() {
+        return valueOfTiles;
     }
 }
 

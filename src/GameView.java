@@ -552,6 +552,8 @@ public class GameView extends JFrame {
      */
     public void updatePlayerScore(String playerName, int newScore){
         JTextField scoreField = playerScoreFields.get(playerName); //gets the reference of the player score text field
+        int oldScore = Integer.parseInt(scoreField.getText());
+        newScore += oldScore;
         scoreField.setText(String.valueOf(newScore)); //sets the new score
     }
 

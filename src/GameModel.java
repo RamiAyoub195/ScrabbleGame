@@ -24,7 +24,12 @@ public class GameModel {
     private Player currentPlayer;  // current player
     private int numPlayers;
     private ArrayList<Tiles> tilesToRemove; // list of tiles to remove from a players hand
-    Set<Pair<Integer, Integer>> newestLettersCoordinates; // keeps track of the newest word placed letter coordinates
+    private Set<Pair<Integer, Integer>> newestLettersCoordinates; // keeps track of the newest word placed letter coordinates
+    private ArrayList<String> placedWords; // places words on the board
+    private String newestWord;
+    private TilesBag valueOfLetter;
+    private int wordScore;
+
     /**
      * Initializes the list of players, the boards, the user input scanner, the bag of tiles,
      * the list of words and starts the game.
@@ -34,12 +39,15 @@ public class GameModel {
         tilesToRemove = new ArrayList<>();
         winner = null;
         highestScore = 0;
+        wordScore = 0;
         gameBoard = new Board(16, 16);
         checkBoard = new Board(16, 16);
         tilesBag = new TilesBag();
         wordList = new WordList();
         rand = new Random();
         newestLettersCoordinates = new HashSet<>();
+        placedWords = new ArrayList<>();
+        valueOfLetter = new TilesBag();
     }
 
     public Board getGameBoard() {
@@ -189,6 +197,7 @@ public class GameModel {
      *
      */
     public boolean checkValidWord() {
+        newestWord = "";
         for (int row = 0; row < 16; row++) {
             if (!isValidWordInRow(row)) {
                 return false;
@@ -228,6 +237,15 @@ public class GameModel {
                 if (!isWordValidBothDirections(word)) {
                     return false;
                 }
+                if (word.length() > 1 && !placedWords.contains(word.toString())) {
+                    newestWord = word.toString();
+                    placedWords.add(newestWord);
+                    System.out.println(word.toString());
+//                    addPlacedWord(word);
+                }
+                else {
+                    newestWord = "";
+                }
                 word.setLength(0);
             }
         }
@@ -253,6 +271,16 @@ public class GameModel {
                 if (!isWordValidBothDirections(word)) {
                     return false;
                 }
+                if (word.length() > 1 && !placedWords.contains(word.toString())) {
+                    // word
+                    newestWord = word.toString();
+                    placedWords.add(newestWord);
+                    System.out.println(word);
+//                    addPlacedWord(word);
+                }
+                else {
+                    newestWord = "";
+                }
                 word.setLength(0);
             }
         }
@@ -260,6 +288,40 @@ public class GameModel {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Gets the newest word added to the board
+     * @return string of newest word
+     */
+    public String getNewestWord() {
+        return newestWord;
+    }
+
+
+    /**
+     * Gets the score of the word
+     * @param word Word to calculate score
+     */
+    public int getScore(String word) {
+        int value = 0;
+        for (int i = 0; i < word.length(); i++) {
+            char letter = word.charAt(i);
+            String strLetter = String.valueOf(letter);
+            System.out.println(strLetter);
+            HashMap<String, Integer> check = valueOfLetter.getValueOfTiles();
+            value += check.get(strLetter);
+        }
+        return value;
+    }
+
+    public void addPlacedWord(StringBuilder word){
+        if (wordList.isValidWord(word.toString())){
+            placedWords.add(word.toString());
+        }
+        else{
+            placedWords.add(word.reverse().toString());
+        }
     }
 
     /**

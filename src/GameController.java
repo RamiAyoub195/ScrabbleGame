@@ -29,6 +29,10 @@ public class GameController implements ActionListener {
     private int numTilesInBag;
     private int numTilesPlacedThisTurn = 0;
     private int tileIndex;
+    private String newestWord;
+    private int newestScore;
+    private ArrayList<String> currentPlayerNames;
+    private ArrayList<String> wordsInGame;
 
     public GameController(GameModel model, GameView view) {
         this.model = model;
@@ -38,6 +42,8 @@ public class GameController implements ActionListener {
         listOfCols = new ArrayList<Integer>();
         listOfTiles = new ArrayList<Tiles>();
         tilesToSwapIndices = new ArrayList<Integer>();
+
+        wordsInGame = new ArrayList<>();
 
         for(String playerName : view.getPlayerNames()){
             model.addPlayer(playerName); //creates players in the game model after getting the names from the view
@@ -49,7 +55,7 @@ public class GameController implements ActionListener {
         currentPlayer = model.getCurrentPlayer(currentTurn); // Update current player in model to start game
 
         view.setUpPlayerTilesPanel(model.getPlayers().get(0)); // Set up the first player's tiles
-
+        currentPlayerNames = view.getPlayerNames();
         this.view.setAllButtonsActionListener(this); //sets the controller as the action listener for all buttons in the view
 
     }
@@ -140,10 +146,20 @@ public class GameController implements ActionListener {
                 numTilesInBag = numTilesInBag - numTilesPlacedThisTurn;
                 view.updateBagTilesCount(numTilesInBag);
                 // update player tiles
-                nextTurn();
+
                 view.resetPlayerTile();
-                String word = model.buildWordFromCoordinates();
-                System.out.println(word);
+                newestWord = model.getNewestWord();
+                System.out.println(newestWord);
+                System.out.println(newestWord);
+                newestScore = model.getScore(newestWord);
+
+                view.addToWordArea(newestWord);
+                newestWord = "";
+                String currentPlayerName = currentPlayerNames.get(currentTurn % numPlayers);
+                view.updatePlayerScore(currentPlayerName, newestScore);
+
+                nextTurn();
+
             }
         }
         else {
