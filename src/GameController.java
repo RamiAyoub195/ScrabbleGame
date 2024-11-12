@@ -18,7 +18,10 @@ public class GameController implements ActionListener {
     private ArrayList<Integer> listOfRows;
     private ArrayList<Integer> listOfCols;
     private ArrayList<Tiles> listOfTiles;
+    private ArrayList<Integer> tilesToSwapIndices;
+    private int numTimesSwapClicked = 0;
     boolean aTileIsSelected = false;
+    boolean swapTileSelected = false;
     private Player currentPlayer;
     private int selectedTileCol = 0;
     private int currentTurn = 0;
@@ -34,6 +37,7 @@ public class GameController implements ActionListener {
         listOfRows = new ArrayList<Integer>();
         listOfCols = new ArrayList<Integer>();
         listOfTiles = new ArrayList<Tiles>();
+        tilesToSwapIndices = new ArrayList<Integer>();
 
         for(String playerName : view.getPlayerNames()){
             model.addPlayer(playerName); //creates players in the game model after getting the names from the view
@@ -125,7 +129,7 @@ public class GameController implements ActionListener {
                     }
                 }
 
-//                model.updateGameBoard();
+                model.updateGameBoard();
                 // remove tiles from player hand in model
                 model.removeTilesFromPlayerHand();
                 model.getRandomTiles(numTilesPlacedThisTurn, model.getCurrentPlayer(currentTurn));
@@ -137,7 +141,7 @@ public class GameController implements ActionListener {
                 view.updateBagTilesCount(numTilesInBag);
                 // update player tiles
                 nextTurn();
-                resetPlayerTile();
+                view.resetPlayerTile();
                 String word = model.buildWordFromCoordinates();
                 System.out.println(word);
             }
@@ -146,43 +150,69 @@ public class GameController implements ActionListener {
             model.updateCheckBoard();
             handleError("Invalid word!");
         }
-        //model.printCheckBoard();
-        //model.printGameBoard();
+        model.printCheckBoard();
+        model.printGameBoard();
         listOfTiles.clear();
         listOfRows.clear();
         listOfCols.clear();
     }
 
-    private void swapButtonAction() {}
+    private void swapButtonAction() {
+        // if swap button has been clicked
+        if (numTimesSwapClicked % 2 == 0) {
+            view.displayMessageToPlayer("Select all tiles to swap then click swap button again");
+            swapTileSelected = true;
+            view.resetPlayerTile();
+        }
+        else {
+            model.playerSwapTile(model.getCurrentPlayer(currentTurn), tilesToSwapIndices);
+            view.resetPlayerTile();
+            view.updatePlayerTiles(model.getCurrentPlayer(currentTurn));
+            nextTurn();
+            view.enableAllBoardFields();
+            swapTileSelected = false;
+        }
+        numTimesSwapClicked++;
+    }
 
     private void passButtonAction() {
         // proceed to next player turn
         nextTurn();
-        resetPlayerTile();
+        view.resetPlayerTile();
     }
 
     private void handleSpecificTileButtonAction(int col) {
-        // update tile index
-        tileIndex = col;
-        // Check if selected tile is gray
-        if (view.getSpecificPlayerTileColour(col) == Color.GRAY) {
-            // do nothing
-        }
-        // Make sure the other tiles are light gray when not selected
-        else {
-            for (int index = 0; index < 7; index++) {
-                if (view.getSpecificPlayerTileColour(index) != Color.GRAY) {
-                    view.setPlayerTilesColour(index, Color.LIGHT_GRAY);
-                }
-            }
-            // Set orange to indicate that tile is currently selected
+        // if swap tile has been selected
+        if (swapTileSelected) {
+            view.disableAllBoardFields();
             view.setPlayerTilesColour(col, Color.ORANGE);
+            tilesToSwapIndices.add(col);
+        }
 
-            // now we need to set a flag that a current tile is selected
-            aTileIsSelected = true;
+        // if swap tile has not been selected (normal play)
+        else {
+            // update tile index
+            tileIndex = col;
+            // Check if selected tile is gray
+            if (view.getSpecificPlayerTileColour(col) == Color.GRAY) {
+                // do nothing
+            }
+            // Make sure the other tiles are light gray when not selected
+            else {
+                for (int index = 0; index < 7; index++) {
+                    if (view.getSpecificPlayerTileColour(index) != Color.GRAY) {
+                        view.setPlayerTilesColour(index, Color.LIGHT_GRAY);
+                    }
+                }
+                // Set orange to indicate that tile is currently selected
+                view.setPlayerTilesColour(col, Color.ORANGE);
 
-            // set selected tile column number
-            selectedTileCol = col;
+                // now we need to set a flag that a current tile is selected
+                aTileIsSelected = true;
+
+                // set selected tile column number
+                selectedTileCol = col;
+            }
         }
     }
 
@@ -223,11 +253,6 @@ public class GameController implements ActionListener {
     }
 
 
-    private void resetPlayerTile() {
-        for (int col = 0; col < 7; col++) {
-            view.setPlayerTilesColour(col, Color.LIGHT_GRAY);
-        }
-    }
 
     private void nextTurn() {
         currentTurn++;
@@ -247,8 +272,8 @@ public class GameController implements ActionListener {
         view.displayMessageToPlayer(errorMessage);
 
         // Next turn
-        nextTurn();
-        resetPlayerTile();
+        // nextTurn();
+        view.resetPlayerTile();
     }
 
     public static void main(String[] args) {

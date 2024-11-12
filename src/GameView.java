@@ -89,10 +89,12 @@ public class GameView extends JFrame {
      */
     public ArrayList<String> welcomeAndGetPlayerNames() {
         ArrayList<String> names = new ArrayList<>();
+
         numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (2-4)")); //prints a welcome message to the game and asks for the number of players
+
         for (int i = 1; i <= numPlayers; i++) {
-            String name = JOptionPane.showInputDialog("Please Enter Player " + i + " Name"); //gets the name of the player
-            names.add(name); //adds the name of the player and creates a new player
+        String name = JOptionPane.showInputDialog("Please Enter Player " + i + " Name"); //gets the name of the player
+        names.add(name); //adds the name of the player and creates a new player
         }
         return names;
     }
@@ -397,6 +399,28 @@ public class GameView extends JFrame {
     }
 
     /**
+     * Disables all board fields.
+     */
+    public void disableAllBoardFields() {
+        for (int i = 1; i < 16; i++) {
+            for (int j = 1; j < 16; j++) {
+                boardFields[i][j].setEnabled(false);
+            }
+        }
+    }
+
+    /**
+     * Enables all board fields.
+     */
+    public void enableAllBoardFields() {
+        for (int i = 1; i < 16; i++) {
+            for (int j = 1; j < 16; j++) {
+                boardFields[i][j].setEnabled(true);
+            }
+        }
+    }
+
+    /**
      * Temporarily adds a tile to the board after a player selects one of its tiles and adds it to the board.
      * The player may choose to add another tiles as well, but it will show them what they have placed so far
      * @param tile the tile that is being added
@@ -558,6 +582,16 @@ public class GameView extends JFrame {
      */
     public void setSpecificBoardFieldColour(int row, int col, Color colour) {
         boardFields[row][col].setBackground(colour);
+    }
+
+
+    /**
+     * Resets player tiles to light gray
+     */
+    public void resetPlayerTile() {
+        for (int col = 0; col < 7; col++) {
+            setPlayerTilesColour(col, Color.LIGHT_GRAY);
+        }
     }
 
 
