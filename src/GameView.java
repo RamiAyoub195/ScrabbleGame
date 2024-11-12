@@ -19,14 +19,11 @@ import java.awt.event.*;
 public class GameView extends JFrame {
     private ArrayList<String> playerNames; //will store the name of the players
     private int numPlayers; // number of players in the game
-    private JTextArea wordArea; //represents the text area where a valid word was placed on the board is displayed
-    private JTextField wordCount; //represents a count of the words that have been placed in the game
     private JTextField tileBagCount; //represents a count for the number of tiles remaining in the bag
     private JButton[][] boardFields; //represents the open slots where the tiles can be placed by selecting a tile an open spot
     private JButton[][] playerTiles; //represents the buttons that will have the players tiles on them as a label
     private HashMap<String, JTextField> playerScoreFields; //will store the players name and their score
     private JTextField playerTurn; //the player who has the current turn;
-    private JPanel wordPlacedPanel; //this panel will have the words placed in the game and a count of the words
     private JPanel playerPanel; //this panel will have the players names and their scores
     private JPanel tileBagPanel; //this panel will have the number of tiles in the bag during the game
     private JPanel boardPanel; //represents the 15 x 15 board that the tiles will be placed on.
@@ -65,8 +62,6 @@ public class GameView extends JFrame {
 
         initializeBoard(); //initialized the board panel
 
-        setUpWordsPlacedPanel(); //sets up the word placed panel showing the number of words and the word that was placed
-
         setUpPlayerPanel(); //sets up the players panel in the game with their scores
 
         setUpTileBagPanel(); //sets up the tiles bag panel showing the number of tiles at the start
@@ -89,8 +84,10 @@ public class GameView extends JFrame {
      */
     public ArrayList<String> welcomeAndGetPlayerNames() {
         ArrayList<String> names = new ArrayList<>();
-
-        numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (2-4)")); //prints a welcome message to the game and asks for the number of players
+        int numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (2-4)")); //prints a welcome message to the game and asks for the number of players
+        while (numPlayers < 1 || numPlayers > 4) {
+            numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (2-4)")); //prints a welcome message to the game and asks for the number of players
+        }
 
         for (int i = 1; i <= numPlayers; i++) {
         String name = JOptionPane.showInputDialog("Please Enter Player " + i + " Name"); //gets the name of the player
@@ -135,36 +132,6 @@ public class GameView extends JFrame {
         }
     }
 
-    /**
-     * Sets up the word placed panel which will have a list of the words placed and the
-     * number of words
-     */
-    public void setUpWordsPlacedPanel(){
-        wordPlacedPanel = new JPanel(); //creates the panel for the placed word
-        wordPlacedPanel.setLayout(new BoxLayout(wordPlacedPanel, BoxLayout.X_AXIS)); //makes it a box layout with components added vertically
-
-        JLabel wordLabel = new JLabel("Words Placed: "); //The header of the words placed
-        wordPlacedPanel.add(wordLabel); //adds it to the word placed panel
-
-        wordCount = new JTextField("0"); //sets the number of words added at the beginning as 0
-        wordCount.setMaximumSize(new Dimension(30, 30)); //makes the size of the text field a square
-        wordCount.setEditable(false); //makes it non editable
-        wordCount.setBackground(Color.WHITE);//makes the background colour white
-        wordCount.setHorizontalAlignment(SwingConstants.CENTER); // centers the text horizontally
-        wordPlacedPanel.add(wordCount); //adds it to the word placed panel
-
-        rightSidePanel.add(wordPlacedPanel); //adds the label and text field to the right side of the game
-        wordArea = new JTextArea(1, 5); //Will display the words that are added to the board
-        wordArea.setEditable(false); // cannot be entered as input only for output
-        wordArea.setBackground(Color.WHITE); //sets the background color for the text area as white
-        wordArea.setLineWrap(true); //allows for line wrapping
-        wordArea.setWrapStyleWord(true); //allows for neat wrapping so words don't cut out in the middle
-
-        JScrollPane scrollPane = new JScrollPane(wordArea); // Adds scrolling to the text area
-        scrollPane.setMinimumSize(new Dimension(50, 20));
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS); // Show vertical scrollbar only when needed
-        rightSidePanel.add(scrollPane); //adds it to the right side
-    }
 
     /**
      * Sets up the player panel which will have all player names and their scores
@@ -317,21 +284,6 @@ public class GameView extends JFrame {
                 }
         }
         return -1; //if it could not be found
-    }
-
-    /**
-     * Increments the word count after a word has been successfully placed.
-     */
-    public void incrementWordCount(){
-        wordCount.setText(String.valueOf(Integer.parseInt(wordCount.getText()) + 1)); //increment the word count
-    }
-
-    /**
-     * Updates the word text area with the word that was placed by the player
-     * @param word the word placed by the player
-     */
-    public void addToWordArea(String word){
-        wordArea.append(word + "\n"); //adds the word to the text area
     }
 
     /**

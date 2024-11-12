@@ -14,7 +14,6 @@ import java.util.*;
 public class GameModel {
     private ArrayList<Player> players; //list of players in the game
     private Player winner; //player who win the game
-    private int highestScore; //player with the highest score
     private Board gameBoard; //the actual game board displayed
     private Board checkBoard; //a board used to check for adjacency, valid word, etc.
     private TilesBag tilesBag; //a bag of tiles in the game
@@ -28,7 +27,6 @@ public class GameModel {
     private ArrayList<String> placedWords; // places words on the board
     private String newestWord;
     private TilesBag valueOfLetter;
-    private int wordScore;
 
     /**
      * Initializes the list of players, the boards, the user input scanner, the bag of tiles,
@@ -38,8 +36,6 @@ public class GameModel {
         players = new ArrayList<>();
         tilesToRemove = new ArrayList<>();
         winner = null;
-        highestScore = 0;
-        wordScore = 0;
         gameBoard = new Board(16, 16);
         checkBoard = new Board(16, 16);
         tilesBag = new TilesBag();
@@ -74,11 +70,20 @@ public class GameModel {
             {
                 if(player.getTiles().isEmpty())
                 {
+                    winner = player;
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    /**
+     * Returns the player that won
+     * @return the player that won
+     */
+    public Player getWinner() {
+        return winner;
     }
 
     /**
@@ -315,14 +320,6 @@ public class GameModel {
         return value;
     }
 
-    public void addPlacedWord(StringBuilder word){
-        if (wordList.isValidWord(word.toString())){
-            placedWords.add(word.toString());
-        }
-        else{
-            placedWords.add(word.reverse().toString());
-        }
-    }
 
     /**
      * Checks if the provided word is valid in either forward or reverse direction
@@ -389,6 +386,10 @@ public class GameModel {
         numPlayers = numberOfPlayers;
     }
 
+
+    /**
+     * Removes tiles from player hand
+     */
     public void removeTilesFromPlayerHand() {
         for (Tiles tile: tilesToRemove) {
             currentPlayer.getTiles().remove(tile);
@@ -405,38 +406,6 @@ public class GameModel {
         return checkBoard;
     }
 
-    /**
-     * Returns the bag containing all tiles used in the game.
-     *
-     * @return the tile bag for the game
-     */
-    public TilesBag getTilesBag() {
-        return tilesBag;
-    }
-
-    /**
-     * Returns the word list containing all valid words for the game.
-     *
-     * @return the word list for validating words
-     */
-    public WordList getWordList() {
-        return wordList;
-    }
-
-    /**
-     * Retrieves a player from the game by their name.
-     *
-     * @param name the name of the player to retrieve
-     * @return the Player object if a match is found; null otherwise
-     */
-    public Player getPlayerByName(String name) {
-        for (Player player : players) {
-            if (player.getName().equals(name)) {
-                return player;
-            }
-        }
-        return null; // Return null if no player with the given name is found
-    }
 
     /**
      * Gets the tile in the players hand at specified spot
@@ -479,6 +448,136 @@ public class GameModel {
         newestLettersCoordinates.add(new Pair<>(row, col));
     }
 
+    public boolean findDirectionOfNewLettersPlaced() {
+        boolean directionIsHorizontal = true;
+        int firstRow = newestLettersCoordinates.iterator().next().getKey();
+        int firstCol = newestLettersCoordinates.iterator().next().getValue();
+
+        int count = 0;
+        for (Pair<Integer, Integer> coor : newestLettersCoordinates) {
+            if (count == 1) {
+                if (coor.getKey() == firstRow) {
+                    directionIsHorizontal = false;
+                } else if (coor.getKey() == firstCol) {
+                    directionIsHorizontal = true;
+                }
+            }
+            count++;
+        }
+        return directionIsHorizontal;
+    }
+
+    /**
+     * Going to get the list of the entire new word, including adjacent letters
+     * @return list of pairs of coordinates of new word
+     */
+    public List<Pair<Integer, Integer>> findCompleteWord() {
+        List<Pair<Integer, Integer>> completeWordCoordinates = new ArrayList<>();
+
+        // First, determine if the newly placed letters form a horizontal or vertical word
+        boolean directionIsHorizontal = findDirectionOfNewLettersPlaced();
+
+        // Create a set to track the coordinates of the new letters placed
+        Set<Pair<Integer, Integer>> visitedCoordinates = new HashSet<>(newestLettersCoordinates);
+
+        // For each new letter, we will find and add the adjacent letters
+        for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+            // Explore the adjacent tiles to get the full word
+            exploreAdjacentLetters(coordinate, visitedCoordinates, completeWordCoordinates, directionIsHorizontal);
+        }
+
+        // Add the newly placed letters to the list as well (if not already in the list)
+        for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+            if (!completeWordCoordinates.contains(coordinate)) {
+                completeWordCoordinates.add(coordinate);
+            }
+        }
+
+        // Return the complete list of coordinates for the word
+        return completeWordCoordinates;
+    }
+
+    /**
+     * Recursively explores the adjacent letters to expand the complete word.
+     * @param coordinate - current coordinate to explore
+     * @param visitedCoordinates - Set to track visited coordinates to prevent revisiting
+     * @param completeWordCoordinates - List to hold all coordinates forming the word
+     * @param isHorizontal - whether the word is horizontal or vertical
+     */
+    private void exploreAdjacentLetters(Pair<Integer, Integer> coordinate, Set<Pair<Integer, Integer>> visitedCoordinates,
+                                        List<Pair<Integer, Integer>> completeWordCoordinates, boolean isHorizontal) {
+        int row = coordinate.getKey();
+        int col = coordinate.getValue();
+
+        // If we've already visited this coordinate, stop exploring
+        if (visitedCoordinates.contains(coordinate)) {
+            return;
+        }
+
+        // Mark this coordinate as visited
+        visitedCoordinates.add(coordinate);
+
+        // Add this coordinate to the complete word list
+        completeWordCoordinates.add(coordinate);
+
+        // Explore adjacent coordinates based on whether the word is horizontal or vertical
+        if (isHorizontal) {
+            // Check left
+            if (col - 1 >= 0 && gameBoard.getBoard()[row][col - 1].isOccupied()) {
+                exploreAdjacentLetters(new Pair<>(row, col - 1), visitedCoordinates, completeWordCoordinates, isHorizontal);
+            }
+
+            // Check right
+            if (col + 1 < gameBoard.getBoard()[0].length && gameBoard.getBoard()[row][col + 1].isOccupied()) {
+                exploreAdjacentLetters(new Pair<>(row, col + 1), visitedCoordinates, completeWordCoordinates, isHorizontal);
+            }
+        } else {  // Vertical direction
+            // Check above
+            if (row - 1 >= 0 && gameBoard.getBoard()[row - 1][col].isOccupied()) {
+                exploreAdjacentLetters(new Pair<>(row - 1, col), visitedCoordinates, completeWordCoordinates, isHorizontal);
+            }
+
+            // Check below
+            if (row + 1 < gameBoard.getBoard().length && gameBoard.getBoard()[row + 1][col].isOccupied()) {
+                exploreAdjacentLetters(new Pair<>(row + 1, col), visitedCoordinates, completeWordCoordinates, isHorizontal);
+            }
+        }
+    }
+
+    /**
+     * Builds the word from a list of letter coordinates and its direction (horizontal or vertical)
+     * @param completeWordCoordinates List of coordinates for the full word
+     * @param isHorizontal Whether the word is horizontal or vertical
+     * @return The word formed from the coordinates
+     */
+    public String buildWordFromCoordinates(List<Pair<Integer, Integer>> completeWordCoordinates, boolean isHorizontal) {
+        // Sort the coordinates depending on whether it's horizontal or vertical
+        if (isHorizontal) {
+            // Sort by column for horizontal direction
+            completeWordCoordinates.sort((pair1, pair2) -> Integer.compare(pair1.getValue(), pair2.getValue()));
+        } else {
+            // Sort by row for vertical direction
+            completeWordCoordinates.sort((pair1, pair2) -> Integer.compare(pair1.getKey(), pair2.getKey()));
+        }
+
+        // Build the word by iterating over the sorted coordinates
+        StringBuilder word = new StringBuilder();
+        for (Pair<Integer, Integer> coordinate : completeWordCoordinates) {
+            int row = coordinate.getKey();
+            int col = coordinate.getValue();
+
+            // Assuming you have a method to get the letter at the given position (row, col)
+            String letter = gameBoard.getBoard()[row][col].getTile().getLetter(); // Modify based on your board representation
+            word.append(letter);
+        }
+
+        // Return the constructed word
+        return word.toString();
+    }
+
+
+
+
     /**
      * Resets the set of letter coordinates
      */
@@ -499,26 +598,6 @@ public class GameModel {
     public Player getCurrentPlayer(int currentTurn) {
         currentPlayer = players.get(currentTurn % numPlayers);
         return currentPlayer;
-    }
-
-    public void printCheckBoard() {
-        System.out.println("Check board");
-        for (int row = 0; row < 16; row++) {
-            for (int col = 0; col < 16; col++) {
-                System.out.print(checkBoard.getBoard()[row][col].toString());
-            }
-            System.out.println();
-        }
-    }
-
-    public void printGameBoard() {
-        System.out.println("Game board");
-        for (int row = 0; row < 16; row++) {
-            for (int col = 0; col < 16; col++) {
-                System.out.print(gameBoard.getBoard()[row][col].toString());
-            }
-            System.out.println();
-        }
     }
 
 

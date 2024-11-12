@@ -22,13 +22,11 @@ public class GameController implements ActionListener {
     private int numTimesSwapClicked = 0;
     boolean aTileIsSelected = false;
     boolean swapTileSelected = false;
-    private Player currentPlayer;
     private int selectedTileCol = 0;
     private int currentTurn = 0;
     private int numPlayers;
     private int numTilesInBag;
     private int numTilesPlacedThisTurn = 0;
-    private int tileIndex;
     private String newestWord;
     private int newestScore;
     private ArrayList<String> currentPlayerNames;
@@ -52,7 +50,6 @@ public class GameController implements ActionListener {
         numTilesInBag = 100 - (7 * view.getPlayerNames().size()); // Get size of tiles bag initially
         numPlayers = view.getNumPlayers(); // Get number of players
         model.setNumPlayers(numPlayers);   // Set number of players in model
-        currentPlayer = model.getCurrentPlayer(currentTurn); // Update current player in model to start game
 
         view.setUpPlayerTilesPanel(model.getPlayers().get(0)); // Set up the first player's tiles
         currentPlayerNames = view.getPlayerNames();
@@ -114,9 +111,16 @@ public class GameController implements ActionListener {
         // if not valid return the tiles to player hand and remove from board, next player turn
         // handle removing tiles from hand and replacing with new random ones from model
         // then update view with new tiles
+        //check if game is over
+        if (model.isGameFinished()) {
+            Player winner = model.getWinner();
+            view.displayMessageToPlayer("Game finished! " + winner.getName() + " won with score " + winner.getScore());
+        }
+
 
         // if word is not valid
         if (model.checkValidWord()) {
+
             // check that the entire board's tiles are connected
             if (model.getCheckBoard().checkMiddleBoardEmpty()) {
                 handleError("Middle square must be covered!");
@@ -140,8 +144,7 @@ public class GameController implements ActionListener {
                 model.removeTilesFromPlayerHand();
                 model.getRandomTiles(numTilesPlacedThisTurn, model.getCurrentPlayer(currentTurn));
                 // add the letter to model
-                model.printCheckBoard();
-                model.printGameBoard();
+
                 // update words placed, player score, tiles in bag
                 numTilesInBag = numTilesInBag - numTilesPlacedThisTurn;
                 view.updateBagTilesCount(numTilesInBag);
@@ -153,10 +156,13 @@ public class GameController implements ActionListener {
                 System.out.println(newestWord);
                 newestScore = model.getScore(newestWord);
 
-                view.addToWordArea(newestWord);
-                newestWord = "";
+
                 String currentPlayerName = currentPlayerNames.get(currentTurn % numPlayers);
                 view.updatePlayerScore(currentPlayerName, newestScore);
+
+                String newWord = model.buildWordFromCoordinates(model.findCompleteWord(), model.findDirectionOfNewLettersPlaced());
+                System.out.println(newWord);
+                model.resetLetterSet();
 
                 nextTurn();
 
@@ -166,8 +172,7 @@ public class GameController implements ActionListener {
             model.updateCheckBoard();
             handleError("Invalid word!");
         }
-        model.printCheckBoard();
-        model.printGameBoard();
+
         listOfTiles.clear();
         listOfRows.clear();
         listOfCols.clear();
@@ -208,7 +213,6 @@ public class GameController implements ActionListener {
         // if swap tile has not been selected (normal play)
         else {
             // update tile index
-            tileIndex = col;
             // Check if selected tile is gray
             if (view.getSpecificPlayerTileColour(col) == Color.GRAY) {
                 // do nothing
@@ -256,7 +260,9 @@ public class GameController implements ActionListener {
                 model.addTile(row, col, tile); // Add tile to the model board
                 model.addTileToRemove(tile); // add to list of tiles to remove from hand
                 numTilesPlacedThisTurn++;
-                model.printCheckBoard();
+                model.addLetterToSet(row, col); // adds the letters coordinates placed this turn to a set
+
+
             }
             // otherwise do not add tile to that spot (do nothing)
             else {
