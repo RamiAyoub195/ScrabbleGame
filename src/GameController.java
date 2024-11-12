@@ -30,18 +30,17 @@ public class GameController implements ActionListener {
     private String newestWord;
     private int newestScore;
     private ArrayList<String> currentPlayerNames;
-    private ArrayList<String> wordsInGame;
 
     public GameController(GameModel model, GameView view) {
         this.model = model;
         this.view = view;
 
+        // Initializes lists
         listOfRows = new ArrayList<Integer>();
         listOfCols = new ArrayList<Integer>();
         listOfTiles = new ArrayList<Tiles>();
         tilesToSwapIndices = new ArrayList<Integer>();
 
-        wordsInGame = new ArrayList<>();
 
         for(String playerName : view.getPlayerNames()){
             model.addPlayer(playerName); //creates players in the game model after getting the names from the view
@@ -52,9 +51,11 @@ public class GameController implements ActionListener {
         model.setNumPlayers(numPlayers);   // Set number of players in model
 
         view.setUpPlayerTilesPanel(model.getPlayers().get(0)); // Set up the first player's tiles
-        currentPlayerNames = view.getPlayerNames();
+        currentPlayerNames = view.getPlayerNames();  // gets the current players nams
         this.view.setAllButtonsActionListener(this); //sets the controller as the action listener for all buttons in the view
 
+        // Sets current player
+        model.getCurrentPlayer(currentTurn);
     }
 
     /**
