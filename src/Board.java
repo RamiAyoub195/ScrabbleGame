@@ -168,37 +168,6 @@ public class Board {
 
 
     /**
-     * Checks the entire board to see if all tiles are adjacent to another
-     * @return true if all tiles are adjacent to another tile
-     */
-    public boolean checkEntireBoardConnected() {
-        // Iterate over all rows and columns of the 16x16 board
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
-                // Check if the current tile is adjacent to something occupied
-                if (!checkAdjacentBoardConnected(row, col)) {
-                    return false; // if any tile isn't adjacent to an occupied tile, return false
-                }
-            }
-        }
-        // if all tiles are adjacent to an occupied spot, return true
-        return true;
-    }
-
-
-    /**
-     * Displays the board of the game showing each row and column
-     */
-    public void displayBoard() {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                System.out.print(board[i][j].toString());
-            }
-            System.out.println();
-        }
-    }
-
-    /**
      * Gets number of rows on the board
      * @return number of rows
      */
@@ -213,16 +182,6 @@ public class Board {
     public int getCols() {
         return cols;
     }
-
-
-
-
-
-
-
-
-
-
 
     /**
      * Performs DFS to check connectivity from the center.
@@ -277,20 +236,4 @@ public class Board {
         // If we visited all occupied spots, return true
         return true;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
