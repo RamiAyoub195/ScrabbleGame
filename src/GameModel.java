@@ -1,3 +1,4 @@
+
 import java.util.*;
 
 /**
@@ -5,20 +6,29 @@ import java.util.*;
  * also the user will input their commands and get an update of the board, their score etc.
  * Each word that a player places will be checked for adjacency, valid word etc.
  *
- * Author(s): Rami Ayoub, Andrew tawfik, Louis Pantazopoulos, Liam Bennet
+ * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
  * Version: 2.0
- * Date: Wednesday, October 16, 2024
+ * Date: Wednesday, November 6th, 2024
  */
 
 public class GameModel {
     private ArrayList<Player> players; //list of players in the game
     private Player winner; //player who win the game
+    private int highestScore; //player with the highest score
     private Board gameBoard; //the actual game board displayed
     private Board checkBoard; //a board used to check for adjacency, valid word, etc.
     private TilesBag tilesBag; //a bag of tiles in the game
     private WordList wordList; //valid word list of words from example txt file
     private Random rand; //to get random tiles from the bag when swapping or replacing placed tiles
     private String statusMessage;
+    private Player currentPlayer;  // current player
+    private int numPlayers;
+    private ArrayList<Tiles> tilesToRemove; // list of tiles to remove from a players hand
+    private Set<Pair<Integer, Integer>> newestLettersCoordinates; // keeps track of the newest word placed letter coordinates
+    private ArrayList<String> placedWords; // places words on the board
+    private String newestWord;
+    private TilesBag valueOfLetter;
+    private int wordScore;
 
     /**
      * Initializes the list of players, the boards, the user input scanner, the bag of tiles,
@@ -26,27 +36,24 @@ public class GameModel {
      */
     public GameModel(){
         players = new ArrayList<>();
+        tilesToRemove = new ArrayList<>();
         winner = null;
-        gameBoard = new Board(15, 15);
-        checkBoard = new Board(15, 15);
+        highestScore = 0;
+        wordScore = 0;
+        gameBoard = new Board(16, 16);
+        checkBoard = new Board(16, 16);
         tilesBag = new TilesBag();
         wordList = new WordList();
         rand = new Random();
+        newestLettersCoordinates = new HashSet<>();
+        placedWords = new ArrayList<>();
+        valueOfLetter = new TilesBag();
     }
 
-    /**
-     * returns the board of the game.
-     * @return the game board
-     */
     public Board getGameBoard() {
         return gameBoard;
     }
 
-    /**
-     * Creates a new player and adds it to the array list of players in the game.
-     * Each player is assigned 7 random tiles at the start.
-     * @param playerName the name of the player
-     */
     public void addPlayer(String playerName)
     {
         Player player = new Player(playerName);
@@ -54,28 +61,18 @@ public class GameModel {
         getRandomTiles(7, player);
     }
 
-    /**
-     * Returns the array list of players in the game
-     * @return list of players in game
-     */
     public ArrayList<Player> getPlayers()
     {
         return players;
     }
 
-    /**
-     * Checks to see when the game has finished, when a game is finished there are no more tiles in the bag
-     * and at least one player has no more tiles.
-     * @return true if the game is finished, false otherwise
-     */
-
     public boolean isGameFinished()
     {
-        if(tilesBag.bagOfTileIsEmpty()) //if the bag of tiles is empty
+        if(tilesBag.bagOfTileIsEmpty())
         {
-            for(Player player: players) //traverses through array list of players
+            for(Player player: players)
             {
-                if(player.getTiles().isEmpty()) //at least one of the players doesn't have tiles anymore
+                if(player.getTiles().isEmpty())
                 {
                     return true;
                 }
@@ -92,29 +89,27 @@ public class GameModel {
      * @param player the player's current turn
      */
     public void playerPlaceTile(Player player, ArrayList<Tiles> tiles, ArrayList<Integer> rowPositions,ArrayList<Integer> colPositions){
-        if (placeWord(tiles, rowPositions, colPositions, player)){ //if the word was successfully placed
+        if (placeWord(tiles, rowPositions, colPositions, player)){ //if the word was sucessfully placed
             gameBoard = checkBoard.copyBoard(); //real board gets the checked board
-            for (Tiles tile : tiles) //traverses through the tiles that were placed
+            for (Tiles tile : tiles)
             {
-                player.getTiles().remove(tile); //removes them from the player
-                player.addScore(tile.getNumber()); //adds it to teh score of the player
+                player.getTiles().remove(tile);
+                player.addScore(tile.getNumber());
             }
-            if (!tilesBag.bagOfTileIsEmpty()) //if the bag of tiles is not empty
+            if (!tilesBag.bagOfTileIsEmpty())
             {
-                getRandomTiles(tiles.size(), player); //gets random tiles again to the player to restore the ones they placed
+                getRandomTiles(tiles.size(), player);
             }
         }
+        // Print or log the status message
+        System.out.println(statusMessage);
     }
 
-    /**
-     * Returns the error message is the player does something illegal such as not placing and adjacent word,
-     * not covering middle etc.
-     * @return the error message
-     */
     public String getStatusMessage()
     {
         return statusMessage;
     }
+
 
     /**
      * Places a word on the board, the first word needs to go through the middle square.
@@ -129,22 +124,23 @@ public class GameModel {
      * @return boolean true if the word was placed, false otherwise
      */
     public boolean placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions, Player player) {
-        Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state to go back if it was not placed
-        boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move needs to be done first
-        boolean isAdjacent = false; // checks for adjacency with other letters
+        Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
+        boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
+        boolean isAdjacent = false;
 
-        // Attempt to place each tile and check for valid conditions such as adjacency and covers the middle word
-        for (int i = 0; i < tempTiles.size(); i++) { //traverses through the tiles
-            int row = tempRowPositions.get(i); //gets the row of where the tile is going
-            int col = tempColPositions.get(i); //gets the column of where the tile is going
+        // Attempt to place each tile and check for valid conditions
+        for (int i = 0; i < tempTiles.size(); i++) {
+            int row = tempRowPositions.get(i);
+            int col = tempColPositions.get(i);
 
-            if (!checkBoard.checkBoardTileEmpty(row, col)) {  //if the tile is occupied
+            // Ensure the board space is empty
+            if (!checkBoard.checkBoardTileEmpty(row, col)) {
                 checkBoard = savedCheckBoard.copyBoard(); // Restore board state
-                statusMessage = "Error: Board space already occupied."; //saves the error message
+                statusMessage = "Error: Board space already occupied.";
                 return false;
             }
 
-            // Temporarily place tile to check adjacency and center coverage of the letter
+            // Temporarily place tile to check adjacency and center coverage
             checkBoard.placeBoardTile(row, col, tempTiles.get(i));
 
             // Check if the middle cell is covered on the first move
@@ -156,39 +152,38 @@ public class GameModel {
             if (!isFirstWord && checkBoard.checkAdjacentBoardConnected(row, col)) {
                 isAdjacent = true; // Tile is adjacent to an existing tile, making placement valid
             }
-            checkBoard.removeBoardTile(row, col); //remove the tile after checking the individal tile that they condictions were met ie sdjacency and middle coverage
+            checkBoard.removeBoardTile(row, col, tempTiles.get(i));
         }
 
         // Restore the board if conditions are not met
-        if (isFirstWord && !isAdjacent) { //if the middle was not covered and was not adjacent
+        if (isFirstWord && !isAdjacent) {
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Middle cell not covered for the first word.";  //saved the error message for the player
+            statusMessage = "Error: Middle cell not covered for the first word.";
             return false;
-        } else if (!isFirstWord && !isAdjacent) { //if its middle was covered but it is not adjacent
+        } else if (!isFirstWord && !isAdjacent) {
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Word placement is not adjacent to any existing words."; //saves the error message for the player
+            statusMessage = "Error: Word placement is not adjacent to any existing words.";
             return false;
         }
 
         // Validate the formed word
-        if (!checkValidWord()) //checks to see if the word is valid form the array list of words
+        if (!checkValidWord())
         {
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Invalid word."; // saves the error message for the player
+            statusMessage = "Error: Invalid word.";
             return false;
         }
 
-        //If all conditions have been met then the tiles can be placed on the board
-        for (int i = 0; i < tempTiles.size(); i++) //traverses through tiles
+        for (int i = 0; i < tempTiles.size(); i++)
         {
-            int row = tempRowPositions.get(i); //gets the row position
-            int col = tempColPositions.get(i); //gets the column position
+            int row = tempRowPositions.get(i);
+            int col = tempColPositions.get(i);
 
-            checkBoard.placeBoardTile(row, col, tempTiles.get(i)); //places it on the check board which then is updated to the real board
+            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
 
         }
 
-        statusMessage = "Word placed successfully."; //optional message to the view that the word was successfully place might only show the error message and just display word
+        statusMessage = "Word placed successfully.";
         return true;
     }
 
@@ -196,22 +191,33 @@ public class GameModel {
     /**
      * Checks to see if the added word is a valid word from the list of words in the
      * txt file. Checks each row and column of the board to make sure that all added words and
-     * supports match the word list.
+     * subwords match the word list.
      *
      * @return true if the word is a valid word, false otherwise
+     *
      */
     public boolean checkValidWord() {
-        for (int row = 0; row < 15; row++) { //traverses through each row on the board
-            if (!isValidWordInRow(row)) { //if the specific row does not have a valid word returns false
+        newestWord = "";
+        for (int row = 0; row < 16; row++) {
+            if (!isValidWordInRow(row)) {
                 return false;
             }
         }
-        for (int col = 0; col < 15; col++) { //traverses through each column on the board
-            if (!isValidWordInColumn(col)) { //if the specified column does not have a valid word returns false
+        for (int col = 0; col < 16; col++) {
+            if (!isValidWordInColumn(col)) {
                 return false;
             }
         }
-        return true; //if all words are valid in each row and column then return true
+        return true;
+    }
+
+
+    public void updateCheckBoard() {
+        checkBoard = gameBoard.copyBoard();
+    }
+
+    public void updateGameBoard() {
+        gameBoard = checkBoard.copyBoard();
     }
 
 
@@ -223,21 +229,30 @@ public class GameModel {
      * @return true if all words in the row are valid, false otherwise
      */
     private boolean isValidWordInRow(int row) {
-        StringBuilder word = new StringBuilder(); //creates a string builder that will combine all tiles on a speciic row
-        for (int col = 0; col < 15; col++) { //traverses through all columns of a specific row
-            if (checkBoard.getBoard()[row][col].isOccupied()) { // if there is a tile on the specific row
-                word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim()); //appends it to the string builder
-            } else if (word.length() > 1) { //only checks for minimum two-letter words as txt file only has two letter words
-                if (!isWordValidBothDirections(word)) { //if it's not a valid word from both directions
+        StringBuilder word = new StringBuilder();
+        for (int col = 0; col < 16; col++) {
+            if (checkBoard.getBoard()[row][col].isOccupied()) {
+                word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim());
+            } else if (word.length() > 1) {
+                if (!isWordValidBothDirections(word)) {
                     return false;
                 }
-                word.setLength(0); //resets the string builder
+                if (word.length() > 1 && !placedWords.contains(word.toString())) {
+                    newestWord = word.toString();
+                    placedWords.add(newestWord);
+                    System.out.println(word.toString());
+//                    addPlacedWord(word);
+                }
+                else {
+                    newestWord = "";
+                }
+                word.setLength(0);
             }
         }
-        if (word.length() > 1 && !isWordValidBothDirections(word)) { //if the word was at the end of the column and is not valid from both directions
+        if (word.length() > 1 && !isWordValidBothDirections(word)) {
             return false;
         }
-        return true; //all conditions have passed and it's a valid word
+        return true;
     }
 
     /**
@@ -248,21 +263,65 @@ public class GameModel {
      * @return true if all words in the column are valid, false otherwise
      */
     private boolean isValidWordInColumn(int col) {
-        StringBuilder word = new StringBuilder(); //creates a string builder that will combine all tiles on a speciic column
-        for (int row = 0; row < 15; row++) { //traverses through all rows of a specific column
-            if (checkBoard.getBoard()[row][col].isOccupied()) { //checks to see tha the board is occupied with a tile
-                word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim()); //adds it the string builder
-            } else if (word.length() > 1) { // if there is at least a 2 two-letter word as the txt file only has two-letter words
-                if (!isWordValidBothDirections(word)) { //if the word is not valid from both directions
+        StringBuilder word = new StringBuilder();
+        for (int row = 0; row < 16; row++) {
+            if (checkBoard.getBoard()[row][col].isOccupied()) {
+                word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim());
+            } else if (word.length() > 1) {
+                if (!isWordValidBothDirections(word)) {
                     return false;
                 }
-                word.setLength(0); //makes the length of the string builder 0
+                if (word.length() > 1 && !placedWords.contains(word.toString())) {
+                    // word
+                    newestWord = word.toString();
+                    placedWords.add(newestWord);
+                    System.out.println(word);
+//                    addPlacedWord(word);
+                }
+                else {
+                    newestWord = "";
+                }
+                word.setLength(0);
             }
         }
-        if (word.length() > 1 && !isWordValidBothDirections(word)) { //if there was a word at the end of the column
+        if (word.length() > 1 && !isWordValidBothDirections(word)) {
             return false;
         }
-        return true; //returns true if the words were valid
+        return true;
+    }
+
+    /**
+     * Gets the newest word added to the board
+     * @return string of newest word
+     */
+    public String getNewestWord() {
+        return newestWord;
+    }
+
+
+    /**
+     * Gets the score of the word
+     * @param word Word to calculate score
+     */
+    public int getScore(String word) {
+        int value = 0;
+        for (int i = 0; i < word.length(); i++) {
+            char letter = word.charAt(i);
+            String strLetter = String.valueOf(letter);
+            System.out.println(strLetter);
+            HashMap<String, Integer> check = valueOfLetter.getValueOfTiles();
+            value += check.get(strLetter);
+        }
+        return value;
+    }
+
+    public void addPlacedWord(StringBuilder word){
+        if (wordList.isValidWord(word.toString())){
+            placedWords.add(word.toString());
+        }
+        else{
+            placedWords.add(word.reverse().toString());
+        }
     }
 
     /**
@@ -273,7 +332,7 @@ public class GameModel {
      * @return true if the word or its reverse is valid, false otherwise
      */
     private boolean isWordValidBothDirections(StringBuilder word) {
-        return wordList.isValidWord(word.toString()) || wordList.isValidWord(word.reverse().toString()); //checks the direction of the word from front to reverse from the list of words
+        return wordList.isValidWord(word.toString()) || wordList.isValidWord(word.reverse().toString());
     }
 
 
@@ -285,13 +344,13 @@ public class GameModel {
      */
     public void playerSwapTile(Player player, List<Integer> tileIndices) {
         if (tilesBag.bagOfTileIsEmpty()) {
-            return; // No tiles to swap so return
+            return; // No tiles to swap
         }
-        for (int index : tileIndices) { //traverses through the indexes of the player tiles to be swapped
-            Tiles t = player.getTiles().get(index); //gets those tiles
-            player.getTiles().remove(index); //removes them from the player
-            replaceSwappedTile(player, index); //replaces them with ones from the bag
-            tilesBag.bagArraylist().add(t); //adds it bag to the array list of tiles
+        for (int index : tileIndices) {
+            Tiles t = player.getTiles().get(index);
+            player.getTiles().remove(index);
+            replaceSwappedTile(player, index);
+            tilesBag.bagArraylist().add(t);
         }
     }
 
@@ -320,6 +379,20 @@ public class GameModel {
         int rnd = rand.nextInt(tilesBag.bagArraylist().size()); //random index
         player.getTiles().add(index, tilesBag.bagArraylist().get(rnd)); //places at correct index
         tilesBag.bagArraylist().remove(rnd); //removes from bag
+    }
+
+    /**
+     * Sets the number of players
+     * @param numberOfPlayers number of players
+     */
+    public void setNumPlayers(int numberOfPlayers) {
+        numPlayers = numberOfPlayers;
+    }
+
+    public void removeTilesFromPlayerHand() {
+        for (Tiles tile: tilesToRemove) {
+            currentPlayer.getTiles().remove(tile);
+        }
     }
 
     /**
@@ -365,93 +438,275 @@ public class GameModel {
         return null; // Return null if no player with the given name is found
     }
 
+    /**
+     * Gets the tile in the players hand at specified spot
+     * @param col column number of tile to get
+     * @return the tile at specified spot
+     */
+    public Tiles getPlayerTile(int col) {
+        // get current player
+        Tiles tile = currentPlayer.getTiles().get(col);
+        return tile;
+    }
 
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        GameModel gameModel = new GameModel();
+    /**
+     * Adds a tile to a specified spot on the checkBoard
+     * @param row row number of grid spot to add tile
+     * @param col column number of grid spot to add tile
+     * @param tile tile to add
+     */
+    public void addTile(int row, int col, Tiles tile) {
+        // adds a tile to specified spot on checkboard
+        checkBoard.placeBoardTile(row, col, tile);
+    }
 
-        // Add players through user input
-        for (int i = 1; i <= 2; i++) { // Assuming a 2-player game for simplicity
-            System.out.print("Enter name for Player " + i + ": ");
-            String playerName = scanner.nextLine();
-            gameModel.addPlayer(playerName);
+    /**
+     * Add a tile to a list containing tiles to remove from a players hand if the word
+     * is found to be valid.
+     * @param tile the tile to add to the remove list
+     */
+    public void addTileToRemove(Tiles tile) {
+        tilesToRemove.add(tile);
+    }
+
+
+    /**
+     * Creates a set of the coordinates of the letters placed on a given turn.
+     * @param row row number of letter
+     * @param col column number of letter
+     */
+    public void addLetterToSet(int row, int col) {
+        newestLettersCoordinates.add(new Pair<>(row, col));
+    }
+
+    /**
+     * Resets the set of letter coordinates
+     */
+    public void resetLetterSet() {
+        newestLettersCoordinates.clear();
+    }
+
+    public void getWordPlaced() {
+
+    }
+
+
+    /**
+     * Gets the current player based on the current game turn
+     * @param currentTurn the current game turn
+     * @return the current player
+     */
+    public Player getCurrentPlayer(int currentTurn) {
+        currentPlayer = players.get(currentTurn % numPlayers);
+        return currentPlayer;
+    }
+
+    public void printCheckBoard() {
+        System.out.println("Check board");
+        for (int row = 0; row < 16; row++) {
+            for (int col = 0; col < 16; col++) {
+                System.out.print(checkBoard.getBoard()[row][col].toString());
+            }
+            System.out.println();
+        }
+    }
+
+    public void printGameBoard() {
+        System.out.println("Game board");
+        for (int row = 0; row < 16; row++) {
+            for (int col = 0; col < 16; col++) {
+                System.out.print(gameBoard.getBoard()[row][col].toString());
+            }
+            System.out.println();
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+    public boolean searchWordDirection() {
+        // First, we'll check if the set of coordinates form a horizontal or vertical line
+        boolean isHorizontal = isHorizontal();   // Check if the letters form a horizontal line
+        boolean isVertical = isVertical();      // Check if the letters form a vertical line
+
+        if (isHorizontal) {
+            // Check for horizontal line: find any adjacent occupied grid spots in the left or right direction
+            return checkAdjacentInDirection(true);  // 'true' for horizontal direction (left/right)
+        } else if (isVertical) {
+            // Check for vertical line: find any adjacent occupied grid spots in the up or down direction
+            return checkAdjacentInDirection(false); // 'false' for vertical direction (up/down)
         }
 
-        Board board = gameModel.getGameBoard();
-        boolean gameOver = false;
-        int currentPlayerIndex = 0;
+        // If not horizontal or vertical, return false (invalid word placement)
+        return false;
+    }
 
-        while (!gameOver) {
-            Player currentPlayer = gameModel.getPlayers().get(currentPlayerIndex);
-            System.out.println(currentPlayer.getName() + "'s turn:");
-            board.displayBoard();
-            currentPlayer.displayPlayer();
 
-            System.out.println("Choose an action: 1) Place Tiles 2) Swap Tiles 3) Pass");
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+    private boolean isHorizontal() {
+        // Assume the letters are ordered by row/col in your set, check if all rows are the same (horizontal)
+        int firstRow = newestLettersCoordinates.iterator().next().getKey();  // Get row of the first coordinate
+        for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+            if (!coordinate.getKey().equals(firstRow)) {
+                return false;  // If rows are not the same, it's not horizontal
+            }
+        }
+        return true;  // All rows are the same, so it's horizontal
+    }
 
-            if (choice == 1) {
-                // Simulate placing tiles (ask for user input for simplicity)
-                System.out.print("Enter number of tiles to place: ");
-                int numTiles = scanner.nextInt();
-                scanner.nextLine(); // Consume newline
+    private boolean isVertical() {
+        // Assume the letters are ordered by row/col in your set, check if all columns are the same (vertical)
+        int firstCol = newestLettersCoordinates.iterator().next().getValue();  // Get column of the first coordinate
+        for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+            if (!coordinate.getValue().equals(firstCol)) {
+                return false;  // If columns are not the same, it's not vertical
+            }
+        }
+        return true;  // All columns are the same, so it's vertical
+    }
 
-                ArrayList<Tiles> tiles = new ArrayList<>(); // Mock tiles, you may need to add logic to select actual tiles
-                ArrayList<Integer> rowPositions = new ArrayList<>();
-                ArrayList<Integer> colPositions = new ArrayList<>();
 
-                for (int i = 0; i < numTiles; i++) {
-                    System.out.print("Enter tile index (0-6): ");
-                    int tileIndex = scanner.nextInt();
-                    tiles.add(currentPlayer.getTiles().get(tileIndex));
+    private boolean checkAdjacentInDirection(boolean isHorizontal) {
+        // Check each coordinate in the set and see if there are adjacent occupied cells in the same direction
+        for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+            int row = coordinate.getKey();
+            int col = coordinate.getValue();
 
-                    System.out.print("Enter row position (0-14): ");
-                    int row = scanner.nextInt();
-                    rowPositions.add(row);
+            // If checking horizontally, check adjacent cells to the left and right
+            if (isHorizontal) {
+                // Check left
+                if (col > 0 && gameBoard.getBoard()[row][col - 1].isOccupied()) {
+                    return true;  // Found an adjacent occupied cell
+                }
+                // Check right
+                if (col < 16 - 1 && gameBoard.getBoard()[row][col + 1].isOccupied()) {
+                    return true;  // Found an adjacent occupied cell
+                }
+            } else {
+                // If checking vertically, check adjacent cells above and below
+                // Check up
+                if (row > 0 && gameBoard.getBoard()[row - 1][col].isOccupied()) {
+                    return true;  // Found an adjacent occupied cell
+                }
+                // Check down
+                if (row < 16 - 1 && gameBoard.getBoard()[row + 1][col].isOccupied()) {
+                    return true;  // Found an adjacent occupied cell
+                }
+            }
+        }
+        return false;  // No adjacent occupied cells found in the specified direction
+    }
 
-                    System.out.print("Enter column position (0-14): ");
-                    int col = scanner.nextInt();
-                    colPositions.add(col);
+    public String buildWordFromCoordinates() {
+        StringBuilder word = new StringBuilder();  // To build the word
+
+        // First, determine if the new letters form a horizontal or vertical line.
+        boolean isHorizontal = isHorizontalLine(newestLettersCoordinates);
+
+        // Determine the direction and find the full set of coordinates forming the word
+        Set<Pair<Integer, Integer>> fullCoordinates = new HashSet<>(newestLettersCoordinates);  // Start with the new letters' coordinates
+
+        if (isHorizontal) {
+            // Collect adjacent existing letters horizontally (to the left and right)
+            for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+                int row = coordinate.getKey();
+                int col = coordinate.getValue();
+
+                // Check to the left
+                int leftCol = col - 1;
+                while (leftCol >= 0 && gameBoard.getBoard()[row][leftCol].isOccupied()) {
+                    fullCoordinates.add(new Pair<>(row, leftCol));  // Add left letters to the set
+                    leftCol--;
                 }
 
-                gameModel.playerPlaceTile(currentPlayer, tiles, rowPositions, colPositions);
-            } else if (choice == 2) {
-                // Swap tiles logic
-                System.out.print("Enter number of tiles to swap: ");
-                int numTiles = scanner.nextInt();
-                scanner.nextLine(); // Consume newline
-
-                List<Integer> tileIndices = new ArrayList<>();
-                for (int i = 0; i < numTiles; i++) {
-                    System.out.print("Enter tile index (0-6) to swap: ");
-                    tileIndices.add(scanner.nextInt());
+                // Check to the right
+                int rightCol = col + 1;
+                while (rightCol < gameBoard.getCols() && gameBoard.getBoard()[row][rightCol].isOccupied()) {
+                    fullCoordinates.add(new Pair<>(row, rightCol));  // Add right letters to the set
+                    rightCol++;
                 }
-                gameModel.playerSwapTile(currentPlayer, tileIndices);
-            }
-            else if (choice == 3) {
-                System.out.println(currentPlayer.getName() + " passes their turn.");
             }
 
-            // Check if the game is finished
-            gameOver = gameModel.isGameFinished();
+            // Now, build the word starting from the leftmost coordinate and moving right
+            int minCol = Integer.MAX_VALUE;
+            for (Pair<Integer, Integer> coord : fullCoordinates) {
+                minCol = Math.min(minCol, coord.getValue());  // Find the leftmost coordinate
+            }
 
-            // Move to the next player
-            currentPlayerIndex = (currentPlayerIndex + 1) % gameModel.getPlayers().size();
+            // Start from the leftmost column and iterate right until an empty space is encountered
+            for (int col = minCol; col < gameBoard.getCols(); col++) {
+                boolean foundLetter = false;
+                for (int row = 0; row < gameBoard.getRows(); row++) {
+                    if (fullCoordinates.contains(new Pair<>(row, col)) && gameBoard.getBoard()[row][col].isOccupied()) {
+                        word.append(gameBoard.getBoard()[row][col].getTile().getLetter());
+                        foundLetter = true;
+                        break;  // Move to the next column after finding the letter in this row
+                    }
+                }
+                if (!foundLetter) break;  // Stop once we hit an empty square (end of the word)
+            }
 
-            // Get updated gameboard
-            board = gameModel.getGameBoard();
+        } else {
+            // Collect adjacent existing letters vertically (above and below)
+            for (Pair<Integer, Integer> coordinate : newestLettersCoordinates) {
+                int row = coordinate.getKey();
+                int col = coordinate.getValue();
+
+                // Check above
+                int topRow = row - 1;
+                while (topRow >= 0 && gameBoard.getBoard()[topRow][col].isOccupied()) {
+                    fullCoordinates.add(new Pair<>(topRow, col));  // Add top letters to the set
+                    topRow--;
+                }
+
+                // Check below
+                int bottomRow = row + 1;
+                while (bottomRow < gameBoard.getRows() && gameBoard.getBoard()[bottomRow][col].isOccupied()) {
+                    fullCoordinates.add(new Pair<>(bottomRow, col));  // Add bottom letters to the set
+                    bottomRow++;
+                }
+            }
+
+            // Now, build the word starting from the topmost coordinate and moving down
+            int minRow = Integer.MAX_VALUE;
+            for (Pair<Integer, Integer> coord : fullCoordinates) {
+                minRow = Math.min(minRow, coord.getKey());  // Find the topmost coordinate
+            }
+
+            // Start from the topmost row and iterate down until an empty space is encountered
+            for (int row = minRow; row < gameBoard.getRows(); row++) {
+                boolean foundLetter = false;
+                for (int col = 0; col < gameBoard.getCols(); col++) {
+                    if (fullCoordinates.contains(new Pair<>(row, col)) && gameBoard.getBoard()[row][col].isOccupied()) {
+                        word.append(gameBoard.getBoard()[row][col].getTile().getLetter());
+                        foundLetter = true;
+                        break;  // Move to the next row after finding the letter in this column
+                    }
+                }
+                if (!foundLetter) break;  // Stop once we hit an empty square (end of the word)
+            }
         }
+        System.out.println("Test");
+        System.out.println(word);
+        return word.toString();  // Return the built word
+    }
 
-        // Display game results
-        System.out.println("The game has ended. Final results:");
-        for (Player player : gameModel.getPlayers()) {
-            System.out.println(player.getName() + " scored " + player.getScore());
+    // Utility method to check if the set of coordinates form a horizontal line
+    private boolean isHorizontalLine(Set<Pair<Integer, Integer>> coordinates) {
+        // Check if all the coordinates share the same row, i.e., they form a horizontal line
+        int row = -1;
+        for (Pair<Integer, Integer> coordinate : coordinates) {
+            if (row == -1) {
+                row = coordinate.getKey();
+            } else if (row != coordinate.getKey()) {
+                return false;  // If any coordinate is in a different row, it's not horizontal
+            }
         }
-
-        Player winner = gameModel.getPlayers().stream().max(Comparator.comparingInt(Player::getScore)).orElse(null);
-        if (winner != null) {
-            System.out.println("The winner is " + winner.getName() + " with a score of " + winner.getScore());
-        }
+        return true;  // All coordinates are in the same row
     }
 }

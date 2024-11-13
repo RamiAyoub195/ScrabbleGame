@@ -18,14 +18,12 @@ import java.awt.event.*;
 
 public class GameView extends JFrame {
     private ArrayList<String> playerNames; //will store the name of the players
-    private JTextArea wordArea; //represents the text area where a valid word was placed on the board is displayed
-    private JTextField wordCount; //represents a count of the words that have been placed in the game
+    private int numPlayers; // number of players in the game
     private JTextField tileBagCount; //represents a count for the number of tiles remaining in the bag
     private JButton[][] boardFields; //represents the open slots where the tiles can be placed by selecting a tile an open spot
     private JButton[][] playerTiles; //represents the buttons that will have the players tiles on them as a label
     private HashMap<String, JTextField> playerScoreFields; //will store the players name and their score
     private JTextField playerTurn; //the player who has the current turn;
-    private JPanel wordPlacedPanel; //this panel will have the words placed in the game and a count of the words
     private JPanel playerPanel; //this panel will have the players names and their scores
     private JPanel tileBagPanel; //this panel will have the number of tiles in the bag during the game
     private JPanel boardPanel; //represents the 15 x 15 board that the tiles will be placed on.
@@ -64,8 +62,6 @@ public class GameView extends JFrame {
 
         initializeBoard(); //initialized the board panel
 
-        setUpWordsPlacedPanel(); //sets up the word placed panel showing the number of words and the word that was placed
-
         setUpPlayerPanel(); //sets up the players panel in the game with their scores
 
         setUpTileBagPanel(); //sets up the tiles bag panel showing the number of tiles at the start
@@ -88,10 +84,14 @@ public class GameView extends JFrame {
      */
     public ArrayList<String> welcomeAndGetPlayerNames() {
         ArrayList<String> names = new ArrayList<>();
-        int numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (2-4)")); //prints a welcome message to the game and asks for the number of players
+        numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (2-4)")); //prints a welcome message to the game and asks for the number of players
+        while (numPlayers < 1 || numPlayers > 4) {
+            numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (2-4)")); //prints a welcome message to the game and asks for the number of players
+        }
+
         for (int i = 1; i <= numPlayers; i++) {
-            String name = JOptionPane.showInputDialog("Please Enter Player " + i + " Name"); //gets the name of the player
-            names.add(name); //adds the name of the player and creates a new player
+        String name = JOptionPane.showInputDialog("Please Enter Player " + i + " Name"); //gets the name of the player
+        names.add(name); //adds the name of the player and creates a new player
         }
         return names;
     }
@@ -132,36 +132,6 @@ public class GameView extends JFrame {
         }
     }
 
-    /**
-     * Sets up the word placed panel which will have a list of the words placed and the
-     * number of words
-     */
-    public void setUpWordsPlacedPanel(){
-        wordPlacedPanel = new JPanel(); //creates the panel for the placed word
-        wordPlacedPanel.setLayout(new BoxLayout(wordPlacedPanel, BoxLayout.X_AXIS)); //makes it a box layout with components added vertically
-
-        JLabel wordLabel = new JLabel("Words Placed: "); //The header of the words placed
-        wordPlacedPanel.add(wordLabel); //adds it to the word placed panel
-
-        wordCount = new JTextField("0"); //sets the number of words added at the beginning as 0
-        wordCount.setMaximumSize(new Dimension(30, 30)); //makes the size of the text field a square
-        wordCount.setEditable(false); //makes it non editable
-        wordCount.setBackground(Color.WHITE);//makes the background colour white
-        wordCount.setHorizontalAlignment(SwingConstants.CENTER); // centers the text horizontally
-        wordPlacedPanel.add(wordCount); //adds it to the word placed panel
-
-        rightSidePanel.add(wordPlacedPanel); //adds the label and text field to the right side of the game
-        wordArea = new JTextArea(1, 5); //Will display the words that are added to the board
-        wordArea.setEditable(false); // cannot be entered as input only for output
-        wordArea.setBackground(Color.WHITE); //sets the background color for the text area as white
-        wordArea.setLineWrap(true); //allows for line wrapping
-        wordArea.setWrapStyleWord(true); //allows for neat wrapping so words don't cut out in the middle
-
-        JScrollPane scrollPane = new JScrollPane(wordArea); // Adds scrolling to the text area
-        scrollPane.setMinimumSize(new Dimension(50, 20));
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS); // Show vertical scrollbar only when needed
-        rightSidePanel.add(scrollPane); //adds it to the right side
-    }
 
     /**
      * Sets up the player panel which will have all player names and their scores
@@ -271,66 +241,6 @@ public class GameView extends JFrame {
     }
 
     /**
-     * Gets the row of the button in the button fields of the game
-     * @param button the button that was pressed
-     * @ return row of the button
-     */
-    public int getFieldsButtonRow(JButton button){
-        for (int i = 0; i < 15; i++) { //traversed through row
-            for (int j = 0; j < 15; j++) { //traverses through column
-                if(boardFields[i][j] == button){ //if the button was found
-                    return i; //return the row
-                }
-            }
-        }
-        return -1; //if it was not found
-    }
-
-    /**
-     * Gets the column of the button in the button fields of the game
-     * @param button the button that was pressed
-     * @return column of the button
-     */
-    public int getFieldsButtonCol(JButton button){
-        for (int i = 0; i < 15; i++) { //traversed through row
-            for (int j = 0; j < 15; j++) { //traverses through column
-                if(boardFields[i][j] == button){ //if the button was found
-                    return j; //return the column
-                }
-            }
-        }
-        return -1; //if the button was not found
-    }
-
-    /**
-     * Gets the index of the tile represented as a button that was selected by the user to be placed down or swapped
-     * @return the index of tile represented as a button selected by player
-     */
-    public int getTileIndex(JButton button){
-        for (int i = 0; i < playerTiles[0].length; i++) { //traverses through the players tiles
-                if(playerTiles[0][i] == button){ //if it was the button pressed
-                    return i; //return the index of the tile
-                }
-        }
-        return -1; //if it could not be found
-    }
-
-    /**
-     * Increments the word count after a word has been successfully placed.
-     */
-    public void incrementWordCount(){
-        wordCount.setText(String.valueOf(Integer.parseInt(wordCount.getText()) + 1)); //increment the word count
-    }
-
-    /**
-     * Updates the word text area with the word that was placed by the player
-     * @param word the word placed by the player
-     */
-    public void addToWordArea(String word){
-        wordArea.append(word + "\n"); //adds the word to the text area
-    }
-
-    /**
      * Updates the tiles bag text field with the remaining number of tiles left in the bag
      * @param remaining the remaining number of tiles in bag
      */
@@ -338,19 +248,6 @@ public class GameView extends JFrame {
         tileBagCount.setText(String.valueOf(remaining)); //updates the number of tiles in bag
     }
 
-    /**
-     * Updates the field of the board with the tiles that were just placed and makes the clickable
-     * and changes the colour off them to green.
-     * @param tile the tile that is being added
-     * @param row the row position of tile
-     * @param col the col position of tile
-     */
-    public void updateBoardFields(Tiles tile, int row, int col){
-        boardFields[row][col].setText(tile.toString()); //adds the string of the tile
-        boardFields[row][col].setBackground(Color.GREEN); //makes the button color green
-        boardFields[row][col].setFont(new Font("Arial", Font.BOLD, 14)); //makes it bolded to be seen after the button becomes green
-        boardFields[row][col].setEnabled(false); //makes the button not clickable
-    }
 
     /**
      * Updates the tiles of the player who is currently at turn to play the game.
@@ -369,52 +266,37 @@ public class GameView extends JFrame {
         }
     }
 
+
+
     /**
-     * Temporarily suspends the player tiles when a player has clicked on one of the
-     * tiles that they will place on the board or swap with tiles in the bag.
-     * @param tile the tile selected by the player
+     * Disables all board fields.
      */
-    public void tempDisablePlayerTiles(Tiles tile){
-        for(int i = 0; i < playerTiles[0].length; i++){ //traverses through the tiles of the player
-            if((playerTiles[0][i].getText().equals(tile.toString()))){ //if the tile is one that was selected
-                playerTiles[0][i].setEnabled(false); //temporarily disable it
+    public void disableAllBoardFields() {
+        for (int i = 1; i < 16; i++) {
+            for (int j = 1; j < 16; j++) {
+                boardFields[i][j].setEnabled(false);
             }
         }
     }
 
     /**
-     * Enables a tile after it was marked temporarily disabled or not clickable
-     * @param tile the tile that was previously selected marking the others disabled
+     * Enables all board fields.
      */
-    public void enablePlayerTiles(Tiles tile){
-        for(int i = 0; i < playerTiles[0].length; i++){ //traverses through the players tiles
-            if((playerTiles[0][i].getText().equals(tile.toString()))){ //if it was not the previously selected tile
-                playerTiles[0][i].setEnabled(true); //enables it again
+    public void enableAllBoardFields() {
+        for (int i = 1; i < 16; i++) {
+            for (int j = 1; j < 16; j++) {
+                boardFields[i][j].setEnabled(true);
             }
         }
     }
 
-    /**
-     * Temporarily adds a tile to the board after a player selects one of its tiles and adds it to the board.
-     * The player may choose to add another tiles as well, but it will show them what they have placed so far
-     * @param tile the tile that is being added
-     * @param row the row position of tile
-     * @param col the col position of tile
-     */
-    public void tempAddTileToBoardField(Tiles tile, int row, int col){
-        boardFields[row][col].setText(tile.toString()); //adds the string of the tile
-        boardFields[row][col].setBackground(Color.GRAY); //makes the button color gray
-        boardFields[row][col].setFont(new Font("Arial", Font.BOLD, 14)); //makes it bolded to be seen after the button becomes gray
-
-    }
 
     /**
      * Clear the temporary placed tiles after a player attempt to add a word to the board.
-     * @param tile the tile being cleared.
      * @param row the row position of tile.
      * @param col the column position of tile.
      */
-    public void removeTempTilesOnBoardField(Tiles tile, int row, int col) {
+    public void removeTempTilesOnBoardField(int row, int col) {
         boardFields[row][col].setText(""); //sets the text as empty
         boardFields[row][col].setBackground(Color.WHITE); //makes the colour of the board white
     }
@@ -449,21 +331,6 @@ public class GameView extends JFrame {
         return playerNames;
     }
 
-    /**
-     * Returns the board field.
-     * @return board fields
-     */
-    public JButton[][] getBoardFields() {
-        return boardFields;
-    }
-
-    /**
-     * Returns the player tiles
-     * @return player tiles
-     */
-    public JButton[][] getPlayerTiles() {
-        return playerTiles;
-    }
 
     /**
      * Gets a specific button from the board field when given a row and column.
@@ -476,6 +343,33 @@ public class GameView extends JFrame {
     }
 
     /**
+     * Gets the current colour of a board field.
+     * @param row row number of the board field
+     * @param col column number of the board field
+     * @return current background colour
+     */
+    public Color getSpecificBoardFieldColour(int row, int col) {
+        return boardFields[row][col].getBackground();
+    }
+
+    /**
+     * Get the number of players in the game
+     * @return number of players
+     */
+    public int getNumPlayers() {
+        return numPlayers;
+    }
+
+    /**
+     * Gets the current colour of a player tile
+     * @param col column number of player tile
+     * @return current background colour
+     */
+    public Color getSpecificPlayerTileColour(int col) {
+        return playerTiles[0][col].getBackground();
+    }
+
+    /**
      * Gets a specific button from the player tiles when given a column.
      * @param col the column of the button
      * @return the specific button
@@ -485,7 +379,7 @@ public class GameView extends JFrame {
     }
 
     /**
-     * Displays a message to the player telling them if they placed an invalid word, or violated one of the rules
+     * Displays a message to the player teeling them if they placed an invalid word, or violated one of the rules
      * etc.
      * @param message the message to the player
      */
@@ -500,9 +394,49 @@ public class GameView extends JFrame {
      */
     public void updatePlayerScore(String playerName, int newScore){
         JTextField scoreField = playerScoreFields.get(playerName); //gets the reference of the player score text field
+        int oldScore = Integer.parseInt(scoreField.getText());
+        newScore += oldScore;
         scoreField.setText(String.valueOf(newScore)); //sets the new score
     }
 
+    /**
+     * Sets the background colour of a player's tile after it has been selected
+     * @param col column of selected tile
+     * @param colour colour to change the background to
+     */
+    public void setPlayerTilesColour(int col, Color colour) {
+        playerTiles[0][col].setBackground(colour);
+    }
+
+    /**
+     * Sets the letter of a selected board field.
+     * @param row row number of selected board field
+     * @param col column number of selected board field
+     * @param letter the letter we want to set the button text to
+     */
+    public void setSpecificBoardFieldLetter(int row, int col, String letter) {
+        boardFields[row][col].setText(letter);
+    }
+
+    /**
+     * Sets the colour of a selected board field background.
+     * @param row row number of selected board field
+     * @param col column number of selected board field
+     * @param colour the colour we want to set the background to
+     */
+    public void setSpecificBoardFieldColour(int row, int col, Color colour) {
+        boardFields[row][col].setBackground(colour);
+    }
+
+
+    /**
+     * Resets player tiles to light gray
+     */
+    public void resetPlayerTile() {
+        for (int col = 0; col < 7; col++) {
+            setPlayerTilesColour(col, Color.LIGHT_GRAY);
+        }
+    }
 }
 
 
