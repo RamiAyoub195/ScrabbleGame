@@ -176,6 +176,82 @@ public class GameModel {
         return true;
     }
 
+    /**
+     * Places a word on the board, the first word needs to go through the middle square.
+     * Then all words must also be connected horizontally or vertically and must be a valid word
+     * from the word list.
+     *
+     * @param tempTiles a list of the tiles
+     * @param tempRowPositions a list of row positions for the tiles
+     * @param tempColPositions a list of column positions for the tiles
+     * @param player the player who is currently at turn
+     *
+     * @return boolean true if the word was placed, false otherwise
+     */
+    public String checkPlaceableWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions, Player player) {
+        Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
+        boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
+        boolean isAdjacent = false;
+
+        // Attempt to place each tile and check for valid conditions
+        for (int i = 0; i < tempTiles.size(); i++) {
+            int row = tempRowPositions.get(i);
+            int col = tempColPositions.get(i);
+
+            // Ensure the board space is empty
+            if (!checkBoard.checkBoardTileEmpty(row, col)) {
+                checkBoard = savedCheckBoard.copyBoard(); // Restore board state
+                statusMessage = "Error: Board space already occupied.";
+                return statusMessage;
+            }
+
+            // Temporarily place tile to check adjacency and center coverage
+            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
+
+            // Check if the middle cell is covered on the first move
+            if (isFirstWord && row == 7 && col == 7) {
+                isAdjacent = true; // Middle cell is covered, so first word placement is valid
+            }
+
+            // For subsequent words, check if the tile is adjacent to any occupied cell
+            if (!isFirstWord && checkBoard.checkAdjacentBoardConnected(row, col)) {
+                isAdjacent = true; // Tile is adjacent to an existing tile, making placement valid
+            }
+            checkBoard.removeBoardTile(row, col, tempTiles.get(i));
+        }
+
+        // Restore the board if conditions are not met
+        if (isFirstWord && !isAdjacent) {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Middle cell not covered for the first word.";
+            return statusMessage;
+        } else if (!isFirstWord && !isAdjacent) {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Word placement is not adjacent to any existing words.";
+            return statusMessage;
+        }
+
+        for (int i = 0; i < tempTiles.size(); i++)
+        {
+            int row = tempRowPositions.get(i);
+            int col = tempColPositions.get(i);
+
+            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
+
+        }
+
+        // Validate the formed word
+        if (!checkValidWord())
+        {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Invalid word.";
+            return statusMessage;
+        }
+
+        statusMessage = "Word placed successfully.";
+        checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+        return statusMessage;
+    }
 
     /**
      * When a word/words are placed on the board, this method will be called to calculate
@@ -249,7 +325,6 @@ public class GameModel {
         placedWords.clear();
         for (int row = 0; row < 15; row++) {
             if (!isValidWordInRow(row)) {
-                placedWords.clear();
                 for (String s : temp){
                     placedWords.add(s);
                 }
@@ -258,8 +333,6 @@ public class GameModel {
         }
         for (int col = 0; col < 15; col++) {
             if (!isValidWordInColumn(col)) {
-                placedWords.clear();
-                placedWords.clear();
                 for (String s : temp){
                     placedWords.add(s);
                 }
@@ -439,94 +512,7 @@ public class GameModel {
         }
     }
 
-
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        GameModel gameModel = new GameModel();
-
-        // Add players through user input
-        for (int i = 1; i <= 2; i++) { // Assuming a 2-player game for simplicity
-            System.out.print("Enter name for Player " + i + ": ");
-            String playerName = scanner.nextLine();
-            gameModel.addPlayer(playerName);
-        }
-
-        Board board = gameModel.getGameBoard();
-        boolean gameOver = false;
-        int currentPlayerIndex = 0;
-
-        while (!gameOver) {
-            Player currentPlayer = gameModel.getPlayers().get(currentPlayerIndex);
-            System.out.println(currentPlayer.getName() + "'s turn:");
-            board.displayBoard();
-            currentPlayer.displayPlayer();
-
-            System.out.println("Choose an action: 1) Place Tiles 2) Swap Tiles 3) Pass");
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
-
-            if (choice == 1) {
-                // Simulate placing tiles (ask for user input for simplicity)
-                System.out.print("Enter number of tiles to place: ");
-                int numTiles = scanner.nextInt();
-                scanner.nextLine(); // Consume newline
-
-                ArrayList<Tiles> tiles = new ArrayList<>(); // Mock tiles, you may need to add logic to select actual tiles
-                ArrayList<Integer> rowPositions = new ArrayList<>();
-                ArrayList<Integer> colPositions = new ArrayList<>();
-
-                for (int i = 0; i < numTiles; i++) {
-                    System.out.print("Enter tile index (0-6): ");
-                    int tileIndex = scanner.nextInt();
-                    tiles.add(currentPlayer.getTiles().get(tileIndex));
-
-                    System.out.print("Enter row position (0-14): ");
-                    int row = scanner.nextInt();
-                    rowPositions.add(row);
-
-                    System.out.print("Enter column position (0-14): ");
-                    int col = scanner.nextInt();
-                    colPositions.add(col);
-                }
-
-                gameModel.playerPlaceTile(currentPlayer, tiles, rowPositions, colPositions);
-                System.out.println(gameModel.getPlacedWords());
-            } else if (choice == 2) {
-                // Swap tiles logic
-                System.out.print("Enter number of tiles to swap: ");
-                int numTiles = scanner.nextInt();
-                scanner.nextLine(); // Consume newline
-
-                List<Integer> tileIndices = new ArrayList<>();
-                for (int i = 0; i < numTiles; i++) {
-                    System.out.print("Enter tile index (0-6) to swap: ");
-                    tileIndices.add(scanner.nextInt());
-                }
-                gameModel.playerSwapTile(currentPlayer, tileIndices);
-            }
-            else if (choice == 3) {
-                System.out.println(currentPlayer.getName() + " passes their turn.");
-            }
-
-            // Check if the game is finished
-            gameOver = gameModel.isGameFinished();
-
-            // Move to the next player
-            currentPlayerIndex = (currentPlayerIndex + 1) % gameModel.getPlayers().size();
-
-            // Get updated gameboard
-            board = gameModel.getGameBoard();
-        }
-
-        // Display game results
-        System.out.println("The game has ended. Final results:");
-        for (Player player : gameModel.getPlayers()) {
-            System.out.println(player.getName() + " scored " + player.getScore());
-        }
-
-        Player winner = gameModel.getPlayers().stream().max(Comparator.comparingInt(Player::getScore)).orElse(null);
-        if (winner != null) {
-            System.out.println("The winner is " + winner.getName() + " with a score of " + winner.getScore());
-        }
+    public void updateCheckBoard() {
+        checkBoard = gameBoard.copyBoard();
     }
 }
