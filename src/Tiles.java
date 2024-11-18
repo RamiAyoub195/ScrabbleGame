@@ -3,8 +3,8 @@
  * an associated value. When a word is formed, the values of the letter are added up to give a score to the player.
  *
  * Author: Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
- * Version: 2.0
- * Date: Wednesday, November 6, 2024
+ * Version: 3.0
+ * Date: Sunday, November 17, 2024
  */
 
 public class Tiles{

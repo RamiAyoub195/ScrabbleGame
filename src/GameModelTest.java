@@ -5,11 +5,12 @@ import java.util.ArrayList;
 import static org.junit.Assert.*;
 
 /**
- * Test cases.
+ * These are the test cases for the game ensuring that a word was placed properly and
+ * the player scores are adjusted accordingly.
  *
- * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
- * Version: 2.0
- * Date: Wednesday, November 6th, 2024
+ * Author(s): Louis Pantazopoulos
+ * Version: 3.0
+ * Date: Sunday, November 17, 2024
  */
 
 public class GameModelTest {
@@ -19,11 +20,11 @@ public class GameModelTest {
      */
     @Test
     public void testGetGameBoard(){ //Test get board by comparing the board in a new game to a new board
-        Board board = new Board(16, 16);
+        Board board = new Board(15, 15);
         GameModel game = new GameModel();
-        for(int i = 0; i < 16; i++){
-            for(int j = 0; j < 16; j++){
-                assertEquals(board.getCell(i, j).toString(), game.getGameBoard().getCell(i, j).toString()); //Check each cell is equal
+        for(int i = 0; i < 15; i++){
+            for(int j = 0; j < 15; j++){
+                assertEquals(board.getCell(i, j).getTile(), game.getGameBoard().getCell(i, j).getTile()); //Check each cell is equal
             }
         }
     }
@@ -71,22 +72,24 @@ public class GameModelTest {
     public void testPlayerPlaceTile(){ //Test the function for placing tiles, and the various functions associated with placing tiles
         GameModel game = new GameModel();
         game.addPlayer("Rami");
+        assertEquals(game.getPlayers().get(0).getScore(), 0); //Test that new player has 0 score
         ArrayList<Tiles> tiles = new ArrayList<>();
         tiles.add(new Tiles("T", 1));
         tiles.add(new Tiles("A", 1));
         tiles.add(new Tiles("N", 1));
         ArrayList<Integer> rowPositions = new ArrayList<>();
-        rowPositions.add(8);
-        rowPositions.add(8);
-        rowPositions.add(8);
+        rowPositions.add(7);
+        rowPositions.add(7);
+        rowPositions.add(7);
         ArrayList<Integer> colPositions = new ArrayList<>();
         colPositions.add(7);
         colPositions.add(8);
         colPositions.add(9);
         game.playerPlaceTile(game.getPlayers().get(0), tiles, rowPositions, colPositions);
-        assertEquals(game.getGameBoard().getCell(8, 7).getTile().toString(), tiles.get(0).toString()); //Test if correct tiles are placed in correct board cells
-        assertEquals(game.getGameBoard().getCell(8, 8).getTile().toString(), tiles.get(1).toString());
-        assertEquals(game.getGameBoard().getCell(8, 9).getTile().toString(), tiles.get(2).toString());
+        assertEquals(game.getPlayers().get(0).getScore(), 3); //Test that player got correct score for the word, as the score for tan is 3
+        assertEquals(game.getGameBoard().getCell(7, 7).getTile().toString(), tiles.get(0).toString()); //Test if correct tiles are placed in correct board cells
+        assertEquals(game.getGameBoard().getCell(7, 8).getTile().toString(), tiles.get(1).toString());
+        assertEquals(game.getGameBoard().getCell(7, 9).getTile().toString(), tiles.get(2).toString());
     }
 
     /**
@@ -96,7 +99,7 @@ public class GameModelTest {
     public void testPlayerPlaceTileNotAtCenter(){ //Test if the first word can be placed elsewhere from the center
         GameModel game = new GameModel();
         game.addPlayer("Andrew");
-        //assertEquals(game.getPlayers().get(0).getScore(), 0); //Test that new player has 0 score
+        assertEquals(game.getPlayers().get(0).getScore(), 0); //Test that new player has 0 score
         ArrayList<Tiles> tiles = new ArrayList<>();
         tiles.add(new Tiles("T", 1));
         tiles.add(new Tiles("A", 1));
@@ -132,9 +135,9 @@ public class GameModelTest {
         tiles1.add(new Tiles("A", 1));
         tiles1.add(new Tiles("N", 1));
         ArrayList<Integer> rowPositions1 = new ArrayList<>();
-        rowPositions1.add(8);
-        rowPositions1.add(8);
-        rowPositions1.add(8);
+        rowPositions1.add(7);
+        rowPositions1.add(7);
+        rowPositions1.add(7);
         ArrayList<Integer> colPositions1 = new ArrayList<>();
         colPositions1.add(7);
         colPositions1.add(8);
@@ -183,6 +186,7 @@ public class GameModelTest {
         colPositions.add(8);
         colPositions.add(9);
         game.playerPlaceTile(game.getPlayers().get(0), tiles, rowPositions, colPositions);
+        assertEquals(game.getPlayers().get(0).getScore(), 3);
 
         ArrayList<Tiles> tiles2 = new ArrayList<>(); //Extend tan to stan
         tiles2.add(new Tiles("S", 1));
@@ -191,6 +195,7 @@ public class GameModelTest {
         ArrayList<Integer> colPositions2 = new ArrayList<>();
         colPositions2.add(6);
         game.playerPlaceTile(game.getPlayers().get(0), tiles2, rowPositions2, colPositions2);
+        assertEquals(game.getPlayers().get(0).getScore(), 7); //Test that 4 points are added by extending tan to stan
 
         ArrayList<Tiles> tiles3 = new ArrayList<>(); //Extend stan to standard
         tiles3.add(new Tiles("D", 2));
@@ -208,6 +213,7 @@ public class GameModelTest {
         colPositions3.add(12);
         colPositions3.add(13);
         game.playerPlaceTile(game.getPlayers().get(0), tiles3, rowPositions3, colPositions3);
+        assertEquals(game.getPlayers().get(0).getScore(), 17); //Test that 4 points are added by extending stan to standard
 
         ArrayList<Tiles> tiles4 = new ArrayList<>(); //Extend word in the vertical direction
         tiles4.add(new Tiles("A", 1));
@@ -219,6 +225,7 @@ public class GameModelTest {
         colPositions4.add(7);
         colPositions4.add(7);
         game.playerPlaceTile(game.getPlayers().get(0), tiles4, rowPositions4, colPositions4);
+        assertEquals(game.getPlayers().get(0).getScore(), 20); //Test that 4 points are added by extending the t in standard to ant vertically
     }
 
     /**

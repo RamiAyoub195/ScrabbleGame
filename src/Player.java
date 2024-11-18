@@ -4,8 +4,8 @@ import java.util.*;
  * a score. Each player can play tile(s), can swap tile(s) or skip their turn.
  *
  * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
- * Version: 2.0
- * Date: Wednesday, November 6, 2024
+ * Version: 3.0
+ * Date: Sunday, November 17, 2024
  *
  */
 
@@ -47,26 +47,6 @@ public class Player {
      */
     public int getScore() {
         return score;
-    }
-
-    /**
-     * Displays a player including their name, their tiles and current score.
-     */
-    public void displayPlayer(){
-        System.out.print(name + "'s " + "Tiles: ");
-        for(Tiles t : tiles){
-            System.out.print(t.toString());
-        }
-        System.out.println(name + "'s score: " + score);
-    }
-
-    /**
-     * Displays the tiles of a player
-     */
-    public void displayPlayerTiles(){
-        for(Tiles t : tiles){
-            System.out.print(t.toString());
-        }
     }
 
     /**

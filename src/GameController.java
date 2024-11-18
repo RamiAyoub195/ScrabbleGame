@@ -1,69 +1,59 @@
-import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.awt.*;
 
 /**
  * This is the game controller which will communicate the view with the model of the game.
  * The controller will take care of any buttons pressed in the view and send the data to the model. It will
  * also return the logic from the model to the view updating the scores, words placed, etc.
  *
- * Author(s): Liam Bennet
- * Version: 2.0
- * Date: Wednesday, November 6, 2024
+ * Author(s): Rami Ayoub, Louis Pantazopoulos, Andrew Tawfik, Liam Bennet
+ * Version: 3.0
+ * Date: Sunday, November 17, 2024
  */
 
 public class GameController implements ActionListener {
-    GameModel model;
-    GameView view;
-    private ArrayList<Integer> listOfRows;
-    private ArrayList<Integer> listOfCols;
-    private ArrayList<Tiles> listOfTiles;
-    private ArrayList<Integer> tilesToSwapIndices;
-    private int numTimesSwapClicked = 0;
-    boolean aTileIsSelected = false;
-    boolean swapTileSelected = false;
-    private Player currentPlayer;
-    private int selectedTileCol = 0;
-    private int currentTurn = 0;
-    private int numPlayers;
-    private int numTilesInBag;
-    private int numTilesPlacedThisTurn = 0;
-    private int tileIndex;
-    private String newestWord;
-    private int newestScore;
-    private ArrayList<String> currentPlayerNames;
-    private ArrayList<String> wordsInGame;
+    private GameModel model; //represents an instance of the model
+    private GameView view; //represents an instance of the view
+    private int numTimesSwapClicked; //the number of times swap has been clicked
+    private int currentTurn; //who's current turn to play the game
+    boolean swapTileSelected; //if the button was clicked to swap
+    private ArrayList<Integer> tilesToSwapIndices; //the tiles index to be swapped
+    private int numTilesPlacedThisTurn;  //the number of tiles paced by a player per turn
+    private int tileIndex; //the tile index
+    private ArrayList<Integer> listOfRows; //the row of the tile in board
+    private ArrayList<Integer> listOfCols; //the col of the tile in board
+    private ArrayList<Tiles> listOfTiles; //the list of the tiles selected
+    private boolean aTileIsSelected; //if a tile is selected
+    private int selectedTileCol; //selected tiles col
+    private int tilesInBag; //the amount of tiles left in the bag
 
     public GameController(GameModel model, GameView view) {
         this.model = model;
         this.view = view;
-
-        listOfRows = new ArrayList<Integer>();
-        listOfCols = new ArrayList<Integer>();
-        listOfTiles = new ArrayList<Tiles>();
-        tilesToSwapIndices = new ArrayList<Integer>();
-
-        wordsInGame = new ArrayList<>();
+        this.numTimesSwapClicked = 0;
+        this.currentTurn = 0;
+        this.swapTileSelected = false;
+        this.tilesToSwapIndices = new ArrayList<>();
+        this.numTilesPlacedThisTurn = 0;
+        this.tileIndex = 0;
+        this.listOfRows = new ArrayList<>();
+        this.listOfCols = new ArrayList<>();
+        this.listOfTiles = new ArrayList<>();
+        this.aTileIsSelected = false;
+        this.selectedTileCol = 0;
 
         for(String playerName : view.getPlayerNames()){
             model.addPlayer(playerName); //creates players in the game model after getting the names from the view
         }
 
-        numTilesInBag = 100 - (7 * view.getPlayerNames().size()); // Get size of tiles bag initially
-        numPlayers = view.getNumPlayers(); // Get number of players
-        model.setNumPlayers(numPlayers);   // Set number of players in model
-        currentPlayer = model.getCurrentPlayer(currentTurn); // Update current player in model to start game
-
         view.setUpPlayerTilesPanel(model.getPlayers().get(0)); // Set up the first player's tiles
-        currentPlayerNames = view.getPlayerNames();
-        this.view.setAllButtonsActionListener(this); //sets the controller as the action listener for all buttons in the view
 
+        this.tilesInBag = model.getTilesBag().bagArraylist().size();
+
+        this.view.setAllButtonsActionListener(this); //sets the controller as the action listener for all buttons in the view
     }
 
-    /**
-     * Processes event
-     * @param e the event to be processed
-     */
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == view.getPlayButton()) {
             playButtonAction();
@@ -98,69 +88,35 @@ public class GameController implements ActionListener {
         }
 
         else {
-            for (int row = 0; row < 16; row++) {
-                for (int col = 0; col < 16; col++) {
-                    if (e.getSource() == view.getSpecificBoardField(row, col)) {
+            for (int row = 0; row < 15; row++) {
+                for (int col = 0; col < 15; col++) {
+                    if (e.getSource() == view.getSpecificBoardCell(row, col)) {
                         // add letter to this row/col in model and view
-                        handleSpecificBoardFieldAction(row, col);
+                        handleSpecificBoardCellAction(row, col);
                     }
                 }
             }
         }
     }
 
-
-    /**
-     * Handles play button
-     */
-    private void playButtonAction() {
-        // if word is not valid
-        if (model.checkValidWord()) {
-            // check that the entire board's tiles are connected
-            if (model.getCheckBoard().checkMiddleBoardEmpty()) {
-                handleError("Middle square must be covered!");
-                model.updateCheckBoard();
+    public void playButtonAction() {
+        if (model.checkPlaceableWord(listOfTiles, listOfRows, listOfCols, model.getPlayers().get(currentTurn % 3)).equals("Word placed successfully.")){
+            model.playerPlaceTile(model.getPlayers().get(currentTurn % 3), listOfTiles, listOfRows, listOfCols);
+            for(int i = 0; i < listOfTiles.size(); i++){
+                view.updateBoardCell(listOfTiles.get(i), listOfRows.get(i), listOfCols.get(i));
             }
-            else if (!model.getCheckBoard().checkAdjacency()) {
-                handleError("Word must be connected to another word!");
-                model.updateCheckBoard();
-            }
-            else {
-                for (int row = 0; row < 16; row++) {
-                    for (int col = 0; col < 16; col++) {
-                        if (view.getSpecificBoardFieldColour(row, col) == Color.GRAY) {
-                            view.setSpecificBoardFieldColour(row, col, Color.GREEN);
-                        }
-                    }
-                }
 
-                model.updateGameBoard();
-                // remove tiles from player hand in model
-                model.removeTilesFromPlayerHand();
-                model.getRandomTiles(numTilesPlacedThisTurn, model.getCurrentPlayer(currentTurn));
-                // add the letter to model
-
-                // update words placed, player score, tiles in bag
-                numTilesInBag = numTilesInBag - numTilesPlacedThisTurn;
-                view.updateBagTilesCount(numTilesInBag);
-                // update player tiles
-
-                view.resetPlayerTile();
-                newestWord = model.getNewestWord();
-                System.out.println(newestWord);
-                System.out.println(newestWord);
-                newestScore = model.getScore(newestWord);
-                newestWord = "";
-                String currentPlayerName = currentPlayerNames.get(currentTurn % numPlayers);
-                view.updatePlayerScore(currentPlayerName, newestScore);
-
-                nextTurn();
-
-            }
+            tilesInBag -= listOfTiles.size();
+            view.updateBagTilesCount(tilesInBag);
+            view.resetPlayerTile();
+            view.updatePlayerScore((model.getPlayers().get(currentTurn % 3)).getName(), (model.getPlayers().get(currentTurn % 3).getScore()));
+            view.addToWordArea(model.getPlacedWords());
+            view.updateWordCount(model.getPlacedWords());
+            nextTurn();
         }
         else {
             model.updateCheckBoard();
-            handleError("Invalid word!");
+            handleError(model.checkPlaceableWord(listOfTiles, listOfRows, listOfCols, model.getPlayers().get(currentTurn % 3)));
         }
         listOfTiles.clear();
         listOfRows.clear();
@@ -170,7 +126,7 @@ public class GameController implements ActionListener {
     /**
      * Handles swap button
      */
-    private void swapButtonAction() {
+    public void swapButtonAction() {
         // if swap button has been clicked
         if (numTimesSwapClicked % 2 == 0) {
             view.displayMessageToPlayer("Select all tiles to swap then click swap button again");
@@ -178,23 +134,14 @@ public class GameController implements ActionListener {
             view.resetPlayerTile();
         }
         else {
-            model.playerSwapTile(model.getCurrentPlayer(currentTurn), tilesToSwapIndices);
+            model.playerSwapTile(model.getPlayers().get(currentTurn % 3), tilesToSwapIndices);
             view.resetPlayerTile();
-            view.updatePlayerTiles(model.getCurrentPlayer(currentTurn));
+            view.updatePlayerTiles(model.getPlayers().get(currentTurn % 3));
             nextTurn();
-            view.enableAllBoardFields();
+            view.enableAllBoardCells();
             swapTileSelected = false;
         }
         numTimesSwapClicked++;
-    }
-
-    /**
-     * Handles pass button
-     */
-    private void passButtonAction() {
-        // proceed to next player turn
-        nextTurn();
-        view.resetPlayerTile();
     }
 
     /**
@@ -204,7 +151,7 @@ public class GameController implements ActionListener {
     private void handleSpecificTileButtonAction(int col) {
         // if swap tile has been selected
         if (swapTileSelected) {
-            view.disableAllBoardFields();
+            view.disableAllBoardCells();
             view.setPlayerTilesColour(col, Color.ORANGE);
             tilesToSwapIndices.add(col);
         }
@@ -237,20 +184,24 @@ public class GameController implements ActionListener {
     }
 
     /**
-     * Handles board field button
-     * @param row row number of board field pressed
-     * @param col column number of board field pressed
+     * Handles pass button
      */
-    private void handleSpecificBoardFieldAction(int row, int col) {
+    public void passButtonAction() {
+        // proceed to next player turn
+        nextTurn();
+        view.resetPlayerTile();
+    }
+
+    public void handleSpecificBoardCellAction(int row, int col) {
         // add temp tile to board
         if (aTileIsSelected) {
             // get selected tile letter
             String tileLetter = view.getSpecificPlayerTileButton(selectedTileCol).getText();
             // add tile to view board and model board
             // add only if current spot is not GREEN (solidified letter) or GRAY (temp letter)
-            if (view.getSpecificBoardFieldColour(row, col) != Color.GREEN && view.getSpecificBoardFieldColour(row, col) != Color.GRAY) {
-                view.setSpecificBoardFieldLetter(row, col, tileLetter); // Set button field letter
-                view.setSpecificBoardFieldColour(row, col, Color.GRAY); // Set button field colour (temp letter)
+            if (view.getSpecificBoardCellColour(row, col) != Color.GREEN && view.getSpecificBoardCellColour(row, col) != Color.GRAY) {
+                view.setSpecificBoardCellLetter(row, col, tileLetter); // Set button field letter
+                view.setSpecificBoardCellColour(row, col, Color.GRAY); // Set button field colour (temp letter)
                 view.setPlayerTilesColour(selectedTileCol, Color.GRAY); // Mark tile as used on board (gray)
                 // Set tile colours
                 for (int index = 0; index < 7; index++) {
@@ -261,9 +212,12 @@ public class GameController implements ActionListener {
                 aTileIsSelected = false;
                 // add letter to model and add letter score to model
                 // we need to split the string into letter and score
-                Tiles tile = model.getPlayerTile(selectedTileCol); // get tile from players hand at specified spot
-                model.addTile(row, col, tile); // Add tile to the model board
-                model.addTileToRemove(tile); // add to list of tiles to remove from hand
+                listOfRows.add(row);
+                listOfCols.add(col);
+                listOfTiles.add(model.getPlayers().get(currentTurn % 3).getTiles().get(tileIndex));
+                //Tiles tile = model.getPlayerTile(selectedTileCol); // get tile from players hand at specified spot
+                //model.addTile(row, col, tile); // Add tile to the model board
+                //model.addTileToRemove(tile); // add to list of tiles to remove from hand
                 numTilesPlacedThisTurn++;
             }
             // otherwise do not add tile to that spot (do nothing)
@@ -276,26 +230,21 @@ public class GameController implements ActionListener {
         }
     }
 
-
     /**
      * Goes to next turn
      */
     private void nextTurn() {
         currentTurn++;
-        view.updatePlayerTiles(model.getCurrentPlayer(currentTurn));
+        view.updatePlayerTiles(model.getPlayers().get(currentTurn % 3));
         numTilesPlacedThisTurn = 0;
     }
 
-    /**
-     * Displays error message
-     * @param errorMessage message to be displayed
-     */
     private void handleError(String errorMessage) {
         // error message
-        for (int row = 0; row < 16; row++) {
-            for (int col = 0; col < 16; col++) {
-                if (view.getSpecificBoardFieldColour(row, col) == Color.GRAY) {
-                    view.removeTempTilesOnBoardField(row, col);
+        for (int row = 0; row < 15; row++) {
+            for (int col = 0; col < 15; col++) {
+                if (view.getSpecificBoardCellColour(row, col) == Color.GRAY) {
+                    view.removeTempTilesOnBoardCell(row, col);
                 }
             }
         }
