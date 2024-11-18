@@ -139,14 +139,14 @@ public class GameView extends JFrame {
                     }
                     else if (isTripleLetterSquare(i - 1, j - 1)){ //checks to see if it's triple letter square
                         boardField[i][j].setBackground(Color.BLUE); //makes the square blue
-                        boardField[i][j].setText("TWS"); //makes it TWS
+                        boardField[i][j].setText("TLS"); //makes it TWS
                     }
                     else if (isDoubleLetterSquare(i - 1, j - 1)) { //checks to see its it's a double letter square
                         boardField[i][j].setBackground(Color.CYAN); //makes the color cyan
-                        boardField[i][j].setText("DWS"); //makes it DWS
+                        boardField[i][j].setText("DLS"); //makes it DWS
                     } else if (i - 1 == 7 && j - 1 == 7) { //checks for the middle square
                         boardField[i][j].setBackground(Color.ORANGE); //makes the color orange
-                        boardField[i][j].setFont(new Font("Arial Unicode MS", Font.PLAIN, 20));
+                        boardField[i][j].setFont(new Font("Arial Unicode MS", Font.PLAIN, 14));
                         boardField[i][j].setText("★"); //sets it as a star
                     }
                     else{

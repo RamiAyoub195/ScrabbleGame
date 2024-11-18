@@ -100,8 +100,9 @@ public class GameController implements ActionListener {
     }
 
     public void playButtonAction() {
-        if (model.checkPlaceableWord(listOfTiles, listOfRows, listOfCols, model.getPlayers().get(currentTurn % 3)).equals("Word placed successfully.")){
-            model.playerPlaceTile(model.getPlayers().get(currentTurn % 3), listOfTiles, listOfRows, listOfCols);
+        model.checkPlaceableWord(listOfTiles, listOfRows, listOfCols);
+        if (model.getStatusMessage().equals("Word placed successfully.")){
+            model.playerPlaceTile(model.getPlayers().get(currentTurn % model.getPlayers().size()), listOfTiles, listOfRows, listOfCols);
             for(int i = 0; i < listOfTiles.size(); i++){
                 view.updateBoardCell(listOfTiles.get(i), listOfRows.get(i), listOfCols.get(i));
             }
@@ -109,14 +110,14 @@ public class GameController implements ActionListener {
             tilesInBag -= listOfTiles.size();
             view.updateBagTilesCount(tilesInBag);
             view.resetPlayerTile();
-            view.updatePlayerScore((model.getPlayers().get(currentTurn % 3)).getName(), (model.getPlayers().get(currentTurn % 3).getScore()));
+            view.updatePlayerScore((model.getPlayers().get(currentTurn % model.getPlayers().size())).getName(), (model.getPlayers().get(currentTurn % model.getPlayers().size()).getScore()));
             view.addToWordArea(model.getPlacedWords());
             view.updateWordCount(model.getPlacedWords());
             nextTurn();
         }
         else {
             model.updateCheckBoard();
-            handleError(model.checkPlaceableWord(listOfTiles, listOfRows, listOfCols, model.getPlayers().get(currentTurn % 3)));
+            handleError(model.getStatusMessage());
         }
         listOfTiles.clear();
         listOfRows.clear();
@@ -134,9 +135,9 @@ public class GameController implements ActionListener {
             view.resetPlayerTile();
         }
         else {
-            model.playerSwapTile(model.getPlayers().get(currentTurn % 3), tilesToSwapIndices);
+            model.playerSwapTile(model.getPlayers().get(currentTurn % model.getPlayers().size()), tilesToSwapIndices);
             view.resetPlayerTile();
-            view.updatePlayerTiles(model.getPlayers().get(currentTurn % 3));
+            view.updatePlayerTiles(model.getPlayers().get(currentTurn % model.getPlayers().size()));
             nextTurn();
             view.enableAllBoardCells();
             swapTileSelected = false;
@@ -214,7 +215,7 @@ public class GameController implements ActionListener {
                 // we need to split the string into letter and score
                 listOfRows.add(row);
                 listOfCols.add(col);
-                listOfTiles.add(model.getPlayers().get(currentTurn % 3).getTiles().get(tileIndex));
+                listOfTiles.add(model.getPlayers().get(currentTurn % model.getPlayers().size()).getTiles().get(tileIndex));
                 //Tiles tile = model.getPlayerTile(selectedTileCol); // get tile from players hand at specified spot
                 //model.addTile(row, col, tile); // Add tile to the model board
                 //model.addTileToRemove(tile); // add to list of tiles to remove from hand
@@ -235,7 +236,7 @@ public class GameController implements ActionListener {
      */
     private void nextTurn() {
         currentTurn++;
-        view.updatePlayerTiles(model.getPlayers().get(currentTurn % 3));
+        view.updatePlayerTiles(model.getPlayers().get((currentTurn % model.getPlayers().size())));
         numTilesPlacedThisTurn = 0;
     }
 

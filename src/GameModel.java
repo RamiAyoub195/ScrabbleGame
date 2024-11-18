@@ -203,11 +203,10 @@ public class GameModel {
      * @param tempTiles a list of the tiles
      * @param tempRowPositions a list of row positions for the tiles
      * @param tempColPositions a list of column positions for the tiles
-     * @param player the player who is currently at turn
      *
      * @return the status message if the word was successfully place or violated a rule.
      */
-    public String checkPlaceableWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions, Player player) {
+    public String checkPlaceableWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions) {
         Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
         boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
         boolean isAdjacent = false;
@@ -511,5 +510,12 @@ public class GameModel {
      */
     public void updateCheckBoard() {
         checkBoard = gameBoard.copyBoard();
+    }
+
+    /**
+     * Gets the winner of the game
+     */
+    public Player getWinner() {
+        return winner;
     }
 }

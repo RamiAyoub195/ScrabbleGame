@@ -50,4 +50,11 @@ public class WordList {
         return words.contains(word);
     }
 
+    /**
+     * Returns the array list of valid words from the file.
+     */
+    public ArrayList<String> getWords(){
+        return words;
+    }
+
 }

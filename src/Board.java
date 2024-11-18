@@ -239,6 +239,20 @@ public class Board {
     public Cell getCell(int row, int col) {
         return board[row][col];
     }
+
+    /**
+     * Get board row length
+     */
+    public int getRows() {
+        return rows;
+    }
+
+    /**
+     * Get board col length
+     */
+    public int getCols() {
+        return cols;
+    }
 }
 
 
