@@ -19,7 +19,7 @@ public class Board {
     private int rows; //rows of the board
     private int cols; //columns of the board
     private Cell[][] board; //the board
-    private final int[][] tripleWordCoord = {
+    private final int[][] tripleWordCoords = {
             {0, 0}, {0, 7}, {0, 14}, {7, 0}, {7, 14}, {14, 0}, {14, 7}, {14, 14}
     };
     private final int[][] doubleWordCoords = {
@@ -85,7 +85,7 @@ public class Board {
      * @return true if it's a TWS, false otherwise
      */
     private boolean isTripleWordSquare(int row, int col) {
-        return containsAnyPremiumSquare(tripleLetterCoords, row, col);
+        return containsAnyPremiumSquare(tripleWordCoords, row, col);
     }
 
     /**

@@ -56,8 +56,13 @@ public class TilesBag {
 
         //Assigns each letter their associated value based on information online (Hasbro's online guide for scrabble)
         for(HashMap.Entry<String, Integer> s: scrabbleTiles.entrySet()){
+            if (s.getKey().equals(" ")) {
+                for (int i = 0; i < s.getValue(); i++) {
+                    tilesBag.add(new Tiles(s.getKey(), 0));
+                }
+            }
             if (s.getKey().equals("A") || s.getKey().equals("E") || s.getKey().equals("I") || s.getKey().equals("O") ||
-                    s.getKey().equals("U") || s.getKey().equals("L") || s.getKey().equals("S") || s.getKey().equals("T") ||
+                    s.getKey().equals("U") || s.getKey().equals("L") || s.getKey().equals("N")|| s.getKey().equals("S") || s.getKey().equals("T") ||
                     s.getKey().equals("R")){
                 for (int i = 0; i < s.getValue(); i++){
                     tilesBag.add(new Tiles(s.getKey(), 1));
@@ -87,11 +92,6 @@ public class TilesBag {
             else if (s.getKey().equals("J") || s.getKey().equals("X")) {
                 for (int i = 0; i < s.getValue(); i++){
                     tilesBag.add(new Tiles(s.getKey(), 8));
-                }
-            }
-            else if (s.getKey().equals(" ")) {
-                for (int i = 0; i < s.getValue(); i++){
-                    tilesBag.add(new Tiles(s.getKey(), 0));
                 }
             }
             else{

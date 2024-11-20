@@ -60,9 +60,10 @@ public class GameModelTest {
         }
         for (int i = 0; i < 7; i++) { //remove players tiles
             game.getPlayers().get(0).getTiles().remove(0);
-            game.getPlayers().get(1).getTiles().remove(0);
         }
         assertTrue(game.isGameFinished()); //Test isGameFinished when there are no more tiles
+        assertEquals("Louis", game.getPlayers().get(0).getName()); //louis won the game as he has no more tiles
+
     }
 
     /**

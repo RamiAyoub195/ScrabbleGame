@@ -57,6 +57,18 @@ public class GameModel {
     }
 
     /**
+     * Adds an AIPlayer to the list of AIPlayers, kept them separate to avoid
+     * down casting and for easier functionality.
+     *
+     * @param AITag the name of the AIPlayer.
+     */
+    public void addAIPlayer(String AITag){
+        AIPlayer aiPlayer = new AIPlayer(AITag); //creates a new AIPlayer
+        players.add(aiPlayer); //adds it to the array list of AI players
+        getRandomTiles(7, aiPlayer); //assigns 7 random tiles to the AI player
+    }
+
+    /**
      * Returns the array list of players in the game.
      * @return list of players
      */
@@ -517,5 +529,13 @@ public class GameModel {
      */
     public Player getWinner() {
         return winner;
+    }
+
+    /**
+     * Returns the word list.
+     * @return word list.
+     */
+    public WordList getWordList() {
+        return wordList;
     }
 }
