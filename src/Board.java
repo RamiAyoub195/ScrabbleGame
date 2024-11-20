@@ -8,7 +8,7 @@ import java.util.HashMap;
  * Will update the board when a tile has been added. It will also take care of the premium squares
  * which can be found for the logic in the website page provided.
  *
- * Author(s): Rami Ayoub, Louis Pantazopoulos
+ * Author(s): Rami Ayoub, Louis Pantazopoulos, Andrew Tawfik, Liam bennet
  * Version: 3.0
  * Date: Sunday, November 17, 2024
  *
@@ -252,6 +252,52 @@ public class Board {
      */
     public int getCols() {
         return cols;
+    }
+
+    /**
+     * Saves and returns an arraylist of cells that are not occupies ie, cells that do not
+     * have a tile on them.
+     */
+    public ArrayList<Cell> unoccupiedCells(){
+        ArrayList<Cell> unoccupiedCells = new ArrayList<>(); //the array list that will save and store all the empty cells in the game
+        for (int i = 0; i < rows; i++){ //traverses through the rows of the board
+            for (int j = 0; j < cols; j++){ //traverses through the columns of the board
+                if (!board[i][j].isOccupied()){ //if the cell is not occupied by a tile
+                    unoccupiedCells.add(board[i][j]); //appends that cell to the array list of empty cells
+                }
+            }
+        }
+        return unoccupiedCells; //returns the array list of cells that are not occupied
+    }
+
+    /**
+     * Returns the row of a specific cell.
+     * @param cell the specific cell.
+     */
+    public int rowOfCell(Cell cell) {
+        for (int i = 0; i < rows; i++){ //traverses through row
+            for (int j = 0; j < cols; j++){ //traverses through col
+                if (board[i][j] == cell){ //if the board cell matched the specific cell
+                    return i; //return row
+                }
+            }
+        }
+        return -1; //if not found
+    }
+
+    /**
+     * Returns the column of a specific cell.
+     * @param cell the specific cell.
+     */
+    public int colOfCell(Cell cell) {
+        for (int i = 0; i < rows; i++){ //traverses through row
+            for (int j = 0; j < cols; j++){ //traverses through col
+                if (board[i][j] == cell){ //if the board matches the specific cell
+                    return j; //return col
+                }
+            }
+        }
+        return -1; //if not found
     }
 }
 
