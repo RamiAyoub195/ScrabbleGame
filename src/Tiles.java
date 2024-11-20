@@ -2,9 +2,9 @@
  * This class is the tiles class which is placed on the board of the scrabble game. Each tile has a letter and
  * an associated value. When a word is formed, the values of the letter are added up to give a score to the player.
  *
- * Author: Rami Ayoub
- * Version: 1.0
- * Date: Wednesday, October 16, 2024
+ * Author: Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
+ * Version: 3.0
+ * Date: Sunday, November 17, 2024
  */
 
 public class Tiles{
