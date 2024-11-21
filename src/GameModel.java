@@ -1,5 +1,3 @@
-
-import javax.swing.*;
 import java.util.*;
 
 /**
@@ -109,6 +107,7 @@ public class GameModel {
     public void playerPlaceTile(Player player, ArrayList<Tiles> tiles, ArrayList<Integer> rowPositions,ArrayList<Integer> colPositions){
         if (placeWord(tiles, rowPositions, colPositions, player)){ //if the word was successfully placed
             gameBoard = checkBoard.copyBoard(); //real board gets the checked board
+            player.addScore(turnScore(tiles, rowPositions, colPositions)); //updates the players score
             for (Tiles tile : tiles) //traverses through the tiles
             {
                 player.getTiles().remove(tile); //removes the tiles from the player
@@ -156,7 +155,6 @@ public class GameModel {
             // Ensure the board space is empty
             if (!checkBoard.checkBoardTileEmpty(row, col)) {
                 checkBoard = savedCheckBoard.copyBoard(); // Restore board state
-                statusMessage = "Error: Board space already occupied.";
                 return false;
             }
 
@@ -178,11 +176,9 @@ public class GameModel {
         // Restore the board if conditions are not met
         if (isFirstWord && !isAdjacent) {
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Middle cell not covered for the first word.";
             return false;
         } else if (!isFirstWord && !isAdjacent) {
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Word placement is not adjacent to any existing words.";
             return false;
         }
 
@@ -199,14 +195,103 @@ public class GameModel {
         if (!checkValidWord())
         {
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Invalid word.";
             return false;
         }
 
-        statusMessage = "Word placed successfully.";
-        player.addScore(turnScore(tempTiles, tempRowPositions, tempColPositions));
+        if(isFirstWord){
+            for (int i = 0; i < tempTiles.size(); i++){
+                if(!checkBoard.checkAdjacentBoardConnected(tempRowPositions.get(i), tempColPositions.get(i))){
+                    return false;
+                }
+            }
+        }
         return true;
     }
+
+    /**
+     * Places a word on the board, the first word needs to go through the middle square.
+     * Then all words must also be connected horizontally or vertically and must be a valid word
+     * from the word list.
+     *
+     * @param tempTiles a list of the tiles
+     * @param tempRowPositions a list of row positions for the tiles
+     * @param tempColPositions a list of column positions for the tiles
+     *
+     * @return the status message if the word was successfully place or violated a rule.
+     */
+    public String checkPlaceableWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions) {
+        Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
+        boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
+        boolean isAdjacent = false;
+
+        // Attempt to place each tile and check for valid conditions
+        for (int i = 0; i < tempTiles.size(); i++) {
+            int row = tempRowPositions.get(i);
+            int col = tempColPositions.get(i);
+
+            // Ensure the board space is empty
+            if (!checkBoard.checkBoardTileEmpty(row, col)) {
+                checkBoard = savedCheckBoard.copyBoard(); // Restore board state
+                statusMessage = "Error: Board space already occupied.";
+                return statusMessage;
+            }
+
+            // Temporarily place tile to check adjacency and center coverage
+            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
+
+            // Check if the middle cell is covered on the first move
+            if (isFirstWord && row == 7 && col == 7) {
+                isAdjacent = true; // Middle cell is covered, so first word placement is valid
+            }
+
+            // For subsequent words, check if the tile is adjacent to any occupied cell
+            if (!isFirstWord && checkBoard.checkAdjacentBoardConnected(row, col)) {
+                isAdjacent = true; // Tile is adjacent to an existing tile, making placement valid
+            }
+            checkBoard.removeBoardTile(row, col);
+        }
+
+        // Restore the board if conditions are not met
+        if (isFirstWord && !isAdjacent) {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Middle cell not covered for the first word.";
+            return statusMessage;
+
+        } else if (!isFirstWord && !isAdjacent) {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Word placement is not adjacent to any existing words.";
+            return statusMessage;
+        }
+
+        for (int i = 0; i < tempTiles.size(); i++)
+        {
+            int row = tempRowPositions.get(i);
+            int col = tempColPositions.get(i);
+
+            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
+
+        }
+
+        // Validate the formed word
+        if (!checkValidWord())
+        {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Invalid word.";
+            return statusMessage;
+        }
+
+        statusMessage = "Word placed successfully.";
+        if(isFirstWord){
+            for (int i = 0; i < tempTiles.size(); i++){
+                if(!checkBoard.checkAdjacentBoardConnected(tempRowPositions.get(i), tempColPositions.get(i))){
+                    statusMessage = "Error: Word placement is not adjacent.";
+                }
+            }
+        }
+        checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+        return statusMessage;
+    }
+
 
     /**
      * When a word/words are placed on the board, this method will be called to calculate
@@ -222,41 +307,93 @@ public class GameModel {
     public int turnScore(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions){
         int score = 0; //Create a variable for the score to be returned
         ArrayList<Cell> visitedCells = new ArrayList<>(); //Keep track of cells used to add to score
-        for (Tiles t : tempTiles){
-            score += t.getNumber(); //Add the combined score of all the new tiles placed to score
+        ArrayList<Cell> doubleScoreVisitedCells = new ArrayList<>();
+        ArrayList<Cell> tripleScoreVisitedCells = new ArrayList<>();
+        int wordPointMultiplier;
+        for (int i = 0; i < tempTiles.size(); i++) {
+            wordPointMultiplier = getWordPointMultiplier(tempRowPositions.get(i), tempColPositions.get(i));
+            score += (tempTiles.get(i).getNumber() * getLetterPointMultiplier(tempRowPositions.get(i), tempColPositions.get(i))) * getWordPointMultiplier(tempRowPositions.get(i), tempColPositions.get(i)); //Add the combined score of all the new tiles placed to score
+            visitedCells.add(gameBoard.getCell(tempRowPositions.get(i), tempColPositions.get(i)));
+            if (wordPointMultiplier == 2){
+                doubleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(i), tempColPositions.get(i)));
+            }
+            if (wordPointMultiplier == 3){
+                tripleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(i), tempColPositions.get(i)));
+            }
         }
         for (int j = 0; j < tempTiles.size(); j++){ //For each tile, we will see the words that they formed, and add to the score for the whole word
+            wordPointMultiplier = getWordPointMultiplier(tempRowPositions.get(j), tempColPositions.get(j)); //Get the current cells word score multiplier
             for (int i = tempRowPositions.get(j) + 1; i < 15; i++){ //Starting from the placed tile, look for tiles to the right
-                if (gameBoard.getCell(i, tempColPositions.get(j)).getTile() != null && !(visitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j))))){ //Check that the cell is has a tile placed
-                    score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber(); //For all other tiles in the word to the right of the placed tiles, add their score, as they are a part of the newly placed word
-                    visitedCells.add(gameBoard.getCell(i, tempColPositions.get(j))); //Mark this tile as visited so we don't add it's score twice in one move
+                if (gameBoard.getCell(i, tempColPositions.get(j)).getTile() != null){ //Check that the cell is has a tile placed
+                    if (!(visitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j))))){
+                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
+                        visitedCells.add(gameBoard.getCell(i, tempColPositions.get(j))); //Mark this tile as visited so we don't add it's score twice in one move
+                    }
+                    if (!(doubleScoreVisitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j)))) && wordPointMultiplier == 2){ //If a tile in this word is placed on a DWS we add the score from it an extra time
+                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
+                        doubleScoreVisitedCells.add(gameBoard.getCell(i, tempColPositions.get(j)));
+                    }
+                    if (!(tripleScoreVisitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j)))) && wordPointMultiplier == 3){ //If a tile in this word is placed on a tWS we add the score from it an extra 2 times
+                        score += 2 * gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
+                        tripleScoreVisitedCells.add(gameBoard.getCell(i, tempColPositions.get(j)));
+                    }
                 }
                 else{
                     break;
                 }
             }
             for (int i = tempRowPositions.get(j) - 1; i >= 0; i--){ //Starting from the placed tile, look for tiles to the left
-                if (gameBoard.getCell(i, tempColPositions.get(j)).getTile() != null && !(visitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j))))){
-                    score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
-                    visitedCells.add(gameBoard.getCell(i, tempColPositions.get(j)));//Mark this tile as visited so we don't add it's score twice in one move
+                if (gameBoard.getCell(i, tempColPositions.get(j)).getTile() != null){
+                    if (!(visitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j))))){
+                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
+                        visitedCells.add(gameBoard.getCell(i, tempColPositions.get(j))); //Mark this tile as visited so we don't add it's score twice in one move
+                    }
+                    if (!(doubleScoreVisitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j)))) && wordPointMultiplier == 2){ //If a tile in this word is placed on a DWS we add the score from it an extra time
+                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
+                        doubleScoreVisitedCells.add(gameBoard.getCell(i, tempColPositions.get(j)));
+                    }
+                    if (!(tripleScoreVisitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j)))) && wordPointMultiplier == 3){ //If a tile in this word is placed on a tWS we add the score from it an extra 2 times
+                        score += 2 * gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
+                        tripleScoreVisitedCells.add(gameBoard.getCell(i, tempColPositions.get(j)));
+                    }
                 }
                 else{
                     break;
                 }
             }
             for (int i = tempColPositions.get(j) + 1; i < 15; i++){ //Starting from the placed tile, look for tiles down
-                if (gameBoard.getCell(tempRowPositions.get(j), i).getTile() != null && !(visitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i)))){
-                    score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
-                    visitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i)); //Mark this tile as visited so we don't add it's score twice in one move
+                if (gameBoard.getCell(tempRowPositions.get(j), i).getTile() != null){
+                    if (!(visitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i)))){
+                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                        visitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i)); //Mark this tile as visited so we don't add it's score twice in one move
+                    }
+                    if (!(doubleScoreVisitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i))) && wordPointMultiplier == 2){ //If a tile in this word is placed on a DWS we add the score from it an extra time
+                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                        doubleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i));
+                    }
+                    if (!(tripleScoreVisitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i))) && wordPointMultiplier == 3){ //If a tile in this word is placed on a tWS we add the score from it an extra 2 times
+                        score += 2 * gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                        tripleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i));
+                    }
                 }
                 else{
                     break;
                 }
             }
             for (int i = tempColPositions.get(j) - 1; i >= 0; i--){ //Starting from the placed tile, look for tiles up
-                if (gameBoard.getCell(tempRowPositions.get(j), i).getTile() != null && !(visitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i)))){
-                    score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
-                    visitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i)); //Mark this tile as visited so we don't add it's score twice in one move
+                if (gameBoard.getCell(tempRowPositions.get(j), i).getTile() != null){
+                    if (!(visitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i)))){
+                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                        visitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i)); //Mark this tile as visited so we don't add it's score twice in one move
+                    }
+                    if (!(doubleScoreVisitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i))) && wordPointMultiplier == 2){ //If a tile in this word is placed on a DWS we add the score from it an extra time
+                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                        doubleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i));
+                    }
+                    if (!(tripleScoreVisitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i))) && wordPointMultiplier == 3){ //If a tile in this word is placed on a tWS we add the score from it an extra 2 times
+                        score += 2 * gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                        tripleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i));
+                    }
                 }
                 else{
                     break;
@@ -265,7 +402,6 @@ public class GameModel {
         }
         return score;
     }
-
 
     /**
      * Checks to see if the added word is a valid word from the list of words in the
@@ -307,22 +443,30 @@ public class GameModel {
      */
     private boolean isValidWordInRow(int row) {
         StringBuilder word = new StringBuilder(); //creates a string builder that will add all the words in the row
+        int addedToList = 0;
         for (int col = 0; col < 15; col++) {
+            addedToList = 0;
             if (checkBoard.getBoard()[row][col].isOccupied()) { //traverses through the row adding all cells with a tile to form a word
                 word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim()); //adds them to the string builder
             } else if (word.length() > 1) { //if there is at least 2 tiles
                 if (!isWordValidBothDirections(word)) { //checks the words, in both directions if not valid returns false
                     return false;
                 }
-                if (word.length() > 1){ //adds it to the word list
-                    addPlacedWord(word);
-                }
+                addPlacedWord(word); //adds it to the word list
+                addedToList = 1;
                 word.setLength(0); //resets the length of the string builder
+            } else if (word.length() == 1) {
+                word.setLength(0);
             }
         }
         if (word.length() > 1 && !isWordValidBothDirections(word)) { //if there is a word at the end of the row and is not valid
             return false; //returns false
         }
+
+        if(word.length() > 1 && addedToList == 0){
+            addPlacedWord(word);
+        }
+
         return true;
     }
 
@@ -335,21 +479,29 @@ public class GameModel {
      */
     private boolean isValidWordInColumn(int col) {
         StringBuilder word = new StringBuilder(); //creates a sring builder to check for the word
+        int addedToList = 0;
         for (int row = 0; row < 15; row++) { //traverses through all columns on the board.
+            addedToList = 0;
             if (checkBoard.getBoard()[row][col].isOccupied()) { //if there is a tile placed in the cell
                 word.append(checkBoard.getBoard()[row][col].getTile().getLetter().trim()); //adds it to the string builder
             } else if (word.length() > 1) { //if there is at least two tiles on the board
                 if (!isWordValidBothDirections(word)) { //if it's not a valid word return false
                     return false;
                 }
-                if (word.length() > 1){ //adds it to the word list
-                    addPlacedWord(word);
-                }
+                addPlacedWord(word); //adds it to the word list
+                addedToList = 1;
                 word.setLength(0); //reset the string builder list size
+            }
+            else if (word.length() == 1) {
+                word.setLength(0);
             }
         }
         if (word.length() > 1 && !isWordValidBothDirections(word)) { //if there is a word at the end of a column and is not valid
             return false; //return false
+        }
+
+        if(word.length() > 1 && addedToList == 0){
+            addPlacedWord(word);
         }
         return true;
     }
@@ -501,69 +653,46 @@ public class GameModel {
         return result;
     }
 
-    public String checkPlaceableWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions) {
-        Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
-        boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
-        boolean isAdjacent = false;
-
-        // Attempt to place each tile and check for valid conditions
-        for (int i = 0; i < tempTiles.size(); i++) {
-            int row = tempRowPositions.get(i);
-            int col = tempColPositions.get(i);
-
-            // Ensure the board space is empty
-            if (!checkBoard.checkBoardTileEmpty(row, col)) {
-                checkBoard = savedCheckBoard.copyBoard(); // Restore board state
-                statusMessage = "Error: Board space already occupied.";
-                return statusMessage;
-            }
-
-            // Temporarily place tile to check adjacency and center coverage
-            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
-
-            // Check if the middle cell is covered on the first move
-            if (isFirstWord && row == 7 && col == 7) {
-                isAdjacent = true; // Middle cell is covered, so first word placement is valid
-            }
-
-            // For subsequent words, check if the tile is adjacent to any occupied cell
-            if (!isFirstWord && checkBoard.checkAdjacentBoardConnected(row, col)) {
-                isAdjacent = true; // Tile is adjacent to an existing tile, making placement valid
-            }
-            checkBoard.removeBoardTile(row, col);
+    /**
+     * When a turn score is being calculated, we need to add double or triple to words placed on a DWS or TWS.
+     * This method will identify those with an int for the turnScore method to use.
+     *
+     * @param row the row of the cell
+     * @param col the column of the cell
+     * @return the letter point multiplier of the cell
+     */
+    public int getWordPointMultiplier(int row, int col){
+        if (gameBoard.getCell(row, col).getSpecialType() == null){
+            return 1;
         }
-
-        // Restore the board if conditions are not met
-        if (isFirstWord && !isAdjacent) {
-            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Middle cell not covered for the first word.";
-            return statusMessage;
-        } else if (!isFirstWord && !isAdjacent) {
-            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Word placement is not adjacent to any existing words.";
-            return statusMessage;
+        else if (gameBoard.getCell(row, col).getSpecialType().equals("DWS")){
+            return 2;
         }
-
-        for (int i = 0; i < tempTiles.size(); i++)
-        {
-            int row = tempRowPositions.get(i);
-            int col = tempColPositions.get(i);
-
-            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
-
+        else if (gameBoard.getCell(row, col).getSpecialType().equals("TWS")){
+            return 3;
         }
+        return 1;
+    }
 
-        // Validate the formed word
-        if (!checkValidWord())
-        {
-            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Invalid word.";
-            return statusMessage;
+    /**
+     * When a turn score is being calculated, we need to add double or triple to letter's placed on a DLS or TLS.
+     * This method will identify those with an int for the turnScore method to use.
+     *
+     * @param row the row of the cell
+     * @param col the column of the cell
+     * @return the letter point multiplier of the cell
+     */
+    public int getLetterPointMultiplier(int row, int col){
+        if (gameBoard.getCell(row, col).getSpecialType() == null){
+            return 1;
         }
-
-        statusMessage = "Word placed successfully.";
-        checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-        return statusMessage;
+        else if (gameBoard.getCell(row, col).getSpecialType().equals("DLS")){
+            return 2;
+        }
+        else if (gameBoard.getCell(row, col).getSpecialType().equals("TLS")){
+            return 3;
+        }
+        return 1;
     }
 
 
