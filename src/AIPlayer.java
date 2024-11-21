@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.*;
-
 
 /**
  * Represents an AI player in the game, an AI player is a virtual player that simulates a real player
@@ -105,43 +102,4 @@ public class AIPlayer extends Player {
         }
         return validPermutations;
     }
-
-    public static void main(String[] args) {
-        // Create a GameModel object (assuming GameModel and AIPlayer are already defined)
-        GameModel model = new GameModel(); // Assuming this is where the game logic is handled
-        HashSet<String> validWords = new HashSet<>(); // To store valid words found by AI
-
-        // Create an AIPlayer with a tag (for example, "AI1")
-        AIPlayer aiPlayer = new AIPlayer("AI1");
-
-        // Add the AI player to the game model (assuming addPlayer method handles it correctly)
-        model.addPlayer(aiPlayer.getName());
-
-        // Print the tiles (letters) of the AI player
-        System.out.println("AI Player Tiles:");
-
-
-        // Find valid words for all players (including AI)
-        for (Player p : model.getPlayers()) {
-            // Check if the player is an instance of AIPlayer
-            if (p instanceof AIPlayer ai) {
-                // Cast Player to AIPlayer
-                for (Tiles tile : ai.getTiles()) {
-                    System.out.println(tile.getLetter()); // Assuming getLetter returns a char or String
-                }
-
-                // Assuming getAllWordComputations uses a word list to calculate valid words for AI
-                validWords.addAll(ai.getAllWordComputations(model.getWordList()));
-            }
-        }
-
-        // Print out the valid words computed by the AIPlayer
-        System.out.println("Valid Words:");
-        for (String word : validWords) {
-            System.out.println(word); // Print each valid word
-        }
-    }
-
 }
-
-

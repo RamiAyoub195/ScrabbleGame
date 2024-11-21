@@ -1,4 +1,5 @@
 
+import javax.swing.*;
 import java.util.*;
 
 /**
@@ -205,82 +206,6 @@ public class GameModel {
         statusMessage = "Word placed successfully.";
         player.addScore(turnScore(tempTiles, tempRowPositions, tempColPositions));
         return true;
-    }
-
-    /**
-     * Places a word on the board, the first word needs to go through the middle square.
-     * Then all words must also be connected horizontally or vertically and must be a valid word
-     * from the word list.
-     *
-     * @param tempTiles a list of the tiles
-     * @param tempRowPositions a list of row positions for the tiles
-     * @param tempColPositions a list of column positions for the tiles
-     *
-     * @return the status message if the word was successfully place or violated a rule.
-     */
-    public String checkPlaceableWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions) {
-        Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
-        boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
-        boolean isAdjacent = false;
-
-        // Attempt to place each tile and check for valid conditions
-        for (int i = 0; i < tempTiles.size(); i++) {
-            int row = tempRowPositions.get(i);
-            int col = tempColPositions.get(i);
-
-            // Ensure the board space is empty
-            if (!checkBoard.checkBoardTileEmpty(row, col)) {
-                checkBoard = savedCheckBoard.copyBoard(); // Restore board state
-                statusMessage = "Error: Board space already occupied.";
-                return statusMessage;
-            }
-
-            // Temporarily place tile to check adjacency and center coverage
-            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
-
-            // Check if the middle cell is covered on the first move
-            if (isFirstWord && row == 7 && col == 7) {
-                isAdjacent = true; // Middle cell is covered, so first word placement is valid
-            }
-
-            // For subsequent words, check if the tile is adjacent to any occupied cell
-            if (!isFirstWord && checkBoard.checkAdjacentBoardConnected(row, col)) {
-                isAdjacent = true; // Tile is adjacent to an existing tile, making placement valid
-            }
-            checkBoard.removeBoardTile(row, col);
-        }
-
-        // Restore the board if conditions are not met
-        if (isFirstWord && !isAdjacent) {
-            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Middle cell not covered for the first word.";
-            return statusMessage;
-        } else if (!isFirstWord && !isAdjacent) {
-            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Word placement is not adjacent to any existing words.";
-            return statusMessage;
-        }
-
-        for (int i = 0; i < tempTiles.size(); i++)
-        {
-            int row = tempRowPositions.get(i);
-            int col = tempColPositions.get(i);
-
-            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
-
-        }
-
-        // Validate the formed word
-        if (!checkValidWord())
-        {
-            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-            statusMessage = "Error: Invalid word.";
-            return statusMessage;
-        }
-
-        statusMessage = "Word placed successfully.";
-        checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-        return statusMessage;
     }
 
     /**
@@ -537,5 +462,151 @@ public class GameModel {
      */
     public WordList getWordList() {
         return wordList;
+    }
+
+    /**
+     * Coverts a word into an array list of tiles.
+     * @param word the word.
+     * @param player the player at hand.
+     * @return list of player tiles.
+     */
+    public ArrayList<Tiles> AIWordToTiles(String word, Player player){
+        ArrayList<Tiles> tempTiles = new ArrayList<>();
+        for (char c : word.toCharArray()){
+            for(Tiles tiles: player.getTiles()){
+                if(tiles.getLetter().equals(String.valueOf(c))){
+                    tempTiles.add(tiles);
+                }
+            }
+        }
+        return tempTiles;
+    }
+
+    /**
+     * Gets all possible coordinates to place a tile on the board based on a row or column number and
+     * length of word.
+     * @param number the starting row or column.
+     * @param range the end of row or column.
+     * @return list of range row or column.
+     */
+    public static ArrayList<Integer> getAllPossibleEntries(int number, int range) {
+        ArrayList<Integer> result = new ArrayList<>();
+        for (int i = 0; i <= range; i++) {
+            if (number + i <= 14) {
+                result.add(number + i);
+            } else {
+                break;
+            }
+        }
+        return result;
+    }
+
+    public String checkPlaceableWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions) {
+        Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
+        boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
+        boolean isAdjacent = false;
+
+        // Attempt to place each tile and check for valid conditions
+        for (int i = 0; i < tempTiles.size(); i++) {
+            int row = tempRowPositions.get(i);
+            int col = tempColPositions.get(i);
+
+            // Ensure the board space is empty
+            if (!checkBoard.checkBoardTileEmpty(row, col)) {
+                checkBoard = savedCheckBoard.copyBoard(); // Restore board state
+                statusMessage = "Error: Board space already occupied.";
+                return statusMessage;
+            }
+
+            // Temporarily place tile to check adjacency and center coverage
+            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
+
+            // Check if the middle cell is covered on the first move
+            if (isFirstWord && row == 7 && col == 7) {
+                isAdjacent = true; // Middle cell is covered, so first word placement is valid
+            }
+
+            // For subsequent words, check if the tile is adjacent to any occupied cell
+            if (!isFirstWord && checkBoard.checkAdjacentBoardConnected(row, col)) {
+                isAdjacent = true; // Tile is adjacent to an existing tile, making placement valid
+            }
+            checkBoard.removeBoardTile(row, col);
+        }
+
+        // Restore the board if conditions are not met
+        if (isFirstWord && !isAdjacent) {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Middle cell not covered for the first word.";
+            return statusMessage;
+        } else if (!isFirstWord && !isAdjacent) {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Word placement is not adjacent to any existing words.";
+            return statusMessage;
+        }
+
+        for (int i = 0; i < tempTiles.size(); i++)
+        {
+            int row = tempRowPositions.get(i);
+            int col = tempColPositions.get(i);
+
+            checkBoard.placeBoardTile(row, col, tempTiles.get(i));
+
+        }
+
+        // Validate the formed word
+        if (!checkValidWord())
+        {
+            checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+            statusMessage = "Error: Invalid word.";
+            return statusMessage;
+        }
+
+        statusMessage = "Word placed successfully.";
+        checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
+        return statusMessage;
+    }
+
+
+    public static void main(String[] args) {
+        GameModel gameModel = new GameModel();
+
+        gameModel.addAIPlayer("AI1");
+
+        for (Player player : gameModel.getPlayers()) {
+            if (player instanceof AIPlayer) {
+                AIPlayer aiPlayer = (AIPlayer) player;
+                HashSet<String> test1 = aiPlayer.getAllWordComputations(gameModel.getWordList());
+                for (String word : test1) {
+                    ArrayList<Tiles> tempTiles = gameModel.AIWordToTiles(word, aiPlayer);
+                    for (int i = 0; i < 15; i++) {
+                        ArrayList<Integer> temprowsPositions = new ArrayList<>();
+                        // Fill temprowsPositions with 'i' repeated for the length of the word
+                        for (int a = 0; a < word.length(); a++) {
+                            temprowsPositions.add(i);
+                        }
+
+                        for (int j = 0; j < 15 - word.length() + 1; j++) {
+                            ArrayList<Integer> tempcolPositions = new ArrayList<>();
+                            // Generate consecutive column positions starting at 'j'
+                            for (int b = 0; b < word.length(); b++) {
+                                tempcolPositions.add(j + b);
+                            }
+
+                            // Ensure temprowsPositions and tempcolPositions have the same size as tempTiles
+                            if (tempTiles.size() == temprowsPositions.size() && tempTiles.size() == tempcolPositions.size()) {
+                                gameModel.playerPlaceTile(aiPlayer, tempTiles, temprowsPositions, tempcolPositions);
+                                if(!gameModel.getGameBoard().checkMiddleBoardEmpty()){
+                                    gameModel.getGameBoard().printBoard();
+                                    System.out.println();
+                                    System.out.println();
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+            }
+        }
     }
 }

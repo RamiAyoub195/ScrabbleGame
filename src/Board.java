@@ -31,8 +31,8 @@ public class Board {
     }; //will store the coordinates of a TLS
     private final int[][] doubleLetterCoords = {
             {0, 3}, {0, 11}, {2, 6}, {2, 8}, {3, 0}, {3, 7}, {3, 14}, {6, 2},
-            {6, 6}, {6, 8}, {6, 12}, {7, 3}, {7, 11}, {8, 2}, {8, 6}, {8, 8},
-            {8, 12}, {11, 0}, {11, 7}, {11, 14}, {12, 6}, {12, 8}, {14, 3}, {14, 11}
+    {6, 6}, {6, 8}, {6, 12}, {7, 3}, {7, 11}, {8, 2}, {8, 6}, {8, 8},
+    {8, 12}, {11, 0}, {11, 7}, {11, 14}, {12, 6}, {12, 8}, {14, 3}, {14, 11}
     }; //will store the coordinates of a DLS
 
     /**
@@ -299,4 +299,22 @@ public class Board {
         }
         return -1; //if not found
     }
+
+    public void printBoard(){
+        for (int i = 0; i < rows; i++){
+            for (int j = 0; j < cols; j++){
+                if (board[i][j].getTile() != null){
+                    System.out.print(board[i][j].getTile().getLetter() + " ");
+                }
+                else{
+                    System.out.print(board[i][j].getTile() + " ");
+                }
+
+            }
+            System.out.println();
+        }
+    }
 }
+
+
+
