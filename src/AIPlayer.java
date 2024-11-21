@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Represents an AI player in the game, an AI player is a virtual player that simulates a real player
@@ -96,3 +97,5 @@ public class AIPlayer extends Player {
     }
 
 }
+
+
