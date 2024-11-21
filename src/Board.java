@@ -85,7 +85,7 @@ public class Board {
      * @return true if it's a TWS, false otherwise
      */
     private boolean isTripleWordSquare(int row, int col) {
-        return containsAnyPremiumSquare(tripleLetterCoords, row, col);
+        return containsAnyPremiumSquare(tripleWordCoord, row, col);
     }
 
     /**
