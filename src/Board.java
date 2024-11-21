@@ -299,6 +299,21 @@ public class Board {
         }
         return -1; //if not found
     }
+
+    public void printBoard(){
+        for (int i = 0; i < rows; i++){
+            for (int j = 0; j < cols; j++){
+                if (board[i][j].getTile() != null){
+                    System.out.print(board[i][j].getTile().getLetter() + " ");
+                }
+                else{
+                    System.out.print(board[i][j].getTile() + " ");
+                }
+
+            }
+            System.out.println();
+        }
+    }
 }
 
 
