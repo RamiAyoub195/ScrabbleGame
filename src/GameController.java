@@ -136,6 +136,13 @@ public class GameController implements ActionListener {
                                 for(int r = 0; r < tempTiles.size(); r++){
                                     view.updateBoardCell(tempTiles.get(r), temprowsPositions.get(r), tempcolPositions.get(r));
                                 }
+                                if (tilesInBag > 0) {
+                                    tilesInBag -= tempTiles.size(); // Remove number of tiles placed from tile bag
+                                }
+                                view.updateBagTilesCount(tilesInBag); // Update view count
+                                view.updatePlayerScore((aiPlayer.getName()), (aiPlayer.getScore())); // Update AI player score
+                                view.addToWordArea(model.getPlacedWords()); // Update word list view
+                                view.updateWordCount(model.getPlacedWords()); // Update word count in view
                                 AiPlacedSuccesful = true;
                                 break;
                             }
@@ -162,7 +169,9 @@ public class GameController implements ActionListener {
                     view.updateBoardCell(listOfTiles.get(i), listOfRows.get(i), listOfCols.get(i));
                 }
 
-                tilesInBag -= listOfTiles.size();
+                if (tilesInBag > 0) {
+                    tilesInBag -= listOfTiles.size();
+                }
                 view.updateBagTilesCount(tilesInBag);
                 view.resetPlayerTile();
                 view.updatePlayerScore((model.getPlayers().get(currentTurn % model.getPlayers().size())).getName(), (model.getPlayers().get(currentTurn % model.getPlayers().size()).getScore()));
@@ -183,6 +192,15 @@ public class GameController implements ActionListener {
             listOfTiles.clear();
             listOfRows.clear();
             listOfCols.clear();
+        }
+
+        // Handles if game is over
+        if (model.isGameFinished()) {
+            view.displayMessageToPlayer("Congrats " + model.getWinner().getName() + " won the game!");
+            // Disable game if over
+            view.disablePlayAndPass();
+            view.disableSwapAndPass();
+            view.disableAllBoardCells();
         }
     }
 

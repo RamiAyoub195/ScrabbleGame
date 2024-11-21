@@ -34,6 +34,7 @@ public class AIPlayer extends Player {
         HashSet<String> validWords = new HashSet<>(); //creates a new set
         String tilesAsString = getTilesToString(); //gets the AIPlayers tiles as a string
         System.out.println(tilesAsString);
+        System.out.println("Tile list length: " + getTiles().size());
         for(int i = 2; i <= getTiles().size(); i++){ //traverses to get all possible words of length 2 to 7
             ArrayList<String> allPermutations = permute(tilesAsString, i);
             for(String word : allPermutations){
