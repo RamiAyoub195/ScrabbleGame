@@ -52,7 +52,7 @@ public class TilesBag {
         scrabbleTiles.put("X", 1);
         scrabbleTiles.put("Y", 2);
         scrabbleTiles.put("Z", 1);
-        //scrabbleTiles.put(" ", 2);
+        scrabbleTiles.put(" ", 2);
 
         //Assigns each letter their associated value based on information online (Hasbro's online guide for scrabble)
         for(HashMap.Entry<String, Integer> s: scrabbleTiles.entrySet()){

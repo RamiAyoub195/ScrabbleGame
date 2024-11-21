@@ -91,10 +91,17 @@ public class GameView extends JFrame {
      */
     public ArrayList<String> welcomeAndGetPlayerNames() {
         ArrayList<String> names = new ArrayList<>();
-        int numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (2-4)")); //prints a welcome message to the game and asks for the number of players
+        int numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (1 - 4)")); //prints a welcome message to the game and asks for the number of players
         for (int i = 1; i <= numPlayers; i++) {
             String name = JOptionPane.showInputDialog("Please Enter Player " + i + " Name"); //gets the name of the player
             names.add(name); //adds the name of the player and creates a new player
+        }
+
+        if(numPlayers < 4){
+            int numAiPlayers = Integer.parseInt(JOptionPane.showInputDialog("Please enter the number of AI players(0 - " + (4 - numPlayers)  + ")"));
+            for (int i = 1; i <= numAiPlayers; i++) {
+                names.add("AI " + i);
+            }
         }
         return names;
     }
@@ -423,8 +430,30 @@ public class GameView extends JFrame {
      * @param col the column position of tile.
      */
     public void removeTempTilesOnBoardCell(int row, int col) {
-        boardCells[row][col].setText(""); //sets the text as empty
-        boardCells[row][col].setBackground(Color.WHITE); //makes the colour of the board white
+        if (row == 7 && col == 7) {
+            boardCells[row][col].setText("★"); //sets the text as ★
+            boardCells[row][col].setBackground(Color.ORANGE); //makes the color orange
+        }
+        else if (isDoubleLetterSquare(row, col)){
+            boardCells[row][col].setBackground(Color.CYAN); //makes the color cyan
+            boardCells[row][col].setText("DLS"); //sets the text as DLS
+        }
+        else if(isDoubleWordSquare(row, col)){
+            boardCells[row][col].setBackground(Color.PINK); //makes the color pink
+            boardCells[row][col].setText("DWS"); //sets the text as DWS
+        }
+        else if(isTripleLetterSquare(row, col)){
+            boardCells[row][col].setBackground(Color.BLUE); //makes the color blue
+            boardCells[row][col].setText("TLS"); //sets the text as TLS
+        }
+        else if (isTripleWordSquare(row, col)){
+            boardCells[row][col].setBackground(Color.RED); //makes the color red
+            boardCells[row][col].setText("TWS"); //sets the text as TWS
+        }
+        else{
+            boardCells[row][col].setBackground(Color.WHITE); //makes the colour of the board white
+            boardCells[row][col].setText(""); //clears text
+        }
     }
 
 
@@ -530,9 +559,43 @@ public class GameView extends JFrame {
     public void enableAllBoardCells() {
         for (int i = 1; i < 15; i++) {
             for (int j = 1; j < 15; j++) {
-                boardCells[i][j].setEnabled(true);
+                if(getSpecificBoardCellColour(i, j) != Color.GREEN){
+                    boardCells[i][j].setEnabled(true);
+                }
             }
         }
+    }
+
+    /**
+     * Disables play and pass buttons
+     */
+    public void disablePlayAndPass() {
+        playButton.setEnabled(false);
+        passButton.setEnabled(false);
+    }
+
+    /**
+     * Enables play and pass buttons
+     */
+    public void enablePlayAndPass() {
+        playButton.setEnabled(true);
+        passButton.setEnabled(true);
+    }
+
+    /**
+     * Disables swap and pass buttons
+     */
+    public void disableSwapAndPass() {
+        swapButton.setEnabled(false);
+        passButton.setEnabled(false);
+    }
+
+    /**
+     * Enables swap and pass buttons
+     */
+    public void enableSwapAndPass() {
+        swapButton.setEnabled(true);
+        passButton.setEnabled(true);
     }
 
     /**
@@ -572,5 +635,21 @@ public class GameView extends JFrame {
      */
     public void setSpecificBoardCellColour(int row, int col, Color colour) {
         boardCells[row][col].setBackground(colour);
+    }
+
+    /**
+     * If a player wants to place a blank tile, this will be called to assign the tile a letter of the player's choice
+     *
+     * @param tile
+     */
+    public void setBlankTileLetter(Tiles tile){
+        String letter = JOptionPane.showInputDialog("Please select the letter you wish to use for this blank tile.");
+        letter = letter.toUpperCase();
+        ArrayList<String> validLetters = new ArrayList<>(Arrays.asList("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"));
+        while(!validLetters.contains(letter)){
+            letter = JOptionPane.showInputDialog("Invalid letter. Please select the letter you wish to use for this blank tile.");
+            letter = letter.toUpperCase();
+        }
+        tile.setLetter(letter);
     }
 }
