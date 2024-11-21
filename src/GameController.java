@@ -44,7 +44,13 @@ public class GameController implements ActionListener {
         this.selectedTileCol = 0;
 
         for(String playerName : view.getPlayerNames()){
-            model.addPlayer(playerName); //creates players in the game model after getting the names from the view
+            int index = playerName.indexOf("AI"); //used to differentiate between a player and an AI player
+            if(index != -1) { //means that this name has AI init and is an AI player name
+                model.addAIPlayer(playerName);
+            }
+            else{
+                model.addPlayer(playerName); //creates players in the game model after getting the names from the view
+            }
         }
 
         view.setUpPlayerTilesPanel(model.getPlayers().get(0)); // Set up the first player's tiles
@@ -100,28 +106,72 @@ public class GameController implements ActionListener {
     }
 
     public void playButtonAction() {
-        model.checkPlaceableWord(listOfTiles, listOfRows, listOfCols);
-        if (model.getStatusMessage().equals("Word placed successfully.")){
-            model.playerPlaceTile(model.getPlayers().get(currentTurn % model.getPlayers().size()), listOfTiles, listOfRows, listOfCols);
-            for(int i = 0; i < listOfTiles.size(); i++){
-                view.updateBoardCell(listOfTiles.get(i), listOfRows.get(i), listOfCols.get(i));
-            }
+        boolean AiPlacedSuccesful = false;
+        if(model.getPlayers().get(currentTurn % model.getPlayers().size()) instanceof AIPlayer){
+            AIPlayer aiPlayer = (AIPlayer)model.getPlayers().get(currentTurn % model.getPlayers().size());
+            HashSet<String> allPossibleWord = aiPlayer.getAllWordComputations(model.getWordList());
+            for(String word : allPossibleWord){
+                ArrayList<Tiles> tempTiles = model.AIWordToTiles(word, aiPlayer);
+                for (int i = 0; i < 15; i++) {
+                    ArrayList<Integer> temprowsPositions = new ArrayList<>();
+                    // Fill temprowsPositions with 'i' repeated for the length of the word
+                    for (int a = 0; a < word.length(); a++) {
+                        temprowsPositions.add(i);
+                    }
 
-            tilesInBag -= listOfTiles.size();
-            view.updateBagTilesCount(tilesInBag);
-            view.resetPlayerTile();
-            view.updatePlayerScore((model.getPlayers().get(currentTurn % model.getPlayers().size())).getName(), (model.getPlayers().get(currentTurn % model.getPlayers().size()).getScore()));
-            view.addToWordArea(model.getPlacedWords());
-            view.updateWordCount(model.getPlacedWords());
-            nextTurn();
+                    for (int j = 0; j < 15 - word.length() + 1; j++) {
+                        ArrayList<Integer> tempcolPositions = new ArrayList<>();
+                        // Generate consecutive column positions starting at 'j'
+                        for (int b = 0; b < word.length(); b++) {
+                            tempcolPositions.add(j + b);
+                        }
+
+                        // Ensure temprowsPositions and tempcolPositions have the same size as tempTiles
+                        if (tempTiles.size() == temprowsPositions.size() && tempTiles.size() == tempcolPositions.size()) {
+                            model.checkPlaceableWord(tempTiles, temprowsPositions, tempcolPositions);
+                            if (model.getStatusMessage().equals("Word placed successfully.")){
+                                model.playerPlaceTile(aiPlayer, tempTiles, temprowsPositions, tempcolPositions);
+                                for(int r = 0; r < tempTiles.size(); r++){
+                                    view.updateBoardCell(tempTiles.get(r), temprowsPositions.get(r), tempcolPositions.get(r));
+                                }
+                                AiPlacedSuccesful = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (AiPlacedSuccesful){
+                        break;
+                    }
+                }
+                if (AiPlacedSuccesful){
+                    break;
+                }
+            }
         }
-        else {
-            model.updateCheckBoard();
-            handleError(model.getStatusMessage());
+        else{
+            model.checkPlaceableWord(listOfTiles, listOfRows, listOfCols);
+            if (model.getStatusMessage().equals("Word placed successfully.")){
+                model.playerPlaceTile(model.getPlayers().get(currentTurn % model.getPlayers().size()), listOfTiles, listOfRows, listOfCols);
+                for(int i = 0; i < listOfTiles.size(); i++){
+                    view.updateBoardCell(listOfTiles.get(i), listOfRows.get(i), listOfCols.get(i));
+                }
+
+                tilesInBag -= listOfTiles.size();
+                view.updateBagTilesCount(tilesInBag);
+                view.resetPlayerTile();
+                view.updatePlayerScore((model.getPlayers().get(currentTurn % model.getPlayers().size())).getName(), (model.getPlayers().get(currentTurn % model.getPlayers().size()).getScore()));
+                view.addToWordArea(model.getPlacedWords());
+                view.updateWordCount(model.getPlacedWords());
+                nextTurn();
+            }
+            else {
+                model.updateCheckBoard();
+                handleError(model.getStatusMessage());
+            }
+            listOfTiles.clear();
+            listOfRows.clear();
+            listOfCols.clear();
         }
-        listOfTiles.clear();
-        listOfRows.clear();
-        listOfCols.clear();
     }
 
     /**

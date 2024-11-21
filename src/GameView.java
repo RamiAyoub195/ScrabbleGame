@@ -91,10 +91,17 @@ public class GameView extends JFrame {
      */
     public ArrayList<String> welcomeAndGetPlayerNames() {
         ArrayList<String> names = new ArrayList<>();
-        int numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (2-4)")); //prints a welcome message to the game and asks for the number of players
+        int numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (1 - 4)")); //prints a welcome message to the game and asks for the number of players
         for (int i = 1; i <= numPlayers; i++) {
             String name = JOptionPane.showInputDialog("Please Enter Player " + i + " Name"); //gets the name of the player
             names.add(name); //adds the name of the player and creates a new player
+        }
+
+        if(numPlayers < 4){
+            int numAiPlayers = Integer.parseInt(JOptionPane.showInputDialog("Please enter the number of AI players(0 - " + (4 - numPlayers)  + ")"));
+            for (int i = 1; i <= numAiPlayers; i++) {
+                names.add("AI " + i);
+            }
         }
         return names;
     }
