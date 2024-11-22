@@ -331,10 +331,10 @@ public class GameController implements ActionListener {
     private void nextTurn() {
         currentTurn++;
         view.updatePlayerTiles(model.getPlayers().get((currentTurn % model.getPlayers().size())));
+        numTilesPlacedThisTurn = 0;
         if (model.getPlayers().get((currentTurn % model.getPlayers().size())) instanceof AIPlayer) {
             view.getPlayButton().doClick();
         }
-        numTilesPlacedThisTurn = 0;
     }
 
     private void handleError(String errorMessage) {
