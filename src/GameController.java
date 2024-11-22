@@ -110,6 +110,7 @@ public class GameController implements ActionListener {
         if(isAITurn()){
             AIPlayer aiPlayer = (AIPlayer)getCurrentPlayer();
             HashSet<String> allPossibleWord = aiPlayer.getAllWordComputations(model.getWordList());
+//            HashMap<String, Integer> wordsAndScores = aiPlayer.valueOfValidPermutations(allPossibleWord);
             for(String word : allPossibleWord){
                 ArrayList<Tiles> tempTiles = model.AIWordToTiles(word, aiPlayer);
                 for (int i = 0; i < 15; i++) {
@@ -222,6 +223,9 @@ public class GameController implements ActionListener {
         if(isAITurn()){ //if it's the AIPlayer at turn
             AIPlayer aiPlayer = (AIPlayer) getCurrentPlayer();
             for(int i = 0; i < aiPlayer.getTiles().size(); i++){
+                if (aiPlayer.getTiles().get(i).getNumber() == 0) {
+                    aiPlayer.getTiles().get(i).setLetter(" ");
+                }
                 aiTilesToSwapIndices.add(i);
             }
             model.playerSwapTile(aiPlayer, aiTilesToSwapIndices);

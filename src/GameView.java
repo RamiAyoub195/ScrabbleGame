@@ -414,6 +414,7 @@ public class GameView extends JFrame {
     public void updatePlayerTiles(Player player){
         playerTurn.setText(player.getName() + "'s Tiles: ");
         for (int i = 0; i < playerTiles.length; i++) { //traverses through the player tiles panel of buttons
+            playerTiles[i].setEnabled(true); // Reset enabled player tile buttons
             if(i < player.getTiles().size()){ //if the player has enough tiles to be displayed the update the button with the tile
                 playerTiles[i].setText(player.getTiles().get(i).toString()); //updates the tiles with the current players tiles
             }

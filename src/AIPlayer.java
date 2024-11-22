@@ -1,5 +1,6 @@
 import java.util.*;
-
+import java.lang.*;
+import java.util.Comparator;
 
 /**
  * Represents an AI player in the game, an AI player is a virtual player that simulates a real player
@@ -11,7 +12,7 @@ import java.util.*;
  * Date:
  */
 
-public class AIPlayer extends Player {
+public class AIPlayer extends Player  {
     Random rand = new Random();
 
     /**
@@ -37,9 +38,9 @@ public class AIPlayer extends Player {
         ArrayList<Tiles> tileList = new ArrayList<>(); // array list of tiles in players hand
         String tilesAsString = getTilesToString(); //gets the AIPlayers tiles as a string
 
-        System.out.println(tilesAsString);
+//        System.out.println(tilesAsString);
 
-        boolean hasBlankTile = false;
+        // List of tiles in hand
         tileList = getTiles();
 
         // StringBuilder to change tilesAsString easier
@@ -49,7 +50,6 @@ public class AIPlayer extends Player {
         for (int index = 0; index < sb.length(); index++) {
             // If blank is found
             if (sb.charAt(index) == ' ') {
-                hasBlankTile = true; // set flag true
                 String randomLetter = String.valueOf((char) ('a' + rand.nextInt(26))).toUpperCase(); // get random letter
                 sb.setCharAt(index, randomLetter.charAt(0)); // set the random letter at the current blank tile index
                 tileList.get(index).setLetter(randomLetter); // set the random letter in the actual tile object
@@ -59,17 +59,17 @@ public class AIPlayer extends Player {
         // convert back to string
         tilesAsString = sb.toString();
 
-        System.out.println(tilesAsString);
+//        System.out.println(tilesAsString);
         for(int i = 2; i <= tilesAsString.length(); i++){ //traverses to get all possible words of length 2 to 7
             HashSet<String> allPermutations = permute(tilesAsString, i);
             for(String word : allPermutations){
                 if(wordList.isValidWord(word)){
                     validWords.add(word);
-                    System.out.println(word);
+//                    System.out.println(word);
                 }
             }
         }
-        System.out.println("\n");
+//        System.out.println("\n");
         return validWords;
     }
 
@@ -127,16 +127,47 @@ public class AIPlayer extends Player {
         return 0;
     }
 
+
     public HashMap<String, Integer> valueOfValidPermutations(HashSet<String> validWords) {
-        int score = 0;
         HashMap<String, Integer> validPermutations = new HashMap<>();
-        for(String word : validWords){
+
+        // Iterate over valid words and compute their score
+        for (String word : validWords) {
+            int score = 0; // Reset score for each word
+
+            // Calculate score for each word
             for (char letter : word.toCharArray()) {
                 int number = getValueOfChar(letter);
                 score += number;
             }
+
+            // Store word and score in HashMap
             validPermutations.put(word, score);
         }
-        return validPermutations;
+
+        // Create a list to store the scores (values from the map)
+        ArrayList<Integer> list = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : validPermutations.entrySet()) {
+            list.add(entry.getValue()); // Add values (scores) to the list
+        }
+
+        // Sort the list in ascending order
+        Collections.sort(list, Collections.reverseOrder());
+
+        // Create a LinkedHashMap to maintain the order after sorting
+        LinkedHashMap<String, Integer> sortedMap = new LinkedHashMap<>();
+
+        // Iterate over the sorted list of scores and add the corresponding word-value pairs back into the sorted map
+        for (int num : list) {
+            for (Map.Entry<String, Integer> entry : validPermutations.entrySet()) {
+                if (entry.getValue().equals(num)) {
+                    sortedMap.put(entry.getKey(), num); // Put the word and its score in sorted order
+                }
+            }
+        }
+
+        // Return the sorted map
+        return sortedMap;
     }
+
 }
