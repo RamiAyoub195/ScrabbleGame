@@ -15,7 +15,7 @@ import java.util.*;
 
 public class WordList {
 
-    private ArrayList<String> words; //ArrayList of the words from the file
+    private HashSet<String> words; //ArrayList of the words from the file
 
     /**
      * Initializes the ArrayList of words and opens and reads from the text file
@@ -23,7 +23,7 @@ public class WordList {
      */
     public WordList() {
 
-        words = new ArrayList<>(); //Initializes the ArrayList
+        words = new HashSet<>(); //Initializes the hashSet
 
         File filename = new File("src/wordlist.txt"); //Creates a file that the scanner will scan
 
@@ -49,12 +49,4 @@ public class WordList {
     public boolean isValidWord(String word){
         return words.contains(word);
     }
-
-    /**
-     * Returns the array list of valid words from the file.
-     */
-    public ArrayList<String> getWords(){
-        return words;
-    }
-
 }

@@ -33,9 +33,18 @@ public class AIPlayer extends Player {
     public HashSet<String> getAllWordComputations(WordList wordList) {
         HashSet<String> validWords = new HashSet<>(); //creates a new set
         String tilesAsString = getTilesToString(); //gets the AIPlayers tiles as a string
-        System.out.println(tilesAsString);
+
+        boolean hasBlankTile = tilesAsString.contains(" "); //if we have a blank tile
+
         for(int i = 2; i <= getTiles().size(); i++){ //traverses to get all possible words of length 2 to 7
-            ArrayList<String> allPermutations = permute(tilesAsString, i);
+            HashSet<String> allPermutations;
+            if(hasBlankTile){
+                allPermutations = generateAllBlankPermutations(tilesAsString, i);
+            }
+            else{
+                allPermutations = permute(tilesAsString, i);
+            }
+
             for(String word : allPermutations){
                 if(wordList.isValidWord(word)){
                     validWords.add(word);
@@ -45,13 +54,22 @@ public class AIPlayer extends Player {
         return validWords;
     }
 
-    private ArrayList<String> permute(String tilesAsString, int length) {
-        ArrayList<String> permutations = new ArrayList<>();
+    private HashSet<String> generateAllBlankPermutations(String tilesAsString, int length) {
+        HashSet<String> permutations = new HashSet<>();
+        for (char c = 'A'; c <= 'Z'; c++) { // Replace the blank tile with every letter in the alphabet
+            String replacedTiles = tilesAsString.replaceFirst(" ", String.valueOf(c));
+            permutations.addAll(permute(replacedTiles, length));
+        }
+        return permutations;
+    }
+
+    private HashSet<String> permute(String tilesAsString, int length) {
+        HashSet<String> permutations = new HashSet<>();
         generatePermutations(tilesAsString.toCharArray(), 0, length, permutations);
         return permutations;
     }
 
-    private void generatePermutations(char[] stringAsCharArray, int index, int length, ArrayList<String> permutations) {
+    private void generatePermutations(char[] stringAsCharArray, int index, int length, HashSet<String> permutations) {
         if(index == length){
             permutations.add(new String(stringAsCharArray, 0, length));
             return;
