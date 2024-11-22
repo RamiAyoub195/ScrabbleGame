@@ -94,7 +94,7 @@ public class TilesBag {
                     tilesBag.add(new Tiles(s.getKey(), 8));
                 }
             }
-            else{
+            else if (s.getKey().equals("Q") || s.getKey().equals("Z")) {
                 for (int i = 0; i < s.getValue(); i++){
                     tilesBag.add(new Tiles(s.getKey(), 10));
                 }

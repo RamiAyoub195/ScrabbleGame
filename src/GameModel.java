@@ -89,7 +89,8 @@ public class GameModel {
             {
                 if(player.getTiles().isEmpty()) //if one of the players does not have any more tiles
                 {
-                    winner = player; //that player is the winner
+                    // Determine the winner based on the highest score
+                    winner = players.stream().max(Comparator.comparingInt(Player::getScore)).orElse(null); // Find the player with the highest score or returns null if there isn't a player in then list
                     return true; //returns true
                 }
             }
@@ -693,49 +694,5 @@ public class GameModel {
             return 3;
         }
         return 1;
-    }
-
-
-    public static void main(String[] args) {
-        GameModel gameModel = new GameModel();
-
-        gameModel.addAIPlayer("AI1");
-
-        for (Player player : gameModel.getPlayers()) {
-            if (player instanceof AIPlayer) {
-                AIPlayer aiPlayer = (AIPlayer) player;
-                HashSet<String> test1 = aiPlayer.getAllWordComputations(gameModel.getWordList());
-                for (String word : test1) {
-                    ArrayList<Tiles> tempTiles = gameModel.AIWordToTiles(word, aiPlayer);
-                    for (int i = 0; i < 15; i++) {
-                        ArrayList<Integer> temprowsPositions = new ArrayList<>();
-                        // Fill temprowsPositions with 'i' repeated for the length of the word
-                        for (int a = 0; a < word.length(); a++) {
-                            temprowsPositions.add(i);
-                        }
-
-                        for (int j = 0; j < 15 - word.length() + 1; j++) {
-                            ArrayList<Integer> tempcolPositions = new ArrayList<>();
-                            // Generate consecutive column positions starting at 'j'
-                            for (int b = 0; b < word.length(); b++) {
-                                tempcolPositions.add(j + b);
-                            }
-
-                            // Ensure temprowsPositions and tempcolPositions have the same size as tempTiles
-                            if (tempTiles.size() == temprowsPositions.size() && tempTiles.size() == tempcolPositions.size()) {
-                                gameModel.playerPlaceTile(aiPlayer, tempTiles, temprowsPositions, tempcolPositions);
-                                if(!gameModel.getGameBoard().checkMiddleBoardEmpty()){
-                                    gameModel.getGameBoard().printBoard();
-                                    System.out.println();
-                                    System.out.println();
-                                }
-                            }
-                        }
-                    }
-
-                }
-
-            }
-        }
     }
 }

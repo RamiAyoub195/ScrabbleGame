@@ -23,7 +23,7 @@ public class WordList {
      */
     public WordList() {
 
-        words = new HashSet<>(); //Initializes the ArrayList
+        words = new HashSet<>(); //Initializes the hashSet
 
         File filename = new File("src/wordlist.txt"); //Creates a file that the scanner will scan
 
@@ -49,12 +49,4 @@ public class WordList {
     public boolean isValidWord(String word){
         return words.contains(word);
     }
-
-    /**
-     * Returns the array list of valid words from the file.
-     */
-    public HashSet<String> getWords(){
-        return words;
-    }
-
 }

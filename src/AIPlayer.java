@@ -1,5 +1,6 @@
 import java.util.*;
 
+
 /**
  * Represents an AI player in the game, an AI player is a virtual player that simulates a real player
  * in the game of scrabble. An AI player can place tiles to form a word on the board, pass and swap.
@@ -11,6 +12,7 @@ import java.util.*;
  */
 
 public class AIPlayer extends Player {
+    Random rand = new Random();
 
     /**
      * This is the constructor of the AIPlayer class which extends from the player class.
@@ -32,27 +34,61 @@ public class AIPlayer extends Player {
      */
     public HashSet<String> getAllWordComputations(WordList wordList) {
         HashSet<String> validWords = new HashSet<>(); //creates a new set
+        ArrayList<Tiles> tileList = new ArrayList<>(); // array list of tiles in players hand
         String tilesAsString = getTilesToString(); //gets the AIPlayers tiles as a string
+
         System.out.println(tilesAsString);
-        System.out.println("Tile list length: " + getTiles().size());
-        for(int i = 2; i <= getTiles().size(); i++){ //traverses to get all possible words of length 2 to 7
-            ArrayList<String> allPermutations = permute(tilesAsString, i);
+
+        boolean hasBlankTile = false;
+        tileList = getTiles();
+
+        // StringBuilder to change tilesAsString easier
+        StringBuilder sb = new StringBuilder(tilesAsString);
+
+        // For each blank tile, replace it with a random letter
+        for (int index = 0; index < sb.length(); index++) {
+            // If blank is found
+            if (sb.charAt(index) == ' ') {
+                hasBlankTile = true; // set flag true
+                String randomLetter = String.valueOf((char) ('a' + rand.nextInt(26))).toUpperCase(); // get random letter
+                sb.setCharAt(index, randomLetter.charAt(0)); // set the random letter at the current blank tile index
+                tileList.get(index).setLetter(randomLetter); // set the random letter in the actual tile object
+            }
+        }
+
+        // convert back to string
+        tilesAsString = sb.toString();
+
+        System.out.println(tilesAsString);
+        for(int i = 2; i <= tilesAsString.length(); i++){ //traverses to get all possible words of length 2 to 7
+            HashSet<String> allPermutations = permute(tilesAsString, i);
             for(String word : allPermutations){
                 if(wordList.isValidWord(word)){
                     validWords.add(word);
+                    System.out.println(word);
                 }
             }
         }
+        System.out.println("\n");
         return validWords;
     }
 
-    private ArrayList<String> permute(String tilesAsString, int length) {
-        ArrayList<String> permutations = new ArrayList<>();
+    private HashSet<String> generateAllBlankPermutations(String tilesAsString, int length) {
+        HashSet<String> permutations = new HashSet<>();
+        for (char c = 'A'; c <= 'Z'; c++) { // Replace the blank tile with every letter in the alphabet
+            String replacedTiles = tilesAsString.replaceFirst(" ", String.valueOf(c));
+            permutations.addAll(permute(replacedTiles, length));
+        }
+        return permutations;
+    }
+
+    private HashSet<String> permute(String tilesAsString, int length) {
+        HashSet<String> permutations = new HashSet<>();
         generatePermutations(tilesAsString.toCharArray(), 0, length, permutations);
         return permutations;
     }
 
-    private void generatePermutations(char[] stringAsCharArray, int index, int length, ArrayList<String> permutations) {
+    private void generatePermutations(char[] stringAsCharArray, int index, int length, HashSet<String> permutations) {
         if(index == length){
             permutations.add(new String(stringAsCharArray, 0, length));
             return;
