@@ -3,11 +3,10 @@ import java.util.*;
 
 
 /**
- * This class will contain a list of all valid words. when a player tries to place a word(s) on the board.
+ * This class will contain a list of all valid words. when a player tries to place a word on the board.
  * It will be checked by the list of valid words in this class. It opens a text file that contains a list
- * of words from the example in the milestone project document on brightspace "https://www.mit.edu/~ecprice/wordlist.10000"
+ * of words from the official scrabble dictionary of valid list words.
  *
- * 
  * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
  * Version: 3.0
  * Date: Sunday, November 17, 2024
@@ -15,46 +14,37 @@ import java.util.*;
 
 public class WordList {
 
-    private ArrayList<String> words; //ArrayList of the words from the file
+    private HashSet<String> words; //The Hashset that will contain the words from the file
 
     /**
-     * Initializes the ArrayList of words and opens and reads from the text file
-     * adding each word to the list of words.
+     * Initializes the HashSet of words by opening and reading from the text file
+     * adding each word to the set of words.
      */
     public WordList() {
 
-        words = new ArrayList<>(); //Initializes the ArrayList
+        words = new HashSet<>(); //Initializes the hashset
 
-        File filename = new File("src/wordlist.txt"); //Creates a file that the scanner will scan
+        File filename = new File("wordlist.txt"); //The file that the scanner will parse
 
         try(Scanner scanner = new Scanner(filename)){ //Scanner will scan the file line by line
             while(scanner.hasNextLine()){//checks to see if there is a next line
-                String word = scanner.nextLine().trim().toUpperCase(); //gets rid of extra spaces/characters
-                if (word.length() > 1){ //only add 2-letter minimum words as the document has 1-letter words
-                    words.add(word);
+                String word = scanner.nextLine().trim().toUpperCase(); //gets rid of extra spaces/characters and makes it all uppercase as out tiles are also all uppercase
+                if (word.length() > 1){ //only add 2-letter minimum words
+                    words.add(word); //appends the word to the hashset
                 }
             }
         }
-        catch(FileNotFoundException e){ //If the file cannot be found in the directory raise exception
-            System.out.println(e);
+        catch(FileNotFoundException e){ //If the file cannot be found in the directory catches exception
+            System.out.println(e); //prints the exception error
         }
-
     }
 
     /**
-     * Returns true or false if the given word is found within the list of words.
+     * Returns true or false if the given word is found within the set of words.
      * @param word the word being checked
      * @return true if the word is found and false if the word is not found
      */
     public boolean isValidWord(String word){
         return words.contains(word);
     }
-
-    /**
-     * Returns the array list of valid words from the file.
-     */
-    public ArrayList<String> getWords(){
-        return words;
-    }
-
 }

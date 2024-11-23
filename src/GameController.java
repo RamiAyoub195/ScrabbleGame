@@ -19,14 +19,13 @@ public class GameController implements ActionListener {
     private int currentTurn; //who's current turn to play the game
     boolean swapTileSelected; //if the button was clicked to swap
     private ArrayList<Integer> tilesToSwapIndices; //the tiles index to be swapped
-    private int numTilesPlacedThisTurn;  //the number of tiles paced by a player per turn
+    private ArrayList<Integer> aiTilesToSwapIndices;
     private int tileIndex; //the tile index
     private ArrayList<Integer> listOfRows; //the row of the tile in board
     private ArrayList<Integer> listOfCols; //the col of the tile in board
     private ArrayList<Tiles> listOfTiles; //the list of the tiles selected
     private boolean aTileIsSelected; //if a tile is selected
     private int selectedTileCol; //selected tiles col
-    private int tilesInBag; //the amount of tiles left in the bag
 
     public GameController(GameModel model, GameView view) {
         this.model = model;
@@ -35,36 +34,40 @@ public class GameController implements ActionListener {
         this.currentTurn = 0;
         this.swapTileSelected = false;
         this.tilesToSwapIndices = new ArrayList<>();
-        this.numTilesPlacedThisTurn = 0;
         this.tileIndex = 0;
         this.listOfRows = new ArrayList<>();
         this.listOfCols = new ArrayList<>();
         this.listOfTiles = new ArrayList<>();
+        this.aiTilesToSwapIndices = new ArrayList<>();
         this.aTileIsSelected = false;
         this.selectedTileCol = 0;
 
         for(String playerName : view.getPlayerNames()){
-            model.addPlayer(playerName); //creates players in the game model after getting the names from the view
+            int index = playerName.indexOf("AI"); //used to differentiate between a player and an AI player
+            if(index != -1) { //means that this name has AI init and is an AI player name
+                model.addAIPlayer(playerName);
+            }
+            else{
+                model.addPlayer(playerName); //creates players in the game model after getting the names from the view
+            }
         }
 
         view.setUpPlayerTilesPanel(model.getPlayers().get(0)); // Set up the first player's tiles
-
-        this.tilesInBag = model.getTilesBag().bagArraylist().size();
 
         this.view.setAllButtonsActionListener(this); //sets the controller as the action listener for all buttons in the view
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == view.getPlayButton()) {
+        if (e.getSource() == view.getPlayButton()) { //Player presses the "play" button
             playButtonAction();
         }
-        else if (e.getSource() == view.getSwapButton()) {
+        else if (e.getSource() == view.getSwapButton()) { //Player presses the "swap" button
             swapButtonAction();
         }
-        else if (e.getSource() == view.getPassButton()) {
+        else if (e.getSource() == view.getPassButton()) { //Player presses the "pass" button
             passButtonAction();
         }
-        // Gets what tile was selected
+        // If the player selects a tile from their hand, identify the tile
         else if (e.getSource() == view.getSpecificPlayerTileButton(0)) {
             handleSpecificTileButtonAction(0);
         }
@@ -87,7 +90,7 @@ public class GameController implements ActionListener {
             handleSpecificTileButtonAction(6);
         }
 
-        else {
+        else { //If the player presses a cell on the game board, identify which tile by checking all rows and columns
             for (int row = 0; row < 15; row++) {
                 for (int col = 0; col < 15; col++) {
                     if (e.getSource() == view.getSpecificBoardCell(row, col)) {
@@ -99,58 +102,146 @@ public class GameController implements ActionListener {
         }
     }
 
-    public void playButtonAction() {
-        model.checkPlaceableWord(listOfTiles, listOfRows, listOfCols);
-        if (model.getStatusMessage().equals("Word placed successfully.")){
-            model.playerPlaceTile(model.getPlayers().get(currentTurn % model.getPlayers().size()), listOfTiles, listOfRows, listOfCols);
-            for(int i = 0; i < listOfTiles.size(); i++){
-                view.updateBoardCell(listOfTiles.get(i), listOfRows.get(i), listOfCols.get(i));
-            }
+    public void playButtonAction() { //Called when the "play" button is pressed
+        boolean AiPlacedSuccesful = false;
+        if(isAITurn()){
+            AIPlayer aiPlayer = (AIPlayer)getCurrentPlayer();
+            HashSet<String> allPossibleWord = aiPlayer.getAllWordComputations(model.getWordList());
+            for(String word : allPossibleWord){
+                ArrayList<Tiles> tempTiles = model.AIWordToTiles(word, aiPlayer);
+                for (int i = 0; i < 15; i++) {
+                    ArrayList<Integer> temprowsPositions = new ArrayList<>();
+                    // Fill temprowsPositions with 'i' repeated for the length of the word
+                    for (int a = 0; a < word.length(); a++) {
+                        temprowsPositions.add(i);
+                    }
 
-            tilesInBag -= listOfTiles.size();
-            view.updateBagTilesCount(tilesInBag);
-            view.resetPlayerTile();
-            view.updatePlayerScore((model.getPlayers().get(currentTurn % model.getPlayers().size())).getName(), (model.getPlayers().get(currentTurn % model.getPlayers().size()).getScore()));
-            view.addToWordArea(model.getPlacedWords());
-            view.updateWordCount(model.getPlacedWords());
-            nextTurn();
-        }
-        else {
-            model.updateCheckBoard();
-            handleError(model.getStatusMessage());
-            for (Tiles tile: listOfTiles){
-                if (tile.getNumber() == 0){
-                    tile.setLetter(" "); //If the word could not be placed, return all empty tiles to their empty states
+                    for (int j = 0; j < 15 - word.length() + 1; j++) {
+                        ArrayList<Integer> tempcolPositions = new ArrayList<>();
+                        // Generate consecutive column positions starting at 'j'
+                        for (int b = 0; b < word.length(); b++) {
+                            tempcolPositions.add(j + b);
+                        }
+
+                        // Ensure temprowsPositions and tempcolPositions have the same size as tempTiles
+                        if (tempTiles.size() == temprowsPositions.size() && tempTiles.size() == tempcolPositions.size()) {
+                            model.checkPlaceableWord(tempTiles, temprowsPositions, tempcolPositions);
+                            if (model.getStatusMessage().equals("Word placed successfully.")){
+                                model.playerPlaceTile(aiPlayer, tempTiles, temprowsPositions, tempcolPositions);
+                                for(int r = 0; r < tempTiles.size(); r++){
+                                    view.updateBoardCell(tempTiles.get(r), temprowsPositions.get(r), tempcolPositions.get(r));
+                                }
+
+                                view.updateBagTilesCount(model.getTilesBag().bagArraylist().size()); // Update view count
+                                view.updatePlayerScore((aiPlayer.getName()), (aiPlayer.getScore())); // Update AI player score
+                                view.addToWordArea(model.getPlacedWords()); // Update word list view
+                                view.updateWordCount(model.getPlacedWords()); // Update word count in view
+                                AiPlacedSuccesful = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (AiPlacedSuccesful){
+                        break;
+                    }
+                }
+                if (AiPlacedSuccesful){
+                    break;
                 }
             }
+            if(!AiPlacedSuccesful){
+                view.getSwapButton().doClick();
+            }
+            nextTurn();
         }
-        view.enableSwapAndPass();
-        listOfTiles.clear();
-        listOfRows.clear();
-        listOfCols.clear();
+        else{ //Condition that the play button was pressed by a real button and not an AI
+            model.checkPlaceableWord(listOfTiles, listOfRows, listOfCols);
+            if (model.getStatusMessage().equals("Word placed successfully.")){
+                model.playerPlaceTile(getCurrentPlayer(), listOfTiles, listOfRows, listOfCols);
+                for(int i = 0; i < listOfTiles.size(); i++){
+                    view.updateBoardCell(listOfTiles.get(i), listOfRows.get(i), listOfCols.get(i));
+                }
+
+                view.updateBagTilesCount(model.getTilesBag().bagArraylist().size());
+                view.resetPlayerTile();
+                view.updatePlayerScore(getCurrentPlayer().getName(), getCurrentPlayer().getScore());
+                view.addToWordArea(model.getPlacedWords());
+                view.updateWordCount(model.getPlacedWords());
+                nextTurn();
+            }
+            else {
+                model.updateCheckBoard();
+                handleError(model.getStatusMessage());
+                for(Tiles tile: listOfTiles){
+                    if(tile.getNumber() == 0){
+                        tile.setLetter(" ");
+                    }
+                }
+            }
+            view.enableSwapAndPass();
+            listOfTiles.clear();
+            listOfRows.clear();
+            listOfCols.clear();
+        }
+
+        if (model.isGameFinished()) {
+            view.displayMessageToPlayer("Congrats " + model.getWinner().getName() + " won the game!");
+            // Disable game if over
+            view.disablePlayAndPass(); //If the game is over, disable all buttons
+            view.disableSwapAndPass();
+            view.disableAllBoardCells();
+        }
+    }
+
+
+    /**
+     * Returns true if the current turn is an AIPlayers turn.
+     * @return true if AIPlayer turn false otherwise.
+     */
+    public boolean isAITurn(){
+        return getCurrentPlayer() instanceof AIPlayer; //checks if the current player is an AIPlayer
+    }
+
+
+    /**
+     * Returns the current player at turn.
+     * @return player at turn
+     */
+    public Player getCurrentPlayer(){
+        return model.getPlayers().get(currentTurn % model.getPlayers().size());
     }
 
     /**
      * Handles swap button
      */
     public void swapButtonAction() {
-        // if swap button has been clicked
-        if (numTimesSwapClicked % 2 == 0) {
-            view.displayMessageToPlayer("Select all tiles to swap then click swap button again");
-            view.disablePlayAndPass();
-            swapTileSelected = true;
-            view.resetPlayerTile();
+
+        if(isAITurn()){ //if it's the AIPlayer at turn
+            AIPlayer aiPlayer = (AIPlayer) getCurrentPlayer();
+            for(int i = 0; i < aiPlayer.getTiles().size(); i++){
+                aiTilesToSwapIndices.add(i);
+            }
+            model.playerSwapTile(aiPlayer, aiTilesToSwapIndices);
+            view.updatePlayerTiles(aiPlayer);
         }
-        else {
-            model.playerSwapTile(model.getPlayers().get(currentTurn % model.getPlayers().size()), tilesToSwapIndices);
-            view.resetPlayerTile();
-            view.updatePlayerTiles(model.getPlayers().get(currentTurn % model.getPlayers().size()));
-            view.enablePlayAndPass();
-            nextTurn();
-            view.enableAllBoardCells();
-            swapTileSelected = false;
+        else { //if it's a Player at turn
+            // if swap button has been clicked
+            if (numTimesSwapClicked % 2 == 0) {
+                view.displayMessageToPlayer("Select all tiles to swap then click swap button again");
+                view.disablePlayAndPass();
+                swapTileSelected = true;
+                view.resetPlayerTile();
+            } else {
+                model.playerSwapTile(getCurrentPlayer(), tilesToSwapIndices);
+                view.resetPlayerTile();
+                view.updatePlayerTiles(getCurrentPlayer());
+                view.enablePlayAndPass();
+                nextTurn();
+                view.enableAllBoardCells();
+                swapTileSelected = false;
+            }
+            numTimesSwapClicked++;
         }
-        numTimesSwapClicked++;
     }
 
     /**
@@ -210,8 +301,8 @@ public class GameController implements ActionListener {
             // add only if current spot is not GREEN (solidified letter) or GRAY (temp letter)
             if (view.getSpecificBoardCellColour(row, col) != Color.GREEN && view.getSpecificBoardCellColour(row, col) != Color.GRAY) {
                 if (view.getSpecificPlayerTileButton(selectedTileCol).getText().equals(" :0 ")){ //If the user places an empty tile, get them to assign it a letter
-                    view.setBlankTileLetter(model.getPlayers().get(currentTurn % model.getPlayers().size()).getTiles().get(selectedTileCol));
-                    tileLetter = model.getPlayers().get(currentTurn % model.getPlayers().size()).getTiles().get(selectedTileCol).getLetter();
+                    view.setBlankTileLetter(getCurrentPlayer().getTiles().get(selectedTileCol));
+                    tileLetter = getCurrentPlayer().getTiles().get(selectedTileCol).getLetter();
                 }
                 view.setSpecificBoardCellLetter(row, col, tileLetter); // Set button field letter
                 view.setSpecificBoardCellColour(row, col, Color.GRAY); // Set button field colour (temp letter)
@@ -228,8 +319,7 @@ public class GameController implements ActionListener {
                 // we need to split the string into letter and score
                 listOfRows.add(row);
                 listOfCols.add(col);
-                listOfTiles.add(model.getPlayers().get(currentTurn % model.getPlayers().size()).getTiles().get(tileIndex));
-                numTilesPlacedThisTurn++;
+                listOfTiles.add(getCurrentPlayer().getTiles().get(tileIndex));
             }
             // otherwise do not add tile to that spot (do nothing)
             else {
@@ -246,8 +336,11 @@ public class GameController implements ActionListener {
      */
     private void nextTurn() {
         currentTurn++;
-        view.updatePlayerTiles(model.getPlayers().get((currentTurn % model.getPlayers().size())));
-        numTilesPlacedThisTurn = 0;
+        view.updatePlayerTiles(getCurrentPlayer());
+
+        if (isAITurn()) { //if AIPlayer is a turn
+            view.getPlayButton().doClick();
+        }
     }
 
     private void handleError(String errorMessage) {

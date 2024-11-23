@@ -1,10 +1,12 @@
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * This class contains all tiles in a game, there are 100 tiles in a typical scrabble game according to Hasbro's online guide.
  * Each letter tile has a value associated with it which can also be found on Hasbro's online guide. This bag class will contain all 100 tiles
- * each having a letter and an associated value.
+ * each having a letter and an associated value, it will also contain the two blank spaces.
+ *
+ * How many tiles in the game and the quantity of each tile letter: https://hasbro-new.custhelp.com/app/answers/detail/a_id/19/~/how-many-of-each-letter-tile-are-included-in-a-scrabble-game%3F
+ * The value of each tile letter: https://hasbro-new.custhelp.com/app/answers/detail/a_id/55/related/1/session/L2F2LzEvdGltZS8xNzMyMjk4ODc3L2dlbi8xNzMyMjk4ODc3L3NpZC9mVUtjZkRYRUUxS3AlN0VVTEU0Slhidm1TcE5OaWdIOGN5dFVxU2Q1X0tyWFFucFRjZ3ZXdjFmeXQlN0VTSkY0JTdFUUZMMEdoanhaVjU0SjdBRHhYZEZtXzFWN2tuY2M4JTdFcjZLUXZrNXhVX01wN0hGWVRDXzU0bGhjTFJQUSUyMSUyMQ==
  *
  * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
  * Version: 3.0
@@ -14,91 +16,75 @@ import java.util.HashMap;
 
 public class TilesBag {
 
-    private HashMap<String, Integer> scrabbleTiles; //This will store how many letter tiles we have in the game
-    private ArrayList<Tiles> tilesBag; //will store each letter tile and its associated value
+    private static final String TILES_VALUE_1 = "AEIOULNRST"; //these are the letter tiles with the values of 1
+    private static final String TILES_VALUE_2 = "DG"; //these are the letter tiles with the values of 2
+    private static final String TILES_VALUE_3 = "BCMP"; //these are the letter tiles with the values of 3
+    private static final String TILES_VALUE_4 = "FHVWY"; //these are the letter tiles with the values of 4
+    private static final String TILES_VALUE_5 = "K"; //these are the letter tiles with the values of 5
+    private static final String TILES_VALUE_8 = "JX"; //these are the letter tiles with the values of 8
+    private static final String TILES_VALUE_10 = "QZ"; //these are the letter tiles with the values of 10
+    private HashMap<String, Integer> scrabbleTileQuantities; //stores the quantity of the tile letter in the game
+    private ArrayList<Tiles> tilesBag; //will store all tiles after they are created
 
     /**
      * This is the constructor of the class that will be adding all the tiles in the game to a hashtable, where each key is
      * a letter and the value is how many of those letters we have. Each letter will be assigned its associated value and
-     * added to an ArrayList.
+     * added to an ArrayList of tiles which will have all tiles in the game.
      */
     public TilesBag() {
-        scrabbleTiles = new HashMap();
-        tilesBag = new ArrayList();
+        scrabbleTileQuantities = new HashMap(); //initializes the hashmap
+        tilesBag = new ArrayList(); //initializes the arraylist
 
-        scrabbleTiles.put("A", 9); //All of these can be found according to Hasbro online, we have 9 A's in a game, 2 B's in a game and so on...
-        scrabbleTiles.put("B", 2);
-        scrabbleTiles.put("C", 2);
-        scrabbleTiles.put("D", 4);
-        scrabbleTiles.put("E", 12);
-        scrabbleTiles.put("F", 2);
-        scrabbleTiles.put("G", 3);
-        scrabbleTiles.put("H", 2);
-        scrabbleTiles.put("I", 9);
-        scrabbleTiles.put("J", 1);
-        scrabbleTiles.put("K", 1);
-        scrabbleTiles.put("L", 4);
-        scrabbleTiles.put("M", 2);
-        scrabbleTiles.put("N", 6);
-        scrabbleTiles.put("O", 8);
-        scrabbleTiles.put("P", 2);
-        scrabbleTiles.put("Q", 1);
-        scrabbleTiles.put("R", 6);
-        scrabbleTiles.put("S", 4);
-        scrabbleTiles.put("T", 6);
-        scrabbleTiles.put("U", 4);
-        scrabbleTiles.put("V", 2);
-        scrabbleTiles.put("W", 2);
-        scrabbleTiles.put("X", 1);
-        scrabbleTiles.put("Y", 2);
-        scrabbleTiles.put("Z", 1);
-        scrabbleTiles.put(" ", 2);
+        scrabbleTileQuantities.put("A", 9); //All of these can be found according to Hasbro online, we have 9 A's tiles in a game, 2 B's tiles in a game and so on...
+        scrabbleTileQuantities.put("B", 2);
+        scrabbleTileQuantities.put("C", 2);
+        scrabbleTileQuantities.put("D", 4);
+        scrabbleTileQuantities.put("E", 12);
+        scrabbleTileQuantities.put("F", 2);
+        scrabbleTileQuantities.put("G", 3);
+        scrabbleTileQuantities.put("H", 2);
+        scrabbleTileQuantities.put("I", 9);
+        scrabbleTileQuantities.put("J", 1);
+        scrabbleTileQuantities.put("K", 1);
+        scrabbleTileQuantities.put("L", 4);
+        scrabbleTileQuantities.put("M", 2);
+        scrabbleTileQuantities.put("N", 6);
+        scrabbleTileQuantities.put("O", 8);
+        scrabbleTileQuantities.put("P", 2);
+        scrabbleTileQuantities.put("Q", 1);
+        scrabbleTileQuantities.put("R", 6);
+        scrabbleTileQuantities.put("S", 4);
+        scrabbleTileQuantities.put("T", 6);
+        scrabbleTileQuantities.put("U", 4);
+        scrabbleTileQuantities.put("V", 2);
+        scrabbleTileQuantities.put("W", 2);
+        scrabbleTileQuantities.put("X", 1);
+        scrabbleTileQuantities.put("Y", 2);
+        scrabbleTileQuantities.put("Z", 1);
+        scrabbleTileQuantities.put(" ", 2); //the blank tiles
 
-        //Assigns each letter their associated value based on information online (Hasbro's online guide for scrabble)
-        for(HashMap.Entry<String, Integer> s: scrabbleTiles.entrySet()){
-            if (s.getKey().equals("A") || s.getKey().equals("E") || s.getKey().equals("I") || s.getKey().equals("O") ||
-                    s.getKey().equals("U") || s.getKey().equals("L") || s.getKey().equals("S") || s.getKey().equals("T") ||
-                    s.getKey().equals("R")){
-                for (int i = 0; i < s.getValue(); i++){
-                    tilesBag.add(new Tiles(s.getKey(), 1));
-                }
+        //Assigns each letter their associated value based on information online (Hasbro's online guide for scrabble).
+        scrabbleTileQuantities.forEach((letter, quantity) -> { //does a for each loop for each key and value in the hashmap
+            int value = getTileValue(letter); //gets the value associated to the letter
+            for (int i = 0; i < quantity; i++) { //traverses through the quality of the letter that are in the game
+                tilesBag.add(new Tiles(letter, value)); //creates a new tile with its letter and its associated value and adds it to the array list of tiles
             }
-            else if (s.getKey().equals("D") || s.getKey().equals("G")) {
-                for (int i = 0; i < s.getValue(); i++){
-                    tilesBag.add(new Tiles(s.getKey(), 2));
-                }
-            }
-            else if (s.getKey().equals("B") || s.getKey().equals("C") || s.getKey().equals("M") || s.getKey().equals("P")) {
-                for (int i = 0; i < s.getValue(); i++){
-                    tilesBag.add(new Tiles(s.getKey(), 3));
-                }
-            }
-            else if (s.getKey().equals("F") || s.getKey().equals("H") || s.getKey().equals("V") ||
-                    s.getKey().equals("W") || s.getKey().equals("Y")) {
-                for (int i = 0; i < s.getValue(); i++){
-                    tilesBag.add(new Tiles(s.getKey(), 4));
-                }
-            }
-            else if (s.getKey().equals("K")) {
-                for (int i = 0; i < s.getValue(); i++){
-                    tilesBag.add(new Tiles(s.getKey(), 5));
-                }
-            }
-            else if (s.getKey().equals("J") || s.getKey().equals("X")) {
-                for (int i = 0; i < s.getValue(); i++){
-                    tilesBag.add(new Tiles(s.getKey(), 8));
-                }
-            }
-            else if (s.getKey().equals(" ")) {
-                for (int i = 0; i < s.getValue(); i++){
-                    tilesBag.add(new Tiles(s.getKey(), 0));
-                }
-            }
-            else{
-                for (int i = 0; i < s.getValue(); i++){
-                    tilesBag.add(new Tiles(s.getKey(), 10));
-                }
-            }
+        });
+    }
+
+    /**
+     * Returns the value associated with the tile letter.
+     */
+    private int getTileValue(String tileLetter) {
+        if(TILES_VALUE_1.contains(tileLetter)){return 1;} //returns 1 if the tile letter is in the tile 1 value
+        else if(TILES_VALUE_2.contains(tileLetter)){return 2;} //returns 2 if the tile letter is in the tile 2 value
+        else if(TILES_VALUE_3.contains(tileLetter)){return 3;} //returns 3 if the tile letter is in the tile 3 value
+        else if(TILES_VALUE_4.contains(tileLetter)){return 4;} //returns 4 if the tile letter is in the tile 4 value
+        else if(TILES_VALUE_5.contains(tileLetter)){return 5;} //returns 5 if the tile letter is in the tile 5 value
+        else if(TILES_VALUE_8.contains(tileLetter)){return 8;} //returns 8 if the tile letter is in the tile 8 value
+        else if(TILES_VALUE_10.contains(tileLetter)){return 10;} //returns 10 if the tile letter is in the tile 10 value
+        else {
+            return 0; //return 0 for the blank tile value
         }
     }
 
@@ -119,4 +105,3 @@ public class TilesBag {
     }
 
 }
-
