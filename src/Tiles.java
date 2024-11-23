@@ -25,8 +25,9 @@ public class Tiles{
     }
 
     /**
-     * Sets the letter on a blank tile.
-     * @param letter to set the empty tile
+     * Sets the letter on a tile. Is used to set the letter on a blank tile or reset the tile back
+     * to a blank tile.
+     * @param letter to set on the tile.
      */
     public void setLetter(String letter) {
         this.letter = letter;

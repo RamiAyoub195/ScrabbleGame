@@ -26,7 +26,6 @@ public class GameController implements ActionListener {
     private ArrayList<Tiles> listOfTiles; //the list of the tiles selected
     private boolean aTileIsSelected; //if a tile is selected
     private int selectedTileCol; //selected tiles col
-    private int tilesInBag; //the amount of tiles left in the bag
 
     public GameController(GameModel model, GameView view) {
         this.model = model;
@@ -54,8 +53,6 @@ public class GameController implements ActionListener {
         }
 
         view.setUpPlayerTilesPanel(model.getPlayers().get(0)); // Set up the first player's tiles
-
-        this.tilesInBag = model.getTilesBag().bagArraylist().size();
 
         this.view.setAllButtonsActionListener(this); //sets the controller as the action listener for all buttons in the view
     }
@@ -339,7 +336,7 @@ public class GameController implements ActionListener {
      */
     private void nextTurn() {
         currentTurn++;
-        view.updatePlayerTiles(model.getPlayers().get((currentTurn % model.getPlayers().size())));
+        view.updatePlayerTiles(getCurrentPlayer());
 
         if (isAITurn()) { //if AIPlayer is a turn
             view.getPlayButton().doClick();

@@ -26,7 +26,7 @@ public class Player {
     }
 
     /**
-     * A list of the players tiles
+     * Returns the list of the players tiles.
      * @return player tiles
      */
     public ArrayList<Tiles> getTiles() {
@@ -34,7 +34,7 @@ public class Player {
     }
 
     /**
-     * Returns the name of a player
+     * Returns the name of a player.
      * @return player name
      */
     public String getName() {
@@ -42,7 +42,7 @@ public class Player {
     }
 
     /**
-     * Returns the score of the player
+     * Returns the score of the player.
      * @return player score
      */
     public int getScore() {
@@ -50,7 +50,7 @@ public class Player {
     }
 
     /**
-     * Adds the score of a player with their current score
+     * Adds the score of a player with their current score.
      * @param score the score to be added to the current score
      */
     public void addScore(int score) {
