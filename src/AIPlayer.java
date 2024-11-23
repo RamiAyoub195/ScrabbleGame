@@ -39,7 +39,7 @@ public class AIPlayer extends Player {
 
         boolean hasBlankTile = tilesAsString.contains(BLANK_TILE); //Checks to see if we have a blank tile
 
-        for(int length = getTiles().size(); length <= MIN_WORD_LENGTH; length--){ //traverses to get all possible words from number of tiles to 2
+        for(int length = getTiles().size(); length >= MIN_WORD_LENGTH; length--){ //traverses to get all possible words from number of tiles to 2
             //if there is a blank then calls a function to generate permutations with a blank, else calls a function to generate permutations without a blank and returns a set of permuations
             HashSet<String> allPermutations = hasBlankTile ? generateAllBlankPermutations(tilesAsString, length): generatePermutations(tilesAsString, length);
             for(String word : allPermutations){ //traverses through the permutation of words that were created
