@@ -1,12 +1,11 @@
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
+
 
 /**
  * This class is the board class which will display the board as the game goes along.
  * It will check to make sure that a tile can be put in a specific area of the board.
  * Will update the board when a tile has been added. It will also take care of the premium squares
- * which can be found for the logic in the website page provided.
+ * which can be found for the logic in the website page provided.: https://en.wikipedia.org/wiki/Scrabble (section of premium squares gives the coordinates)
  *
  * Author(s): Rami Ayoub, Louis Pantazopoulos, Andrew Tawfik, Liam bennet
  * Version: 3.0
@@ -18,26 +17,26 @@ public class Board {
 
     private int rows; //rows of the board
     private int cols; //columns of the board
-    private Cell[][] board; //the board
-    private final int[][] tripleWordCoords = {
+    private Cell[][] board; //the board od cells
+    private final int[][] tripleWordCoords = { //the coordinates for a TWS
             {0, 0}, {0, 7}, {0, 14}, {7, 0}, {7, 14}, {14, 0}, {14, 7}, {14, 14}
     };
-    private final int[][] doubleWordCoords = {
+    private final int[][] doubleWordCoords = { //the coordinates for a DWS
             {1, 1}, {2, 2}, {3, 3}, {4, 4}, {13, 1}, {12, 2}, {11, 3}, {10, 4},
             {1, 13}, {2, 12}, {3, 11}, {4, 10}, {13, 13}, {12, 12}, {11, 11}, {10, 10},
-    }; //will store the coordinated of a DWS
-    private final int[][] tripleLetterCoords = {
+    };
+    private final int[][] tripleLetterCoords = { //the coordinates for a TLS
             {1, 5}, {1, 9}, {5, 1}, {5, 13}, {9, 1}, {9, 13}, {13, 5}, {13, 9}
-    }; //will store the coordinates of a TLS
-    private final int[][] doubleLetterCoords = {
+    };
+    private final int[][] doubleLetterCoords = { //the coordinates for a DLS
             {0, 3}, {0, 11}, {2, 6}, {2, 8}, {3, 0}, {3, 7}, {3, 14}, {6, 2},
     {6, 6}, {6, 8}, {6, 12}, {7, 3}, {7, 11}, {8, 2}, {8, 6}, {8, 8},
     {8, 12}, {11, 0}, {11, 7}, {11, 14}, {12, 6}, {12, 8}, {14, 3}, {14, 11}
-    }; //will store the coordinates of a DLS
+    };
 
     /**
-     * Initialized the board for the game, the board is a 15 by 15 board and sets up each
-     * empty spot in the board as "  -  ".
+     * Initialized the board for the game, the board is a row by col board and sets up each
+     * cell in the board.
      *
      * @param rows the rows of the board
      * @param cols the columns of the board
@@ -54,23 +53,23 @@ public class Board {
      */
     public void setUpBoard()
     {
-        for(int i = 0; i < rows; i++)
+        for(int i = 0; i < rows; i++) //traverses through the rows
         {
-            for(int j = 0; j < cols; j++)
+            for(int j = 0; j < cols; j++) //traverses through the cols
             {
-                if (isTripleWordSquare(i, j)) {
+                if (isTripleWordSquare(i, j)) { //checks if the coord is a TWS
                     board[i][j] = new Cell(); //creates a new cell
                     board[i][j].setSpecialType("TWS");// sets it as a triple word square
-                } else if (isDoubleWordSquare(i, j)) {
+                } else if (isDoubleWordSquare(i, j)) { //checks if the coord is a DWS
                     board[i][j] = new Cell(); //creates a new cell
                     board[i][j].setSpecialType("DWS"); // sets it as a double word square
-                } else if (isTripleLetterSquare(i, j)) {
+                } else if (isTripleLetterSquare(i, j)) { //checks if the coord is a TLS
                     board[i][j] = new Cell(); //creates new cell
                     board[i][j].setSpecialType("TLS"); // sets it as a triple letter square
-                } else if (isDoubleLetterSquare(i, j)) {
+                } else if (isDoubleLetterSquare(i, j)) { //checks if the coord is a DLS
                     board[i][j] = new Cell(); //creates a new cell
                     board[i][j].setSpecialType("DLS"); // sets it as a double letter square
-                } else {
+                } else { //if it's not any of the premium square coord then a regular cell
                     board[i][j] = new Cell(); //creates a new cell with a default special type null
                 }
             }
@@ -78,10 +77,10 @@ public class Board {
     }
 
     /**
-     * A triple word square is a square that can be found in the following rows and
-     * columns of the board.
-     * @param row the row of TWS
-     * @param col the column of TWS
+     * Checks if a specific row and col is a TWS square.
+     *
+     * @param row the row
+     * @param col the column
      * @return true if it's a TWS, false otherwise
      */
     private boolean isTripleWordSquare(int row, int col) {
@@ -89,8 +88,8 @@ public class Board {
     }
 
     /**
-     * A double word square is a square that can be found in the following rows and
-     * columns of the board.
+     * Checks if a specific row and col is a DWS square.
+     *
      * @param row the row being checked
      * @param col the col being checked
      * @return if a DWS, false otherwise
@@ -100,8 +99,8 @@ public class Board {
     }
 
     /**
-     * A triple letter square is a square that can be found in the following rows and
-     * columns of the board.
+     * Checks if a specific row and col is a TLS square.
+     *
      * @param row the row being checked
      * @param col the col being checked
      * @return if a TLS, false otherwise
@@ -111,8 +110,7 @@ public class Board {
     }
 
     /**
-     * A double letter square is a square that can be found in the following rows and
-     * columns of the board.
+     * Checks if a specific row and col is a DLS square.
      * @param row the row being checked
      * @param col the col being checked
      * @return if a DLS, false otherwise
@@ -141,18 +139,18 @@ public class Board {
      * @return a copy of a board
      */
     public Board copyBoard() {
-        Board newBoard = new Board(this.rows, this.cols);
-        for (int i = 0; i < this.rows; i++)
+        Board newBoard = new Board(this.rows, this.cols); //creates a new board
+        for (int i = 0; i < this.rows; i++) //traverses through the rows
         {
-            for (int j = 0; j < this.cols; j++)
+            for (int j = 0; j < this.cols; j++) //traverses through the cols
             {
-                if (this.board[i][j].isOccupied())
+                if (this.board[i][j].isOccupied()) //if there is a tile on the original board
                 {
-                    newBoard.board[i][j].placeTile(new Tiles(this.board[i][j].getTile().getLetter(), this.board[i][j].getTile().getNumber()));
+                    newBoard.board[i][j].placeTile(new Tiles(this.board[i][j].getTile().getLetter(), this.board[i][j].getTile().getNumber())); //creates the new board cells to have the same cells as the original board
                 }
             }
         }
-        return newBoard;
+        return newBoard; //returns the new board
     }
 
     /**
@@ -240,80 +238,6 @@ public class Board {
         return board[row][col];
     }
 
-    /**
-     * Get board row length
-     */
-    public int getRows() {
-        return rows;
-    }
-
-    /**
-     * Get board col length
-     */
-    public int getCols() {
-        return cols;
-    }
-
-    /**
-     * Saves and returns an arraylist of cells that are not occupies ie, cells that do not
-     * have a tile on them.
-     */
-    public ArrayList<Cell> unoccupiedCells(){
-        ArrayList<Cell> unoccupiedCells = new ArrayList<>(); //the array list that will save and store all the empty cells in the game
-        for (int i = 0; i < rows; i++){ //traverses through the rows of the board
-            for (int j = 0; j < cols; j++){ //traverses through the columns of the board
-                if (!board[i][j].isOccupied()){ //if the cell is not occupied by a tile
-                    unoccupiedCells.add(board[i][j]); //appends that cell to the array list of empty cells
-                }
-            }
-        }
-        return unoccupiedCells; //returns the array list of cells that are not occupied
-    }
-
-    /**
-     * Returns the row of a specific cell.
-     * @param cell the specific cell.
-     */
-    public int rowOfCell(Cell cell) {
-        for (int i = 0; i < rows; i++){ //traverses through row
-            for (int j = 0; j < cols; j++){ //traverses through col
-                if (board[i][j] == cell){ //if the board cell matched the specific cell
-                    return i; //return row
-                }
-            }
-        }
-        return -1; //if not found
-    }
-
-    /**
-     * Returns the column of a specific cell.
-     * @param cell the specific cell.
-     */
-    public int colOfCell(Cell cell) {
-        for (int i = 0; i < rows; i++){ //traverses through row
-            for (int j = 0; j < cols; j++){ //traverses through col
-                if (board[i][j] == cell){ //if the board matches the specific cell
-                    return j; //return col
-                }
-            }
-        }
-        return -1; //if not found
-    }
-
-    public void printBoard(){
-        for (int i = 0; i < rows; i++){
-            for (int j = 0; j < cols; j++){
-                if (board[i][j].getTile() != null){
-                    System.out.print(board[i][j].getTile().getLetter() + " ");
-                }
-                else{
-                    System.out.print(board[i][j].getTile() + " ");
-                }
-
-            }
-            System.out.println();
-        }
-    }
 }
 
 

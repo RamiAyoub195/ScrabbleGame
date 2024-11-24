@@ -9,8 +9,9 @@ import java.awt.event.*;
  * remaining tiles in the bag as the game goes on. Each player will have the option through
  * buttons to play, pass or swap. If they which to place a tile they must click on a tile and then a
  * place on the board then press play to check the validity of a word. For swap, they must select each tile then press swap.
+ * To pass the turn just press pass.
  *
- * Author(s): Rami Ayoub
+ * Author(s): Rami Ayoub, Louis Pantazopoulos, Andrew Tawfik, Liam Bennet
  * Version: 3.0
  * Date: Sunday, November 17, 2024
  */
@@ -85,25 +86,50 @@ public class GameView extends JFrame {
 
     /**
      * Prints a welcome message to the players at the beginning of the game and asks for the number of players and,
-     * the names of each player creating the players. Returns an array list of the players names
+     * the names of each player creating the players. It also gets the number of AIPlayers in the game.
+     * It checks to make sure that the number of AIPlayers and Players are between 2 and 4.
+     * Returns an array list of the players names.
      *
      * @return ArrayList of playerNames
      */
     public ArrayList<String> welcomeAndGetPlayerNames() {
-        ArrayList<String> names = new ArrayList<>();
-        int numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (1 - 4)")); //prints a welcome message to the game and asks for the number of players
-        for (int i = 1; i <= numPlayers; i++) {
+        ArrayList<String> names = new ArrayList<>(); //initializes an arraylist of string for the names
+        int numPlayers = 0; //initializes it at the beginning
+        int numAiPlayers = -1; //initializes is at the beginning
+        String userInput; //gets the user input from the player
+
+        while (numPlayers < 1 || numPlayers > 4) { //condition where the number for the players must be between 1 and 4
+            userInput = JOptionPane.showInputDialog("Welcome to the game of Scrabble!\nPlease enter the number of players (1 - 4)"); //prints a welcome message to the game and asks for the number of players
+            if(userInput != null && userInput.matches("\\d+")) { //if the user input was not null and was a positive integer
+                numPlayers = Integer.parseInt(userInput); //gets the number of players
+            }
+            else{ //the input was null or negative number or not a number
+                JOptionPane.showMessageDialog(null,"Invalid input!\nPlease enter the number of players (1 - 4)"); //asks for a valid number of players in the game
+            }
+        }
+
+        for (int i = 1; i <= numPlayers; i++) { //traverses through the number of players selected
             String name = JOptionPane.showInputDialog("Please Enter Player " + i + " Name"); //gets the name of the player
             names.add(name); //adds the name of the player and creates a new player
         }
 
-        if(numPlayers < 4){
-            int numAiPlayers = Integer.parseInt(JOptionPane.showInputDialog("Please enter the number of AI players(0 - " + (4 - numPlayers)  + ")"));
-            for (int i = 1; i <= numAiPlayers; i++) {
-                names.add("AI " + i);
+        if(numPlayers < 4){    //The option for AIPlayers is only available if a player chooses less than 4 players as there are 2 - 4 players in the game according to th rules
+            while (numAiPlayers < 0 || numAiPlayers > (4 - numPlayers)) { //condition where the number of AIPlayers must be 0 or 4 less than the number of players
+                userInput = JOptionPane.showInputDialog("Please enter the number of AI players(0 - " + (4 - numPlayers)  + ")"); //gets the user input of the number of AIPlayers
+                if(userInput != null && userInput.matches("\\d+")){ //if the user input is not null and is a positive number
+                    numAiPlayers = Integer.parseInt(userInput); //gets the number of AIPlayers
+                }
+                else { //the input was null or negative number or not a number
+                    JOptionPane.showMessageDialog(null, "Invalid input! Please enter the number of AI players(0 - " + (4 - numPlayers)  + ")"); //prompts the user to enter a valid input
+                }
             }
         }
-        return names;
+
+        for (int i = 1; i <= numAiPlayers; i++) { //traverses through the selected number of AIPlayers
+            names.add("AI " + i); //creates an AIPlayer
+        }
+
+        return names; //returns the list of all names in the game including the Players and AiPlayers.
     }
 
     /**
@@ -113,22 +139,22 @@ public class GameView extends JFrame {
      *
      */
     public void initializeBoard() {
-        for (int i = 0; i < 16; i++) {
-            for (int j = 0; j < 16; j++) {
+        for (int i = 0; i < 16; i++) { //traverses through the rows
+            for (int j = 0; j < 16; j++) { //traverses through the cols
                 boardField[i][j] = new JButton(); //creates a new button
-                if (i == 0 && j == 0) { //marks the corner piece as an empty square
+                if (i == 0 && j == 0) { //marks the top left corner piece as an empty square
                     boardField[i][j].setText(""); //sets the text of the button
                     boardField[i][j].setBackground(Color.BLACK); //makes the colour black
-                    boardField[i][j].setEnabled(false); //makes it clickable
+                    boardField[i][j].setEnabled(false); //makes it not clickable
                 }
-                else if (i == 0){ //represents a row index button not for actual game
+                else if (i == 0){ //represents a row index button not for actual game but a guide
                     boardField[i][j].setText(String.valueOf(j)); //adds the column index as the text
                     boardField[i][j].setFont(new Font("Arial", Font.BOLD, 14)); //makes the font of the text bolded for clarity
                     boardField[i][j].setBackground(Color.DARK_GRAY); //makes it a dark grey colour button
-                    boardField[i][j].setEnabled(false); //makes it clickable
+                    boardField[i][j].setEnabled(false); //makes it not clickable
 
                 }
-                else if (j == 0){ //represents a column index button not for actual game
+                else if (j == 0){ //represents a column index button not for actual game but a guide
                     boardField[i][j].setText(String.valueOf(i)); //adds the row index as the text
                     boardField[i][j].setFont(new Font("Arial", Font.BOLD, 14)); //makes the font of the text bolded for clarity
                     boardField[i][j].setBackground(Color.DARK_GRAY); //makes it a dark grey colour button
@@ -153,7 +179,7 @@ public class GameView extends JFrame {
                         boardField[i][j].setText("DLS"); //makes it DWS
                     } else if (i - 1 == 7 && j - 1 == 7) { //checks for the middle square
                         boardField[i][j].setBackground(Color.ORANGE); //makes the color orange
-                        boardField[i][j].setFont(new Font("Arial Unicode MS", Font.PLAIN, 14));
+                        boardField[i][j].setFont(new Font("Arial Unicode MS", Font.PLAIN, 14)); //sets the font for the start
                         boardField[i][j].setText("★"); //sets it as a star
                     }
                     else{
@@ -167,22 +193,24 @@ public class GameView extends JFrame {
     }
 
     /**
-     * Check if a square is a triple word square. This logic is based of online to see which row and column are the
+     * Check if a square is a triple word square. These coordinates are based of the official online
+     * board guide to see which row and column are the
      * TWS in a board.
      */
     private boolean isTripleWordSquare(int row, int col) {
-        int [][] tripleWordCoords = {
+        int [][] tripleWordCoords = { //the coordinates of which the board square is a TWS
                 {0, 0}, {0, 7}, {0, 14}, {7, 0}, {7, 14}, {14, 0}, {14, 7}, {14, 14}
         };
         return containsAnyPremiumSquare(tripleWordCoords, row, col); //checks to see if it's a TWS
     }
 
     /**
-     * Check if a square is a double word score.This logic is based of online to see which row and column are the
+     * Check if a square is a double word score. These coordinates are based of the official online
+     * board guide to see which row and column are the
      * DWS in a board.
      */
     private boolean isDoubleWordSquare(int row, int col) {
-        int[][] doubleWordCoords = {
+        int[][] doubleWordCoords = { //the coordinates of DWS
                 {1, 1}, {2, 2}, {3, 3}, {4, 4}, {13, 1}, {12, 2}, {11, 3}, {10, 4},
                 {1, 13}, {2, 12}, {3, 11}, {4, 10}, {13, 13}, {12, 12}, {11, 11}, {10, 10},
         };
@@ -190,26 +218,28 @@ public class GameView extends JFrame {
     }
 
     /**
-     * Check if a square is a triple letter score. This logic is based of online to see which row and column are the
+     * Check if a square is a triple letter score. These coordinates are based of the official online
+     * board guide to see which row and column are the
      * TLS in a board.
      */
     private boolean isTripleLetterSquare(int row, int col) {
-        int[][] tripleLetterCoords = {
+        int[][] tripleLetterCoords = { //the coordinates of TLS
                 {1, 5}, {1, 9}, {5, 1}, {5, 13}, {9, 1}, {9, 13}, {13, 5}, {13, 9}
-        }; //will store the coordinates of a TLS
+        };
        return containsAnyPremiumSquare(tripleLetterCoords, row, col); //checks to see if it's a TLS
     }
 
     /**
-     * Check if a square is a double letter score.This logic is based of online to see which row and column are the
+     * Check if a square is a double letter score. These coordinates are based of the official online
+     * board guide to see which row and column are the
      * DLS in a board.
      */
     private boolean isDoubleLetterSquare(int row, int col) {
-        int[][] doubleLetterCoords = {
+        int[][] doubleLetterCoords = { //the coordinates of a DLS square on the board
                 {0, 3}, {0, 11}, {2, 6}, {2, 8}, {3, 0}, {3, 7}, {3, 14}, {6, 2},
                 {6, 6}, {6, 8}, {6, 12}, {7, 3}, {7, 11}, {8, 2}, {8, 6}, {8, 8},
                 {8, 12}, {11, 0}, {11, 7}, {11, 14}, {12, 6}, {12, 8}, {14, 3}, {14, 11}
-        }; //will store the coordinates of a DLS
+        };
         return containsAnyPremiumSquare(doubleLetterCoords, row, col); //checks to see if it's a DLS
     }
 
@@ -272,9 +302,7 @@ public class GameView extends JFrame {
             playerScoreText.setHorizontalAlignment(SwingConstants.CENTER); // centers the text horizontally
             playerPanel.add(playerScoreLabel); //adds the label
             playerPanel.add(playerScoreText); //adds the score
-
             playerScoreFields.put(playerName, playerScoreText); //adds it to the hashmap with the players name and their score
-
         }
         rightSidePanel.add(playerPanel); //adds the player panel to the right side panel
     }
@@ -370,7 +398,6 @@ public class GameView extends JFrame {
      * Increments the word count after a word has been successfully placed.
      */
     public void updateWordCount(ArrayList<String> words){
-
         wordCount.setText(String.valueOf(words.size())); //increment the word count
     }
 
@@ -379,9 +406,9 @@ public class GameView extends JFrame {
      * @param words the list of words placed by the players
      */
     public void addToWordArea(ArrayList<String> words){
-        wordArea.setText("");
-        for(String word: words){
-            wordArea.append(word + "\n");//adds the word to the text area
+        wordArea.setText(""); //makes it empty
+        for(String word: words){ //traverses through the list of words that were added on the board sucessfully
+            wordArea.append(word + "\n"); //adds the word to the text area
         }
     }
 
@@ -414,7 +441,7 @@ public class GameView extends JFrame {
     public void updatePlayerTiles(Player player){
         playerTurn.setText(player.getName() + "'s Tiles: ");
         for (int i = 0; i < playerTiles.length; i++) { //traverses through the player tiles panel of buttons
-            playerTiles[i].setEnabled(true); // Reset enabled player tile buttons
+            playerTiles[i].setEnabled(true); //makes it not clickable
             if(i < player.getTiles().size()){ //if the player has enough tiles to be displayed the update the button with the tile
                 playerTiles[i].setText(player.getTiles().get(i).toString()); //updates the tiles with the current players tiles
             }
@@ -526,11 +553,11 @@ public class GameView extends JFrame {
     }
 
     /**
-     * Resets player tiles to light gray
+     * Resets player tiles to light gray.
      */
     public void resetPlayerTile() {
-        for (int col = 0; col < 7; col++) {
-            setPlayerTilesColour(col, Color.LIGHT_GRAY);
+        for (int col = 0; col < 7; col++) { //traverses through the players tiles
+            setPlayerTilesColour(col, Color.LIGHT_GRAY); //sets the tiles as a light grey color
         }
     }
 
@@ -540,16 +567,16 @@ public class GameView extends JFrame {
      * @param colour colour to change the background to
      */
     public void setPlayerTilesColour(int col, Color colour) {
-        playerTiles[col].setBackground(colour);
+        playerTiles[col].setBackground(colour); //sets a player tile to a specific color
     }
 
     /**
      * Disables all board fields.
      */
     public void disableAllBoardCells() {
-        for (int i = 1; i < 15; i++) {
-            for (int j = 1; j < 15; j++) {
-                boardCells[i][j].setEnabled(false);
+        for (int i = 1; i < 15; i++) { //traverses through the rows
+            for (int j = 1; j < 15; j++) { //traverses through the columns
+                boardCells[i][j].setEnabled(false); //makes each button not clickable
             }
         }
     }
@@ -558,10 +585,10 @@ public class GameView extends JFrame {
      * Enables all board fields.
      */
     public void enableAllBoardCells() {
-        for (int i = 1; i < 15; i++) {
-            for (int j = 1; j < 15; j++) {
-                if(getSpecificBoardCellColour(i, j) != Color.GREEN){
-                    boardCells[i][j].setEnabled(true);
+        for (int i = 1; i < 15; i++) { //traverses through the rows
+            for (int j = 1; j < 15; j++) { //traverses through the cols
+                if(getSpecificBoardCellColour(i, j) != Color.GREEN){ //if the board cell is not placed on successfully already
+                    boardCells[i][j].setEnabled(true); //makes it clickable again
                 }
             }
         }
@@ -640,17 +667,16 @@ public class GameView extends JFrame {
 
     /**
      * If a player wants to place a blank tile, this will be called to assign the tile a letter of the player's choice
-     *
-     * @param tile
+     * @param tile the blank tile
      */
     public void setBlankTileLetter(Tiles tile){
-        String letter = JOptionPane.showInputDialog("Please select the letter you wish to use for this blank tile.");
-        letter = letter.toUpperCase();
-        ArrayList<String> validLetters = new ArrayList<>(Arrays.asList("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"));
-        while(!validLetters.contains(letter)){
-            letter = JOptionPane.showInputDialog("Invalid letter. Please select the letter you wish to use for this blank tile.");
-            letter = letter.toUpperCase();
+        String letter = JOptionPane.showInputDialog("Please select the letter you wish to use for this blank tile."); //asks the user to enter a letter for the tile
+        letter = letter.toUpperCase(); //makes it upper case
+        ArrayList<String> validLetters = new ArrayList<>(Arrays.asList("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")); //checks if it's a valid letter
+        while(!validLetters.contains(letter)){ //while it's not a valid letter
+            letter = JOptionPane.showInputDialog("Invalid letter. Please select the letter you wish to use for this blank tile."); //prompts the user to enter a valid letter
+            letter = letter.toUpperCase(); //makes it upper case
         }
-        tile.setLetter(letter);
+        tile.setLetter(letter); //sets the letter of the blank tile
     }
 }

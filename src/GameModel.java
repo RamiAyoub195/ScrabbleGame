@@ -529,11 +529,11 @@ public class GameModel {
         if (tilesBag.bagOfTileIsEmpty()) {
             return; // No tiles to swap
         }
-        for (int index : tileIndices) { //gets the tiles the player wants to swap
-            Tiles t = player.getTiles().get(index); //get the tile
-            player.getTiles().remove(index); //removes from the player
-            replaceSwappedTile(player, index); //gets a new tile from array list bag
-            tilesBag.bagArraylist().add(t); //adds it bad to the array list bag
+        for (int index : tileIndices) { // gets the tiles the player wants to swap
+            Tiles t = player.getTiles().get(index); // get the tile
+            player.getTiles().remove(index); // removes from the player
+            replaceSwappedTile(player, index); // gets a new tile from array list bag
+            tilesBag.bagArraylist().add(t); // adds it bad to the array list bag
         }
     }
 
@@ -546,8 +546,8 @@ public class GameModel {
      */
     public void getRandomTiles(int numOfTiles, Player player){
         for (int i = 0; i < numOfTiles; i++){
-            int rnd = rand.nextInt(tilesBag.bagArraylist().size()); //random index
-            player.getTiles().add(tilesBag.bagArraylist().get(rnd)); //gets random tile
+            int rnd = rand.nextInt(tilesBag.bagArraylist().size()); // random index
+            player.getTiles().add(tilesBag.bagArraylist().get(rnd)); // gets random tile
             tilesBag.bagArraylist().remove(rnd); //removes it from bag
         }
     }

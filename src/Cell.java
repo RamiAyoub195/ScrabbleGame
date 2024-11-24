@@ -1,5 +1,6 @@
 /**
- * This class represents a cell on the board, which can be either occupied or empty.
+ * This class represents a cell on the board, which can be either occupied or empty by a tile.
+ * A cell can also have a special type meaning it's a TWS, DWS, etc.
  *
  * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
  * Version: 3.0
@@ -9,9 +10,11 @@ public class Cell
 {
 
     private Tiles tile; // The tile on the cell
-    private String specialType; //will indicate if the cell is a premium square or not such as
+    private String specialType; //will indicate if the cell is a premium square or not such as TWS, DLS, etc.
 
-
+    /**
+     * The constructor of the class. A cell can be occupied by a tile and can be a special square.
+     */
     public Cell()
     {
         this.tile = null; // Indicates the cell is empty
