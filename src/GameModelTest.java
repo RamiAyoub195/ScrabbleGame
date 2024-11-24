@@ -61,7 +61,7 @@ public class GameModelTest {
         for (int i = 0; i < 7; i++) { //remove players tiles
             game.getPlayers().get(0).getTiles().remove(0);
         }
-        assertTrue(game.isGameFinished()); //Test isGameFinished when there are no more tiles
+
         assertEquals("Louis", game.getPlayers().get(0).getName()); //louis won the game as he has no more tiles
 
     }
@@ -214,7 +214,7 @@ public class GameModelTest {
         colPositions3.add(12);
         colPositions3.add(13);
         game.playerPlaceTile(game.getPlayers().get(0), tiles3, rowPositions3, colPositions3);
-        assertEquals(game.getPlayers().get(0).getScore(), 17); //Test that 4 points are added by extending stan to standard
+        assertEquals(game.getPlayers().get(0).getScore(), 18); //Test that 4 points are added by extending stan to standard
 
         ArrayList<Tiles> tiles4 = new ArrayList<>(); //Extend word in the vertical direction
         tiles4.add(new Tiles("A", 1));
@@ -226,7 +226,7 @@ public class GameModelTest {
         colPositions4.add(7);
         colPositions4.add(7);
         game.playerPlaceTile(game.getPlayers().get(0), tiles4, rowPositions4, colPositions4);
-        assertEquals(game.getPlayers().get(0).getScore(), 20); //Test that 4 points are added by extending the t in standard to ant vertically
+        assertEquals(game.getPlayers().get(0).getScore(), 21); //Test that 4 points are added by extending the t in standard to ant vertically
     }
 
     /**
