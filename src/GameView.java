@@ -38,6 +38,7 @@ public class GameView extends JFrame {
     private JButton playButton; //this will be the button the user presses to play their turn
     private JButton passButton; //this will be the button the user presses to skip their turn
     private JButton swapButton; //this will be the button the user pressed to swap tiles with the tile bag
+    private JButton undoButton; //this will be the button the user preses to undo a move of a player
 
     public GameView() {
         super("Scrabble"); //creates a frame called Scrabble
@@ -366,6 +367,9 @@ public class GameView extends JFrame {
         passButton.setBackground(Color.RED); //makes the button colour red
         playerChoicePanel.add(passButton); //adds the button to the panel
 
+        undoButton = new JButton("Undo"); //creates the undo button
+        undoButton.setBackground(Color.CYAN); //makes the background color of the button cyan
+        playerChoicePanel.add(undoButton); //adds it to the button panel
         bottomPanel.add(playerChoicePanel); //adds the panel of buttons to the bottom of the main frame panel
     }
 
@@ -500,6 +504,7 @@ public class GameView extends JFrame {
         playButton.addActionListener(listener); //adds an action listener to the play button
         swapButton.addActionListener(listener); //adds an action listener to the play button
         passButton.addActionListener(listener); //adds an action listener to the play button
+        undoButton.addActionListener(listener); //adds an action listener to the play button
 
         for(int i = 0; i < playerTiles.length; i++){ //traverses through the buttons of the player tiles
             playerTiles[i].addActionListener(listener); //adds an action listener to all the tiles of the player

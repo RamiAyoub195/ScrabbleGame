@@ -20,6 +20,12 @@ public class GameModel {
     private Random rand; //to get random tiles from the bag when swapping or replacing placed tiles
     private String statusMessage; //a message that inform the player of an illegal game play move has occured
     private ArrayList<String> placedWords; //keeps an array list of the words placed on the board
+    private Deque<Board> boardsAtEachTurn; //will store the board at each time something is sucessfull placed
+    private Deque<ArrayList<Integer>> previousPlayerScores; //stores the score of the player
+    private Deque<ArrayList<Tiles>> previousPlayersTiles; //stores the tiles that was previously in the hand of each player
+    private Deque<ArrayList<String>> previousPlayersWords; //stores the words that were previously placed in a previous turn
+
+
 
     /**
      * Initializes the list of players, the boards, the user input scanner, the bag of tiles,
@@ -34,6 +40,18 @@ public class GameModel {
         wordList = new WordList();
         rand = new Random();
         placedWords = new ArrayList<>();
+        boardsAtEachTurn = new LinkedList<>();
+        previousPlayerScores = new LinkedList<>();
+        previousPlayersTiles = new LinkedList<>();
+        previousPlayersWords = new LinkedList<>();
+    }
+
+    /**
+     * Pushes a board to the stack board.
+     * @param board the board being pushed.
+     */
+    public void addToStackBoard(Board board) {
+        boardsAtEachTurn.push(board);
     }
 
     /**
@@ -43,6 +61,29 @@ public class GameModel {
     public Board getGameBoard() {
         return gameBoard;
     }
+
+    /**
+     * Sets the game board and the check board to a specific board
+     * @param board the board being set.
+     */
+    public void setGameAndCheckBoard(Board board) {
+        gameBoard = board.copyBoard(); //copy the board to the game board
+        checkBoard = board.copyBoard(); //copy the board to the check board
+    }
+
+    /**
+     * Sets the scores of the players when given an array list of scores.
+     * @param scores the list of player scores.
+     */
+    public void SetPlayerScores(ArrayList<Integer> scores) {
+        for (int i = 0; i < scores.size(); i++) { //traverses through the array list of scores
+            players.get(i).setScore(scores.get(i)); //sets the score to the player
+        }
+    }
+
+    /**
+     *
+     */
 
     /**
      * Creates and adds a new player to the game storing it in an array list of players.
@@ -99,6 +140,42 @@ public class GameModel {
     }
 
     /**
+     * Saves the tiles of a player before they are played and stores them in a stack. Will store
+     * the based on the players order of names entered at the beginning of the game
+     */
+    public void savePlayerTiles(){
+        for(Player player: players){ //traverses through the players
+            previousPlayersTiles.add(player.getTiles()); //appends the array list of the tiles to the stack
+        }
+    }
+
+    /**
+     * Saves the words before a new word was placed and stores them in a stack.
+     */
+    public void saveWordsPlacedList(){
+        previousPlayersWords.push(placedWords); //pushed the word list to the stack
+    }
+
+    /**
+     * Sets the wordList with a list of words
+     */
+    public void setPlacedWordsList(ArrayList<String> words){
+        placedWords = new ArrayList<>(words);
+    }
+
+    /**
+     * Saves the scores of a player before they place a tile and stores them in a stack. Will store
+     * based on the players order of names entered at the beginning of the game.
+     */
+    public void savePlayerScores(){
+        ArrayList<Integer> arrayListScores = new ArrayList<>(); //creates the array list of integers for the score
+        for(Player player: players){ //travereses through the players
+            arrayListScores.add(player.getScore()); //gets the score of each player
+        }
+        previousPlayerScores.push(arrayListScores); //appends it to the stack of the player scores
+    }
+
+    /**
      * Takes care of the players decision to place a tile. The tile being placed
      * must be entered horizontally/vertically and the word being inserted or words after
      * tile is inserted must be a valid word.
@@ -106,7 +183,11 @@ public class GameModel {
      * @param player the player's current turn
      */
     public void playerPlaceTile(Player player, ArrayList<Tiles> tiles, ArrayList<Integer> rowPositions,ArrayList<Integer> colPositions){
-        if (placeWord(tiles, rowPositions, colPositions, player)){ //if the word was successfully placed
+        if (placeWord(tiles, rowPositions, colPositions)){ //if the word was successfully place
+            addToStackBoard(gameBoard); //appends the game board before copying over the new placed tiles
+            savePlayerTiles(); //saves the old tiles of the players
+            savePlayerScores(); //saves the old scores of the players
+            saveWordsPlacedList(); //saves the words that are placed
             gameBoard = checkBoard.copyBoard(); //real board gets the checked board
             player.addScore(turnScore(tiles, rowPositions, colPositions)); //updates the players score
             for (Tiles tile : tiles) //traverses through the tiles
@@ -139,11 +220,10 @@ public class GameModel {
      * @param tempTiles a list of the tiles
      * @param tempRowPositions a list of row positions for the tiles
      * @param tempColPositions a list of column positions for the tiles
-     * @param player the player who is currently at turn
      *
      * @return boolean true if the word was placed, false otherwise
      */
-    public boolean placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions, Player player) {
+    public boolean placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions) {
         Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
         boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
         boolean isAdjacent = false;
@@ -727,5 +807,14 @@ public class GameModel {
             return 3;
         }
         return 1;
+    }
+
+    /**
+     * Returns the stack of boards that are saved each time a tile is successfully played on the
+     * board by a player.
+     * @return a stack of boards.
+     */
+    public Deque<Board> getBoardsAtEachTurn(){
+        return boardsAtEachTurn;
     }
 }

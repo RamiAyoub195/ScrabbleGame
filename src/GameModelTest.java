@@ -113,7 +113,7 @@ public class GameModelTest {
         colPositions.add(7);
         colPositions.add(8);
         colPositions.add(9);
-        assertFalse(game.placeWord(tiles, rowPositions, colPositions, game.getPlayers().get(0))); //Test trying to place word away from center
+        assertFalse(game.placeWord(tiles, rowPositions, colPositions)); //Test trying to place word away from center
 
         game.playerPlaceTile(game.getPlayers().get(0), tiles, rowPositions, colPositions); //Try again using the playerPlaceTile method
         assertEquals(game.getPlayers().get(0).getScore(), 0); //Test player's score remains 0, since the move is not allowed
@@ -157,7 +157,7 @@ public class GameModelTest {
         colPositions2.add(7);
         colPositions2.add(8);
         colPositions2.add(9);
-        assertFalse(game.placeWord(tiles2, rowPositions2, colPositions2, game.getPlayers().get(1))); //Test placing non-adjacent word
+        assertFalse(game.placeWord(tiles2, rowPositions2, colPositions2)); //Test placing non-adjacent word
 
         game.playerPlaceTile(game.getPlayers().get(1), tiles2, rowPositions2, colPositions2); //Try placing illegal move again
         assertEquals(game.getPlayers().get(1).getScore(), 0); //Test if players score remains 0 after attempting illegal move
