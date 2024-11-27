@@ -244,4 +244,43 @@ public class GameModelTest {
         game.playerSwapTile(game.getPlayers().get(0), tileIndecies);
         assertEquals(game.getPlayers().get(0).getTiles().size(), 7); //Test player is back at 7 tiles after swap
     }
+
+    @Test
+    public void testSaveAndLoadGame()
+    {
+        GameModel game = new GameModel();
+        game.addPlayer("Louis");
+        game.addPlayer("Rami");
+
+        ArrayList<Tiles> tiles = new ArrayList<>();
+        tiles.add(new Tiles("T", 1));
+        tiles.add(new Tiles("E", 1));
+        tiles.add(new Tiles("S", 1));
+        tiles.add(new Tiles("T", 1));
+        ArrayList<Integer> rowPositions = new ArrayList<>();
+        rowPositions.add(7);
+        rowPositions.add(7);
+        rowPositions.add(7);
+        rowPositions.add(7);
+        ArrayList<Integer> colPositions = new ArrayList<>();
+        colPositions.add(7);
+        colPositions.add(8);
+        colPositions.add(9);
+        colPositions.add(10);
+
+        game.playerPlaceTile(game.getPlayers().get(0), tiles, rowPositions, colPositions);
+
+        String savedXML = game.toXML();
+
+        GameModel loadedGame = new GameModel();
+        loadedGame.fromXML(savedXML);
+
+        System.out.println(savedXML);
+
+        assertEquals(game.getPlayers().size(), loadedGame.getPlayers().size());
+        assertEquals(game.getPlayers().get(0).getName(), loadedGame.getPlayers().get(0).getName());
+        assertEquals(game.getPlayers().get(0).getScore(), loadedGame.getPlayers().get(0).getScore());
+        assertEquals(game.getGameBoard().getCell(7, 7).getTile().getLetter(), loadedGame.getGameBoard().getCell(7, 7).getTile().getLetter());
+        assertEquals(game.getGameBoard().getCell(7, 8).getTile().getLetter(), loadedGame.getGameBoard().getCell(7, 8).getTile().getLetter());
+    }
 }

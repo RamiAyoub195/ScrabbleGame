@@ -238,6 +238,52 @@ public class Board {
         return board[row][col];
     }
 
+    /**
+     * Converts the Board object into its XML representation.
+     *
+     * @return A string representing the Board object in XML format.
+     * The XML includes all rows and cells on the board.
+     */
+    public String toXML() {
+        StringBuilder xml = new StringBuilder("<Board>");
+        for (int i = 0; i < rows; i++) {
+            xml.append("<Row>");
+            for (int j = 0; j < cols; j++) {
+                xml.append(board[i][j].toXML());
+            }
+            xml.append("</Row>");
+        }
+        xml.append("</Board>");
+        return xml.toString();
+    }
+
+    /**
+     * Creates a Board object from its XML representation.
+     *
+     * @param xml The XML string representing the Board object.
+     *            The XML must include all rows and cells with their respective states.
+     * @return A Board object initialized with the data parsed from the XML.
+     */
+    public static Board fromXML(String xml) {
+        int rows = 15; // Assuming fixed dimensions for Scrabble
+        int cols = 15;
+        Board board = new Board(rows, cols);
+
+        String rowsXML = xml.substring(xml.indexOf("<Board>") + 8, xml.indexOf("</Board>"));
+        String[] rowEntries = rowsXML.split("</Row><Row>");
+        for (int i = 0; i < rowEntries.length; i++) {
+            rowEntries[i] = rowEntries[i].replace("<Row>", "").replace("</Row>", "");
+            String[] cellXMLs = rowEntries[i].split("</Cell><Cell>");
+            for (int j = 0; j < cellXMLs.length; j++) {
+                board.getBoard()[i][j] = Cell.fromXML("<Cell>" + cellXMLs[j] + "</Cell>");
+            }
+        }
+
+        return board;
+    }
+
+
+
 }
 
 

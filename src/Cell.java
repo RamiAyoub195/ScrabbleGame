@@ -73,4 +73,45 @@ public class Cell
         return tile;
     }
 
+    /**
+     * Converts the Cell object into its XML representation.
+     *
+     * @return A string representing the Cell object in XML format.
+     * The XML includes the tile (if any) and the special type of the cell (if any).
+     */
+    public String toXML() {
+        StringBuilder xml = new StringBuilder("<Cell>");
+        if (tile != null) {
+            xml.append(tile.toXML());
+        }
+        if (specialType != null) {
+            xml.append("<SpecialType>").append(specialType).append("</SpecialType>");
+        }
+        xml.append("</Cell>");
+        return xml.toString();
+    }
+
+    /**
+     * Creates a Cell object from its XML representation.
+     *
+     * @param xml The XML string representing the Cell object.
+     *            The XML must include the tile (if any) and the special type (if any).
+     * @return A Cell object initialized with the data parsed from the XML.
+     */
+    public static Cell fromXML(String xml) {
+        Cell cell = new Cell();
+
+        if (xml.contains("<Tile>")) {
+            String tileXML = xml.substring(xml.indexOf("<Tile>"), xml.indexOf("</Tile>") + 7);
+            cell.placeTile(Tiles.fromXML(tileXML));
+        }
+        if (xml.contains("<SpecialType>")) {
+            String specialType = xml.substring(xml.indexOf("<SpecialType>") + 13, xml.indexOf("</SpecialType>"));
+            cell.setSpecialType(specialType);
+        }
+        return cell;
+    }
+
+
+
 }
