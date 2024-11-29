@@ -2,6 +2,7 @@ import java.util.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Timer;
 
 /**
  * This is the game view which shows the game board, the tiles of the current player,
@@ -397,6 +398,14 @@ public class GameView extends JFrame {
         return passButton;
     }
 
+    /**
+     * Gets the undo button.
+     * @return undo button.
+     */
+    public JButton getUndoButton(){
+        return undoButton;
+    }
+
 
     /**
      * Increments the word count after a word has been successfully placed.
@@ -425,7 +434,7 @@ public class GameView extends JFrame {
     }
 
     /**
-     * Updates the field of the board with the tiles that were just placed and makes the clickable
+     * Updates the field of the board with the tiles that were just placed and makes them not clickable
      * and changes the colour off them to green.
      * @param tile the tile that is being added
      * @param row the row position of tile
@@ -579,8 +588,8 @@ public class GameView extends JFrame {
      * Disables all board fields.
      */
     public void disableAllBoardCells() {
-        for (int i = 1; i < 15; i++) { //traverses through the rows
-            for (int j = 1; j < 15; j++) { //traverses through the columns
+        for (int i = 0; i < 15; i++) { //traverses through the rows
+            for (int j = 0; j < 15; j++) { //traverses through the columns
                 boardCells[i][j].setEnabled(false); //makes each button not clickable
             }
         }
@@ -590,8 +599,8 @@ public class GameView extends JFrame {
      * Enables all board fields.
      */
     public void enableAllBoardCells() {
-        for (int i = 1; i < 15; i++) { //traverses through the rows
-            for (int j = 1; j < 15; j++) { //traverses through the cols
+        for (int i = 0; i < 15; i++) { //traverses through the rows
+            for (int j = 0; j < 15; j++) { //traverses through the cols
                 if(getSpecificBoardCellColour(i, j) != Color.GREEN){ //if the board cell is not placed on successfully already
                     boardCells[i][j].setEnabled(true); //makes it clickable again
                 }
@@ -600,35 +609,49 @@ public class GameView extends JFrame {
     }
 
     /**
-     * Disables play and pass buttons
+     * Disables all the buttons.
      */
-    public void disablePlayAndPass() {
+    public void disableAllButtons(){
         playButton.setEnabled(false);
         passButton.setEnabled(false);
+        swapButton.setEnabled(false);
+        undoButton.setEnabled(false);
     }
 
     /**
-     * Enables play and pass buttons
+     * Disables play pass and undo buttons
      */
-    public void enablePlayAndPass() {
+    public void disablePlayPassUndo() {
+        playButton.setEnabled(false);
+        passButton.setEnabled(false);
+        undoButton.setEnabled(false);
+    }
+
+    /**
+     * Enables play pass and undo buttons
+     */
+    public void enablePlayPassUndo() {
         playButton.setEnabled(true);
         passButton.setEnabled(true);
+        undoButton.setEnabled(true);
     }
 
     /**
-     * Disables swap and pass buttons
+     * Disables swap pass and undo buttons
      */
-    public void disableSwapAndPass() {
+    public void disableSwapPassUndo() {
         swapButton.setEnabled(false);
         passButton.setEnabled(false);
+        undoButton.setEnabled(false);
     }
 
     /**
-     * Enables swap and pass buttons
+     * Enables swap pass and undo buttons
      */
-    public void enableSwapAndPass() {
+    public void enableSwapPassUndo() {
         swapButton.setEnabled(true);
         passButton.setEnabled(true);
+        undoButton.setEnabled(true);
     }
 
     /**
@@ -684,4 +707,96 @@ public class GameView extends JFrame {
         }
         tile.setLetter(letter); //sets the letter of the blank tile
     }
+
+    /**
+     * A function that updates the whole board when the undo button is clicked, it takes the board that was
+     * in the stack and reimplement that board which was the board of the previous turn.
+     * @param board the game board
+     */
+    public void updateGameBoardUndo(Board board){
+        for(int i = 0; i < 15; i++){ //travreses through the rows
+            for(int j = 0; j < 15; j++){ //travreses through the columns
+                if (board.getBoard()[i][j].isOccupied()){ //if the cell board has a placed tile
+                    updateBoardCell(board.getBoard()[i][j].getTile(), i, j); //updates it with the tile on there
+                }
+                else{ //if the cell board is not occupied with a tile
+                    if (isTripleWordSquare(i , j)){ //checks to see if it's a triple word square
+                        boardCells[i][j].setBackground(Color.RED); // Makes the color of the tile red
+                        boardCells[i][j].setText("TWS"); //sets it as a TWS
+                        boardCells[i][j].setEnabled(true);
+                    } else if (isDoubleWordSquare(i , j )) { //checks to see if it's a double word square
+                        boardCells[i][j].setBackground(Color.PINK); //makes the color pink
+                        boardCells[i][j].setText("DWS"); //sets it as DWS
+                        boardCells[i][j].setEnabled(true);
+                    }
+                    else if (isTripleLetterSquare(i , j )){ //checks to see if it's triple letter square
+                        boardCells[i][j].setBackground(Color.BLUE); //makes the square blue
+                        boardCells[i][j].setText("TLS"); //makes it TWS
+                        boardCells[i][j].setEnabled(true);
+                    }
+                    else if (isDoubleLetterSquare(i , j )) { //checks to see its it's a double letter square
+                        boardCells[i][j].setBackground(Color.CYAN); //makes the color cyan
+                        boardCells[i][j].setText("DLS"); //makes it DWS
+                        boardCells[i][j].setEnabled(true);
+                    } else if (i == 7 && j == 7) { //checks for the middle square
+                        boardCells[i][j].setBackground(Color.ORANGE); //makes the color orange
+                        boardCells[i][j].setFont(new Font("Arial Unicode MS", Font.PLAIN, 14)); //sets the font for the start
+                        boardCells[i][j].setText("★"); //sets it as a star
+                        boardCells[i][j].setEnabled(true);
+                    }
+                    else{
+                        boardCells[i][j].setBackground(Color.WHITE); //the rest of the board is set as white
+                        boardCells[i][j].setText("");
+                        boardCells[i][j].setEnabled(true);
+                    }
+                }
+            }
+        }
+    }
+
+    public void displayWinnerCelebration(String winnerName) {
+        // Create a celebratory message in a dialog box
+        JDialog celebrationDialog = new JDialog();
+        celebrationDialog.setTitle("Winner Celebration!");
+        celebrationDialog.setSize(400, 300);
+        celebrationDialog.setLayout(new BorderLayout());
+        celebrationDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+        // Message Label
+        JLabel messageLabel = new JLabel("🎉 Congrats " + winnerName + ", you won the game! 🎉", SwingConstants.CENTER);
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        celebrationDialog.add(messageLabel, BorderLayout.NORTH);
+
+        // Confetti Panel
+        JPanel confettiPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+
+                // Draw random confetti shapes
+                for (int i = 0; i < 100; i++) {
+                    int x = (int) (Math.random() * getWidth());
+                    int y = (int) (Math.random() * getHeight());
+                    int size = 10 + (int) (Math.random() * 15);
+                    g2d.setColor(new Color(
+                            (int) (Math.random() * 255),
+                            (int) (Math.random() * 255),
+                            (int) (Math.random() * 255)
+                    ));
+                    g2d.fillOval(x, y, size, size); // Confetti as colorful circles
+                }
+            }
+        };
+        confettiPanel.setBackground(Color.WHITE);
+        celebrationDialog.add(confettiPanel, BorderLayout.CENTER);
+
+        // Play a celebration sound
+        //playCelebrationSong("resources/celebration_song.wav");
+
+        // Display the dialog
+        celebrationDialog.setLocationRelativeTo(null);
+        celebrationDialog.setVisible(true);
+    }
+
 }

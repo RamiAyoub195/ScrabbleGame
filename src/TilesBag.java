@@ -73,6 +73,19 @@ public class TilesBag {
     }
 
     /**
+     * Another constructor that creates a next Tiles Bag after the previous one was already created this
+     * ensures that the undo funtion works correctly.
+     * @param tilesBag the bag of tiles
+     */
+    public TilesBag (ArrayList<Tiles> tilesBag) {
+        this.tilesBag = new ArrayList<>(); //creates a new array list bag for the tiles bag
+
+        for (Tiles tile : tilesBag) { //travreses through the previous tiles bag
+            this.tilesBag.add(new Tiles(tile.getLetter(), tile.getNumber())); //stes the new tiles form the old tines into the tiles bag
+        }
+    }
+
+    /**
      * Returns the value associated with the tile letter.
      */
     private int getTileValue(String tileLetter) {
@@ -102,6 +115,14 @@ public class TilesBag {
      */
     public boolean bagOfTileIsEmpty(){
         return tilesBag.isEmpty();
+    }
+
+    /**
+     * Sets the array list of tiles.
+     * @param tilesBag the bag of tiles
+     */
+    public void setTilesBag(ArrayList<Tiles> tilesBag) {
+        this.tilesBag = tilesBag;
     }
 
 }

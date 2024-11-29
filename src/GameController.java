@@ -74,6 +74,10 @@ public class GameController implements ActionListener {
         else if (e.getSource() == view.getPassButton()) {
             passButtonAction();
         }
+        // Undo button
+        else if(e.getSource() == view.getUndoButton()){
+            undoButtonAction();
+        }
         // Gets what tile was selected
         else if (e.getSource() == view.getSpecificPlayerTileButton(0)) {
             handleSpecificTileButtonAction(0);
@@ -169,7 +173,9 @@ public class GameController implements ActionListener {
             }
             // if AI player can't play then swap
             if(!AiPlacedSuccesful){
-                view.getSwapButton().doClick();
+                if(!model.isGameFinished() && !model.getTilesBag().bagOfTileIsEmpty()){ //only swaps if the game is not finished
+                    view.getSwapButton().doClick();
+                }
             }
             // next turn
             nextTurn();
@@ -206,7 +212,7 @@ public class GameController implements ActionListener {
                 }
             }
             // reset lists and buttons
-            view.enableSwapAndPass();
+            view.enableSwapPassUndo();
             listOfTiles.clear();
             listOfRows.clear();
             listOfCols.clear();
@@ -214,11 +220,13 @@ public class GameController implements ActionListener {
 
         // check if the game finishes at the end of this turn
         if (model.isGameFinished()) {
-            view.displayMessageToPlayer("Congrats " + model.getWinner().getName() + " won the game!");
             // Disable game if over
-            view.disablePlayAndPass();
-            view.disableSwapAndPass();
+            view.disableAllButtons();
             view.disableAllBoardCells();
+
+            //Trigger confetti animation
+            view.displayWinnerCelebration(model.getWinner().getName());
+
         }
     }
 
@@ -261,7 +269,7 @@ public class GameController implements ActionListener {
             // first swap button click tells users to select which tiles to swap
             if (numTimesSwapClicked % 2 == 0) {
                 view.displayMessageToPlayer("Select all tiles to swap then click swap button again");
-                view.disablePlayAndPass(); // disable all other buttons
+                view.disablePlayPassUndo(); // disable all other buttons
                 swapTileSelected = true; // set flag
                 view.resetPlayerTile();
             // on second swap button click, swap selected tiles
@@ -270,7 +278,7 @@ public class GameController implements ActionListener {
                 // update views
                 view.resetPlayerTile();
                 view.updatePlayerTiles(getCurrentPlayer());
-                view.enablePlayAndPass();
+                view.enablePlayPassUndo();
                 nextTurn();
                 view.enableAllBoardCells();
                 swapTileSelected = false;
@@ -324,6 +332,52 @@ public class GameController implements ActionListener {
     }
 
     /**
+     * Handles the logic for when an undo button is pressed
+     */
+    public void undoButtonAction(){
+        if(model.stackOfBoardEmpty() || model.stackOfPlayerTilesEmpty() || model.stackOfPlayerScoresEmpty() || model.stackOfTilesBagEmpty() || model.stackOfPlacedWordsEmpty() || model.stackOfPlayerEmpty()){ //if any of the stacks are empty then we are at the beginning of the game and cannot perform undo
+            view.displayMessageToPlayer("Cannot implement undo! Please place tiles first"); //lets the player now that we are at the beginning of teh game again
+        }else{ //there has been at least one played turn
+            currentTurn--; //goes back a turn
+
+            model.setBoardFromStack(); //calls a function to set the board from the stack
+            model.setPlayerTilesFromStack(); //calls a function to set the player tiles from the stack
+            model.setPlayerScoresFromStack(); //calls a function to set the player scores from the stack
+            model.setPlacedWordsFromStack(); //calls a function to set the player scores from the stack
+            model.setTilesBagFromStack(); //calls a function to set the tiles bag from the stack
+
+            if(model.getPlayerFromStack() instanceof AIPlayer){ //if the previous player was an AI Player then update the board and teh AI Player replays
+
+                view.addToWordArea(model.getPlacedWords()); //updates the view for the placeable words
+                view.updateWordCount(model.getPlacedWords()); //updates the word count for the placeable words
+                view.updateGameBoardUndo(model.getGameBoard()); //updates the board to the previous board before it was played
+                view.updateBagTilesCount(model.getTilesBag().bagArraylist().size()); //updates the bag tiles count
+
+                for(Player player: model.getPlayers()){ //traverses through the players in the game
+                    view.updatePlayerScore(player.getName(), player.getScore()); //updates the score for the specific player
+                }
+
+                view.displayMessageToPlayer("AI player is replaying its turn."); //tells the message that the AI Player is replaying its turn
+                view.getPlayButton().doClick(); //simulate a click on the play button to make the AI play again
+            }
+            else{ //the previous player was a real player
+
+                view.addToWordArea(model.getPlacedWords()); //updates the view for the placeable words
+                view.updateWordCount(model.getPlacedWords()); //updates the word count for the placeable words
+                view.updateGameBoardUndo(model.getGameBoard()); //updates the board to the previous board before it was played
+                view.updateBagTilesCount(model.getTilesBag().bagArraylist().size()); //updates the bag tiles count
+
+                for(Player player: model.getPlayers()){ //traverses through the players in the game
+                    view.updatePlayerScore(player.getName(), player.getScore()); //updates the score for the specific player
+                }
+
+                view.updatePlayerTiles(model.getCurrentPlayer()); // Update the tiles of the current player
+
+            }
+        }
+    }
+
+    /**
      * Handles logic when a button on the board is pressed
      * @param row row to add tile to
      * @param col column to add tile to
@@ -343,7 +397,7 @@ public class GameController implements ActionListener {
                 view.setSpecificBoardCellLetter(row, col, tileLetter); // Set button field letter
                 view.setSpecificBoardCellColour(row, col, Color.GRAY); // Set button field colour (temp letter)
                 view.setPlayerTilesColour(selectedTileCol, Color.GRAY); // Mark tile as used on board (gray)
-                view.disableSwapAndPass();
+                view.disableSwapPassUndo();
                 // Set tile colours
                 for (int index = 0; index < 7; index++) {
                     if (view.getSpecificPlayerTileColour(index) != Color.GRAY) {
@@ -375,7 +429,9 @@ public class GameController implements ActionListener {
         view.updatePlayerTiles(getCurrentPlayer());  // update player tiles
         // if it is an AI player's turn, initiate play
         if (isAITurn()) {
-            view.getPlayButton().doClick();
+            if(!model.isGameFinished()){ //only clicks play when the game is not finished
+                view.getPlayButton().doClick();
+            }
         }
     }
 

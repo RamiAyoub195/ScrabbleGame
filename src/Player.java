@@ -26,6 +26,14 @@ public class Player {
     }
 
     /**
+     * Sets the tiles of the player.
+     * @param tiles the array list of player tiles to be set
+     */
+    public void setTiles(ArrayList<Tiles> tiles) {
+        this.tiles = tiles;
+    }
+
+    /**
      * Returns the list of the players tiles.
      * @return player tiles
      */

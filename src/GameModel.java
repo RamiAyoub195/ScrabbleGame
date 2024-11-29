@@ -20,12 +20,13 @@ public class GameModel {
     private Random rand; //to get random tiles from the bag when swapping or replacing placed tiles
     private String statusMessage; //a message that inform the player of an illegal game play move has occured
     private ArrayList<String> placedWords; //keeps an array list of the words placed on the board
-    private Deque<Board> boardsAtEachTurn; //will store the board at each time something is sucessfull placed
-    private Deque<ArrayList<Integer>> previousPlayerScores; //stores the score of the player
-    private Deque<ArrayList<Tiles>> previousPlayersTiles; //stores the tiles that was previously in the hand of each player
-    private Deque<ArrayList<String>> previousPlayersWords; //stores the words that were previously placed in a previous turn
-
-
+    private Stack<Board> boardsAtEachTurn; //will store the board at each time something is sucessfull placed
+    private Stack<ArrayList<Integer>> previousPlayerScores; //stores the score of the player
+    private Stack<ArrayList<ArrayList<Tiles>>> previousPlayersTiles; //stores the tiles that was previously in the hand of each  as a nested array list
+    private Stack<ArrayList<String>> previousPlacedWords; //stores the words that were previously placed in a previous turn
+    private Stack<TilesBag> previousTilesBags; //stores the previous tiles bag as a player proceeds ti place tiles on the board
+    private Stack<Player> previousPlayers; //stores the previous players that nave placed a turn
+    private Player currentPlayer; //the curent player who is a turn after being poped from the player stack
 
     /**
      * Initializes the list of players, the boards, the user input scanner, the bag of tiles,
@@ -40,18 +41,31 @@ public class GameModel {
         wordList = new WordList();
         rand = new Random();
         placedWords = new ArrayList<>();
-        boardsAtEachTurn = new LinkedList<>();
-        previousPlayerScores = new LinkedList<>();
-        previousPlayersTiles = new LinkedList<>();
-        previousPlayersWords = new LinkedList<>();
+        boardsAtEachTurn = new Stack<>();
+        previousPlayerScores = new Stack<>();
+        previousPlayersTiles = new Stack<>();
+        previousPlacedWords = new Stack<>();
+        previousTilesBags = new Stack<>();
+        previousPlayers = new Stack<>();
+        currentPlayer = null;
     }
 
     /**
-     * Pushes a board to the stack board.
-     * @param board the board being pushed.
+     * Pushes a board to the stack of board.
      */
-    public void addToStackBoard(Board board) {
-        boardsAtEachTurn.push(board);
+    public void saveBoardInStack() {
+        boardsAtEachTurn.push(gameBoard);
+    }
+
+    /**
+     * Stets a board from the stack.
+     */
+    public void setBoardFromStack(){
+        if(!boardsAtEachTurn.isEmpty()){ //checks that the stack is not empty
+            Board boardInStack = boardsAtEachTurn.pop(); //gets the board from the top of the stack
+            gameBoard = boardInStack.copyBoard(); //copys it to the game board
+            checkBoard = boardInStack.copyBoard(); //copies it oto the check board
+        }
     }
 
     /**
@@ -63,27 +77,122 @@ public class GameModel {
     }
 
     /**
-     * Sets the game board and the check board to a specific board
-     * @param board the board being set.
+     * Saves the tiles of a player before they are played and stores them in a stack. Will store
+     * the based on the players order of names entered at the beginning of the game
      */
-    public void setGameAndCheckBoard(Board board) {
-        gameBoard = board.copyBoard(); //copy the board to the game board
-        checkBoard = board.copyBoard(); //copy the board to the check board
+    public void savePlayerTilesInStack(){
+        ArrayList<ArrayList<Tiles>> allPlayerTiles = new ArrayList<>(); //a nested array list that will store the array list of players and then push it to the stack
+        for(Player player: players){ //traverses through the players
+            ArrayList<Tiles> playerTilesCopy = new ArrayList<>(); //this will hold a copy of players tiles
+            for (Tiles tile : player.getTiles()) { //traverses through the tiles of that specific player
+                playerTilesCopy.add(new Tiles(tile.getLetter(), tile.getNumber())); //creates new Tiles that match the players tiles as a copy
+            }
+            allPlayerTiles.add(playerTilesCopy); //adds the copies tiles of the player to the nexted arratlist of player tiles
+        }
+        previousPlayersTiles.push(allPlayerTiles); //pushes the array list of array list of player tiles to the stack
     }
 
     /**
-     * Sets the scores of the players when given an array list of scores.
-     * @param scores the list of player scores.
+     * Gets the tile of the players from the stack and updates.
      */
-    public void SetPlayerScores(ArrayList<Integer> scores) {
-        for (int i = 0; i < scores.size(); i++) { //traverses through the array list of scores
-            players.get(i).setScore(scores.get(i)); //sets the score to the player
+    public void setPlayerTilesFromStack() {
+        if (!previousPlayersTiles.empty()) { //checks to make sure that the stack is not empty
+            ArrayList<ArrayList<Tiles>> allPlayerTiles = previousPlayersTiles.pop(); //gets the array list of array list of players tiles form the top of the stack
+            for (int i = 0; i < players.size(); i++) { //traverse though the number of players
+                ArrayList<Tiles> playerTilesCopy = new ArrayList<>(); //this will hold a copy of players tiles
+                for (Tiles tile : allPlayerTiles.get(i)) { //traverses through the nest loop of player tiles
+                    playerTilesCopy.add(new Tiles(tile.getLetter(), tile.getNumber())); //creates a new tiles and save them in a copy array list
+                }
+                players.get(i).setTiles(playerTilesCopy); //sets the copy array list of tiles to the player
+            }
         }
     }
 
     /**
-     *
+     * Saves the scores of the players in the stack.
      */
+    public void savePlayerScoresInStack(){
+        ArrayList<Integer> playerScores = new ArrayList<>(); //creates an array list of integers for the players scores
+        for(Player player: players){ //traverses through the players
+            playerScores.add(player.getScore()); //adds the scores of the players to teh array list
+        }
+        previousPlayerScores.push(playerScores); //pushes the array list to the stack
+    }
+
+    /**
+     * Gets the scores of the players from the stack and updates it.
+     */
+    public void setPlayerScoresFromStack(){
+        if(!previousPlayerScores.isEmpty()){ //checks that the stack is not empty
+            ArrayList<Integer> playerScores = previousPlayerScores.pop(); //pops the scores of the players from the stack
+            for(int i = 0; i < players.size(); i++){ //traverses through the number of players
+                players.get(i).setScore(playerScores.get(i)); //sets the scores of the players
+            }
+        }
+    }
+
+    /**
+     * Saves the tiles bag in the stack.
+     */
+    public void saveTilesBagInStack(){
+        previousTilesBags.push(new TilesBag(tilesBag.bagArraylist())); //pushes a copy of the tiles bag to the stack
+    }
+
+    /**
+     * Gets the tiles bag form the stack and updates it.
+     */
+    public void setTilesBagFromStack(){
+        if(!previousTilesBags.isEmpty()){ //checks to make sure that the stack is not empty
+           TilesBag poppedTileBag = previousTilesBags.pop(); //pops the tiles bag from teh top of the stack
+           tilesBag.setTilesBag(new ArrayList<>(poppedTileBag.bagArraylist())); //updates the array list of tiles for the tiles bag
+        }
+    }
+
+    /**
+     * Saves the list of words that has been placed in the game from the previous round in the stack.
+     */
+    public void savePlacedWordsInStack(){
+        previousPlacedWords.push(new ArrayList<>(placedWords)); //pushes a copy of the words placed in the stack
+    }
+
+    /**
+     * Gets the placed words list from the top of the stack and updates it.
+     */
+    public void setPlacedWordsFromStack(){
+        if(!previousPlacedWords.isEmpty()){ //makes sure that the stack is not empty
+            placedWords = previousPlacedWords.pop(); //gets the list of words from the top of the stack
+        }
+    }
+
+    /**
+     * Saves the player in the stack.
+     * @param player the player being saved in the stack
+     */
+    public void savePlayerInStack(Player player){
+        previousPlayers.push(player); //pushes the player in the stack
+    }
+
+    /**
+     * Gets the player form the top of the stack.
+     */
+    public Player getPlayerFromStack(){
+        if(!previousPlayers.isEmpty()){ //makes suer that the stack is not empty
+            currentPlayer = previousPlayers.pop(); //pops the player from the stack
+            return currentPlayer; //returns the player
+        }
+
+        return null; //returns null if the stack is empty
+    }
+
+    /**
+     * Returns the current player that was popped from the stack.
+     * @return the current player.
+     */
+    public Player getCurrentPlayer(){
+        return currentPlayer;
+    }
+
+
 
     /**
      * Creates and adds a new player to the game storing it in an array list of players.
@@ -140,42 +249,6 @@ public class GameModel {
     }
 
     /**
-     * Saves the tiles of a player before they are played and stores them in a stack. Will store
-     * the based on the players order of names entered at the beginning of the game
-     */
-    public void savePlayerTiles(){
-        for(Player player: players){ //traverses through the players
-            previousPlayersTiles.add(player.getTiles()); //appends the array list of the tiles to the stack
-        }
-    }
-
-    /**
-     * Saves the words before a new word was placed and stores them in a stack.
-     */
-    public void saveWordsPlacedList(){
-        previousPlayersWords.push(placedWords); //pushed the word list to the stack
-    }
-
-    /**
-     * Sets the wordList with a list of words
-     */
-    public void setPlacedWordsList(ArrayList<String> words){
-        placedWords = new ArrayList<>(words);
-    }
-
-    /**
-     * Saves the scores of a player before they place a tile and stores them in a stack. Will store
-     * based on the players order of names entered at the beginning of the game.
-     */
-    public void savePlayerScores(){
-        ArrayList<Integer> arrayListScores = new ArrayList<>(); //creates the array list of integers for the score
-        for(Player player: players){ //travereses through the players
-            arrayListScores.add(player.getScore()); //gets the score of each player
-        }
-        previousPlayerScores.push(arrayListScores); //appends it to the stack of the player scores
-    }
-
-    /**
      * Takes care of the players decision to place a tile. The tile being placed
      * must be entered horizontally/vertically and the word being inserted or words after
      * tile is inserted must be a valid word.
@@ -184,10 +257,11 @@ public class GameModel {
      */
     public void playerPlaceTile(Player player, ArrayList<Tiles> tiles, ArrayList<Integer> rowPositions,ArrayList<Integer> colPositions){
         if (placeWord(tiles, rowPositions, colPositions)){ //if the word was successfully place
-            addToStackBoard(gameBoard); //appends the game board before copying over the new placed tiles
-            savePlayerTiles(); //saves the old tiles of the players
-            savePlayerScores(); //saves the old scores of the players
-            saveWordsPlacedList(); //saves the words that are placed
+            saveBoardInStack(); //calls a function to save the board in the stack
+            savePlayerTilesInStack(); //calls a function to save the player tiles in the stack
+            savePlayerScoresInStack(); //calls a function to save the player scores in the stack
+            saveTilesBagInStack(); //calls a function to save the tiles bag in the stack
+            savePlayerInStack(player); //calls a function to save the player in the stack
             gameBoard = checkBoard.copyBoard(); //real board gets the checked board
             player.addScore(turnScore(tiles, rowPositions, colPositions)); //updates the players score
             for (Tiles tile : tiles) //traverses through the tiles
@@ -700,6 +774,9 @@ public class GameModel {
      * @param word the word to be added
      */
     public void addPlacedWord(StringBuilder word){
+
+        savePlacedWordsInStack(); //calls a function to save the placed words in the stack
+
         if (wordList.isValidWord(word.toString())){ //If the word is valid the way it was read, add it to the word list
             placedWords.add(word.toString());
         }
@@ -810,11 +887,50 @@ public class GameModel {
     }
 
     /**
-     * Returns the stack of boards that are saved each time a tile is successfully played on the
-     * board by a player.
-     * @return a stack of boards.
+     * Checks to see if the stack of board is empty.
+     * @return true if empty false otherwise
      */
-    public Deque<Board> getBoardsAtEachTurn(){
-        return boardsAtEachTurn;
+    public boolean stackOfBoardEmpty(){
+        return boardsAtEachTurn.isEmpty();
+    }
+
+    /**
+     * Checks to see if the stack of player tiles is empty.
+     * @return true is empty false otherwise
+     */
+    public boolean stackOfPlayerTilesEmpty(){
+        return previousPlayersTiles.isEmpty();
+    }
+
+    /**
+     * Checks to see if the stack of the players scores is empty.
+     * @return true if empty false otherwise
+     */
+    public boolean stackOfPlayerScoresEmpty(){
+        return previousPlayerScores.isEmpty();
+    }
+
+    /**
+     * Checks to see if the stack of tile bags is empty.
+     * @return true if empty false otherwise.
+     */
+    public boolean stackOfTilesBagEmpty(){
+        return previousTilesBags.isEmpty();
+    }
+
+    /**
+     * Checks to see if the stack of placed words is empty.
+     * @return true if empty false otherwise
+     */
+    public boolean stackOfPlacedWordsEmpty(){
+        return previousPlacedWords.isEmpty();
+    }
+
+    /**
+     * Checks to see if the stack of players is empty.
+     * @return true if empty false otherwise
+     */
+    public boolean stackOfPlayerEmpty(){
+        return previousPlayers.isEmpty();
     }
 }
