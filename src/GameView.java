@@ -2,7 +2,7 @@ import java.util.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Timer;
+
 
 /**
  * This is the game view which shows the game board, the tiles of the current player,
@@ -19,6 +19,7 @@ import java.util.Timer;
 
 
 public class GameView extends JFrame {
+    private boolean loadCB; //tells if a player want to load a customizable board or not
     private ArrayList<String> playerNames; //will store the name of the players
     private JTextArea wordArea; //represents the text area where a valid word was placed on the board is displayed
     private JTextField wordCount; //represents a count of the words that have been placed in the game
@@ -40,6 +41,8 @@ public class GameView extends JFrame {
     private JButton passButton; //this will be the button the user presses to skip their turn
     private JButton swapButton; //this will be the button the user pressed to swap tiles with the tile bag
     private JButton undoButton; //this will be the button the user preses to undo a move of a player
+    private JButton saveButton; //this will be the button the user presses to save the current gave in an XMl
+    private JButton loadButton; //this will be the button the user presses to load an existing game in an XML
 
     public GameView() {
         super("Scrabble"); //creates a frame called Scrabble
@@ -67,6 +70,8 @@ public class GameView extends JFrame {
         rightSidePanel.setLayout(new BoxLayout(rightSidePanel, BoxLayout.Y_AXIS)); //sets the layout of the right side as a box layout
 
         playerNames = welcomeAndGetPlayerNames(); //get the number of players playing and the player names
+
+        loadCB = loadCustomizableBoard(); //gets if the user wants to load a customizable board
 
         initializeBoard(); //initialized the board panel
 
@@ -132,6 +137,32 @@ public class GameView extends JFrame {
         }
 
         return names; //returns the list of all names in the game including the Players and AiPlayers.
+    }
+
+    /**
+     * Asks the players if they want to load a customizable board. If they answer yes then returns true,
+     * if they answer no then returns false.
+     *
+     * @return true if they want to load a customizable board, false otherwise.
+     */
+    public boolean loadCustomizableBoard(){
+        String userInput; //initializes it at the beginning will get the user input
+
+        while(true){ //loops until a user has entered a valid input
+            userInput = JOptionPane.showInputDialog("Would you like to load Custom Board? (yes/no)"); //asks the user if they want load a custom board
+
+            userInput = userInput.toLowerCase().trim(); //trims the user input and coverts it to all lower case
+
+            if (userInput.equals("yes")) { //if the user input is true
+                return true; //returns true
+            }
+            else if (userInput.equals("no")) { //if the user input is flase
+                return false; //returns false
+            }
+            else { //the user has entered an invalid response
+                JOptionPane.showMessageDialog(null, "Invalid input! Would you like to load Custom Board? (yes/no).");
+            }
+        }
     }
 
     /**
@@ -371,6 +402,15 @@ public class GameView extends JFrame {
         undoButton = new JButton("Undo"); //creates the undo button
         undoButton.setBackground(Color.CYAN); //makes the background color of the button cyan
         playerChoicePanel.add(undoButton); //adds it to the button panel
+
+        saveButton = new JButton("Save"); //creates the save button
+        saveButton.setBackground(Color.ORANGE); //makes the colour of the button orange
+        playerChoicePanel.add(saveButton); //adds it to the button panel
+
+        loadButton = new JButton("Load"); //creates the load button
+        loadButton.setBackground(Color.PINK); //makes the color of the button pink
+        playerChoicePanel.add(loadButton); //adds it to the button panel
+
         bottomPanel.add(playerChoicePanel); //adds the panel of buttons to the bottom of the main frame panel
     }
 
@@ -406,6 +446,21 @@ public class GameView extends JFrame {
         return undoButton;
     }
 
+    /**
+     * Gets the save button.
+     * @return save button.
+     */
+    public JButton getSaveButton(){
+        return saveButton;
+    }
+
+    /**
+     * Gets the load button.
+     * @return load button.
+     */
+    public JButton getLoadButton(){
+        return loadButton;
+    }
 
     /**
      * Increments the word count after a word has been successfully placed.
@@ -511,9 +566,11 @@ public class GameView extends JFrame {
             }
         }
         playButton.addActionListener(listener); //adds an action listener to the play button
-        swapButton.addActionListener(listener); //adds an action listener to the play button
-        passButton.addActionListener(listener); //adds an action listener to the play button
-        undoButton.addActionListener(listener); //adds an action listener to the play button
+        swapButton.addActionListener(listener); //adds an action listener to the swap button
+        passButton.addActionListener(listener); //adds an action listener to the pass button
+        undoButton.addActionListener(listener); //adds an action listener to the undo button
+        loadButton.addActionListener(listener); //adds an action listener to the load button
+        saveButton.addActionListener(listener); //adds an action listener to the save button
 
         for(int i = 0; i < playerTiles.length; i++){ //traverses through the buttons of the player tiles
             playerTiles[i].addActionListener(listener); //adds an action listener to all the tiles of the player
@@ -616,42 +673,52 @@ public class GameView extends JFrame {
         passButton.setEnabled(false);
         swapButton.setEnabled(false);
         undoButton.setEnabled(false);
+        saveButton.setEnabled(false);
+        loadButton.setEnabled(false);
     }
 
     /**
-     * Disables play pass and undo buttons
+     * Disables play pass undo save and load buttons
      */
     public void disablePlayPassUndo() {
         playButton.setEnabled(false);
         passButton.setEnabled(false);
         undoButton.setEnabled(false);
+        saveButton.setEnabled(false);
+        loadButton.setEnabled(false);
     }
 
     /**
-     * Enables play pass and undo buttons
+     * Enables play pass undo save load buttons
      */
     public void enablePlayPassUndo() {
         playButton.setEnabled(true);
         passButton.setEnabled(true);
         undoButton.setEnabled(true);
+        saveButton.setEnabled(true);
+        loadButton.setEnabled(true);
     }
 
     /**
-     * Disables swap pass and undo buttons
+     * Disables swap pass undo save load buttons
      */
-    public void disableSwapPassUndo() {
+    public void disableSwapPassUndoSaveLoad() {
         swapButton.setEnabled(false);
         passButton.setEnabled(false);
         undoButton.setEnabled(false);
+        saveButton.setEnabled(false);
+        loadButton.setEnabled(false);
     }
 
     /**
-     * Enables swap pass and undo buttons
+     * Enables swap pass undo save and load buttons
      */
-    public void enableSwapPassUndo() {
+    public void enableSwapPassUndoSaveLoad() {
         swapButton.setEnabled(true);
         passButton.setEnabled(true);
         undoButton.setEnabled(true);
+        saveButton.setEnabled(true);
+        loadButton.setEnabled(true);
     }
 
     /**
@@ -713,7 +780,7 @@ public class GameView extends JFrame {
      * in the stack and reimplement that board which was the board of the previous turn.
      * @param board the game board
      */
-    public void updateGameBoardUndo(Board board){
+    public void updateGameBoard(Board board){
         for(int i = 0; i < 15; i++){ //travreses through the rows
             for(int j = 0; j < 15; j++){ //travreses through the columns
                 if (board.getBoard()[i][j].isOccupied()){ //if the cell board has a placed tile
@@ -758,45 +825,36 @@ public class GameView extends JFrame {
         // Create a celebratory message in a dialog box
         JDialog celebrationDialog = new JDialog();
         celebrationDialog.setTitle("Winner Celebration!");
-        celebrationDialog.setSize(400, 300);
+        celebrationDialog.setSize(600, 400);
         celebrationDialog.setLayout(new BorderLayout());
         celebrationDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
         // Message Label
-        JLabel messageLabel = new JLabel("🎉 Congrats " + winnerName + ", you won the game! 🎉", SwingConstants.CENTER);
-        messageLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        JLabel messageLabel = new JLabel("Congrats " + winnerName + ", you won the game!", SwingConstants.CENTER);
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        messageLabel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
         celebrationDialog.add(messageLabel, BorderLayout.NORTH);
 
-        // Confetti Panel
-        JPanel confettiPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
+        // Confetti GIF Label
+        JLabel gifLabel = new JLabel();
+        gifLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        gifLabel.setIcon(new ImageIcon("youre-a-winner-winner.gif")); // Path to your confetti GIF file
+        celebrationDialog.add(gifLabel, BorderLayout.CENTER);
 
-                // Draw random confetti shapes
-                for (int i = 0; i < 100; i++) {
-                    int x = (int) (Math.random() * getWidth());
-                    int y = (int) (Math.random() * getHeight());
-                    int size = 10 + (int) (Math.random() * 15);
-                    g2d.setColor(new Color(
-                            (int) (Math.random() * 255),
-                            (int) (Math.random() * 255),
-                            (int) (Math.random() * 255)
-                    ));
-                    g2d.fillOval(x, y, size, size); // Confetti as colorful circles
-                }
-            }
-        };
-        confettiPanel.setBackground(Color.WHITE);
-        celebrationDialog.add(confettiPanel, BorderLayout.CENTER);
-
-        // Play a celebration sound
-        //playCelebrationSong("resources/celebration_song.wav");
+        // Optional: Play a celebration sound
+        // playCelebrationSong("resources/celebration_song.wav");
 
         // Display the dialog
         celebrationDialog.setLocationRelativeTo(null);
         celebrationDialog.setVisible(true);
+    }
+
+    /**
+     * Returns the users decision if they want to load a customizable board or not.
+     * @return true if yes, false otherwise.
+     */
+    public boolean getLoadCB(){
+        return loadCB;
     }
 
 }

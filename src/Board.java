@@ -49,6 +49,17 @@ public class Board {
     }
 
     /**
+     * Clears the board by creating a new board.
+     */
+    public void clearBoard() {
+        for (int i = 0; i < rows; i++) { //travreses through the rows
+            for (int j = 0; j < cols; j++) { //travreses through the cols
+                board[i][j] = new Cell(); //creates a new cell
+            }
+        }
+    }
+
+    /**
      * initializes a board where each row and column entry are empty to begin with.
      */
     public void setUpBoard()
@@ -238,6 +249,92 @@ public class Board {
         return board[row][col];
     }
 
+    /**
+     * Converts the Board object into its XML representation.
+     *
+     * @return A string representing the Board object in XML format.
+     * The XML includes all rows and cells on the board.
+     */
+    public String toXML() {
+        StringBuilder xml = new StringBuilder("<Board>");
+        for (int i = 0; i < rows; i++) {
+            xml.append("<Row>");
+            for (int j = 0; j < cols; j++) {
+                xml.append(board[i][j].toXML());
+            }
+            xml.append("</Row>");
+        }
+        xml.append("</Board>");
+        return xml.toString();
+    }
+
+    /**
+     * Creates a Board object from its XML representation.
+     *
+     * @param xml The XML string representing the Board object.
+     *            The XML must include all rows and cells with their respective states.
+     * @return A Board object initialized with the data parsed from the XML.
+     */
+    public static Board fromXML(String xml) {
+        int rows = 15; // Assuming fixed dimensions for Scrabble
+        int cols = 15;
+        Board board = new Board(rows, cols);
+
+        String rowsXML = xml.substring(xml.indexOf("<Board>") + 8, xml.indexOf("</Board>"));
+        String[] rowEntries = rowsXML.split("</Row><Row>");
+        for (int i = 0; i < rowEntries.length; i++) {
+            rowEntries[i] = rowEntries[i].replace("<Row>", "").replace("</Row>", "");
+            String[] cellXMLs = rowEntries[i].split("</Cell><Cell>");
+            for (int j = 0; j < cellXMLs.length; j++) {
+                board.getBoard()[i][j] = Cell.fromXML("<Cell>" + cellXMLs[j] + "</Cell>");
+            }
+        }
+
+        return board;
+    }
+
+    /**
+     * For the custom board.
+     */
+    public void fromCustomBoardXML(String xml) {
+        // First, clear the board to ensure no previous data is carried over
+        clearBoard();
+
+        // Extract the <Board> section from the XML string
+        String boardXML = xml.substring(xml.indexOf("<Board>") + 7, xml.indexOf("</Board>"));
+
+        while (boardXML.contains("<Cell>")) {
+            // Extract each <Cell> element
+            int start = boardXML.indexOf("<Cell>");
+            int end = boardXML.indexOf("</Cell>") + 7; // Include the closing tag
+
+            String cellXML = boardXML.substring(start, end); // Get the full <Cell> XML string
+
+            // Extract row and column from the cell
+            int row = Integer.parseInt(cellXML.substring(cellXML.indexOf("row=\"") + 5, cellXML.indexOf("\"", cellXML.indexOf("row=\"") + 5)));
+            int col = Integer.parseInt(cellXML.substring(cellXML.indexOf("col=\"") + 5, cellXML.indexOf("\"", cellXML.indexOf("col=\"") + 5)));
+
+            // Extract specialType (premium square, etc.)
+            String specialType = null;
+            if (cellXML.contains("<SpecialType>")) {
+                specialType = cellXML.substring(cellXML.indexOf("<SpecialType>") + 13, cellXML.indexOf("</SpecialType>"));
+            }
+
+            // Set the special type on the corresponding cell
+            getCell(row, col).setSpecialType(specialType);
+
+            // Remove the processed <Cell> XML from the string
+            boardXML = boardXML.substring(end);
+        }
+
+        // Debugging: Print the special types of the board to check if they are set correctly
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                System.out.print(board[i][j].getSpecialType() + " "); // Print each specialType
+            }
+            System.out.println(); // Newline after each row
+        }
+    }
 }
 
 

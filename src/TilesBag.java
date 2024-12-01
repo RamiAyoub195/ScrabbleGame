@@ -125,4 +125,42 @@ public class TilesBag {
         this.tilesBag = tilesBag;
     }
 
+
+    /**
+     * Converts the TilesBag object into its XML representation.
+     *
+     * @return A string representing the TilesBag object in XML format.
+     * The XML includes all tiles currently in the bag.
+     */
+    public String toXML() {
+        StringBuilder xml = new StringBuilder("<TilesBag>");
+        for (Tiles tile : tilesBag) {
+            xml.append(tile.toXML());
+        }
+        xml.append("</TilesBag>");
+        return xml.toString();
+    }
+
+    /**
+     * Creates a TilesBag object from its XML representation.
+     *
+     * @param xml The XML string representing the TilesBag object.
+     *            The XML must contain a list of Tile objects.
+     * @return A TilesBag object initialized with the data parsed from the XML.
+     */
+    public static TilesBag fromXML(String xml) {
+        TilesBag tilesBag = new TilesBag();
+        tilesBag.tilesBag.clear(); // Clear default initialization
+
+        String tilesXML = xml.substring(xml.indexOf("<TilesBag>") + 10, xml.indexOf("</TilesBag>"));
+        while (tilesXML.contains("<Tile>")) {
+            int start = tilesXML.indexOf("<Tile>");
+            int end = tilesXML.indexOf("</Tile>") + 7;
+            tilesBag.tilesBag.add(Tiles.fromXML(tilesXML.substring(start, end)));
+            tilesXML = tilesXML.substring(end);
+        }
+        return tilesBag;
+    }
+
+
 }

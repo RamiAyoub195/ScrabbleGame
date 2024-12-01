@@ -933,4 +933,74 @@ public class GameModel {
     public boolean stackOfPlayerEmpty(){
         return previousPlayers.isEmpty();
     }
+
+    /**
+     * Converts the entire game state into its XML representation.
+     *
+     * @return A string representing the entire game state in XML format.
+     * The XML includes the players, game board, tiles bag, and placed words.
+     */
+    public String toXML() {
+        StringBuilder xml = new StringBuilder("<GameState>");
+
+        // Players
+        xml.append("<Players>");
+        for (Player player : players) {
+            xml.append(player.toXML());
+        }
+        xml.append("</Players>");
+
+        // GameBoard
+        xml.append(gameBoard.toXML());
+
+        // TilesBag
+        xml.append(tilesBag.toXML());
+
+        // PlacedWords
+        xml.append("<PlacedWords>");
+        for (String word : placedWords) {
+            xml.append("<Word>").append(word).append("</Word>");
+        }
+        xml.append("</PlacedWords>");
+
+        xml.append("</GameState>");
+        return xml.toString();
+    }
+
+    /**
+     * Restores the entire game state from its XML representation.
+     *
+     * @param xml The XML string representing the game state.
+     *            The XML must include the players, game board, tiles bag, and placed words.
+     */
+    public void fromXML(String xml) {
+        players.clear();
+        placedWords.clear();
+
+        // Players
+        String playersXML = xml.substring(xml.indexOf("<Players>") + 9, xml.indexOf("</Players>"));
+        while (playersXML.contains("<Player>")) {
+            int start = playersXML.indexOf("<Player>");
+            int end = playersXML.indexOf("</Player>") + 9;
+            players.add(Player.fromXML(playersXML.substring(start, end)));
+            playersXML = playersXML.substring(end);
+        }
+
+        // GameBoard
+        String boardXML = xml.substring(xml.indexOf("<Board>"), xml.indexOf("</Board>") + 8);
+        gameBoard = Board.fromXML(boardXML);
+
+        // TilesBag
+        String tilesBagXML = xml.substring(xml.indexOf("<TilesBag>"), xml.indexOf("</TilesBag>") + 11);
+        tilesBag = TilesBag.fromXML(tilesBagXML);
+
+        // PlacedWords
+        String placedWordsXML = xml.substring(xml.indexOf("<PlacedWords>") + 13, xml.indexOf("</PlacedWords>"));
+        while (placedWordsXML.contains("<Word>")) {
+            int start = placedWordsXML.indexOf("<Word>") + 6;
+            int end = placedWordsXML.indexOf("</Word>");
+            placedWords.add(placedWordsXML.substring(start, end));
+            placedWordsXML = placedWordsXML.substring(end + 7);
+        }
+    }
 }
