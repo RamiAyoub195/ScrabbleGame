@@ -1,4 +1,8 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.*;
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -822,27 +826,25 @@ public class GameView extends JFrame {
     }
 
     public void displayWinnerCelebration(String winnerName) {
+
         // Create a celebratory message in a dialog box
         JDialog celebrationDialog = new JDialog();
         celebrationDialog.setTitle("Winner Celebration!");
-        celebrationDialog.setSize(600, 400);
+        celebrationDialog.setSize(1000, 1000);
         celebrationDialog.setLayout(new BorderLayout());
         celebrationDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-        // Message Label
+            // Message Label
         JLabel messageLabel = new JLabel("Congrats " + winnerName + ", you won the game!", SwingConstants.CENTER);
         messageLabel.setFont(new Font("Arial", Font.BOLD, 20));
         messageLabel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
         celebrationDialog.add(messageLabel, BorderLayout.NORTH);
 
-        // Confetti GIF Label
+            // Confetti GIF Label
         JLabel gifLabel = new JLabel();
         gifLabel.setHorizontalAlignment(SwingConstants.CENTER);
         gifLabel.setIcon(new ImageIcon("youre-a-winner-winner.gif")); // Path to your confetti GIF file
         celebrationDialog.add(gifLabel, BorderLayout.CENTER);
-
-        // Optional: Play a celebration sound
-        // playCelebrationSong("resources/celebration_song.wav");
 
         // Display the dialog
         celebrationDialog.setLocationRelativeTo(null);

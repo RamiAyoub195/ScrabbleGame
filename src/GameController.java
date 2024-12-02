@@ -456,6 +456,8 @@ public class GameController implements ActionListener {
                 // Notify the user of the successful load
                 JOptionPane.showMessageDialog(null, "Game loaded successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
+                view.addToWordArea(model.getPlacedWords()); //updates the view for the placeable words
+                view.updateWordCount(model.getPlacedWords()); //updates the word count for the placeable words
                 view.updateGameBoard(model.getGameBoard()); //updates the board to the previous board before it was played
                 view.updateBagTilesCount(model.getTilesBag().bagArraylist().size()); //updates the bag tiles count
 
