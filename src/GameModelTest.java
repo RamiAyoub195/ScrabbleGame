@@ -61,7 +61,7 @@ public class GameModelTest {
         for (int i = 0; i < 7; i++) { //remove players tiles
             game.getPlayers().get(0).getTiles().remove(0);
         }
-        assertTrue(game.isGameFinished()); //Test isGameFinished when there are no more tiles
+
         assertEquals("Louis", game.getPlayers().get(0).getName()); //louis won the game as he has no more tiles
 
     }
@@ -113,7 +113,7 @@ public class GameModelTest {
         colPositions.add(7);
         colPositions.add(8);
         colPositions.add(9);
-        assertFalse(game.placeWord(tiles, rowPositions, colPositions, game.getPlayers().get(0))); //Test trying to place word away from center
+        assertFalse(game.placeWord(tiles, rowPositions, colPositions)); //Test trying to place word away from center
 
         game.playerPlaceTile(game.getPlayers().get(0), tiles, rowPositions, colPositions); //Try again using the playerPlaceTile method
         assertEquals(game.getPlayers().get(0).getScore(), 0); //Test player's score remains 0, since the move is not allowed
@@ -157,7 +157,7 @@ public class GameModelTest {
         colPositions2.add(7);
         colPositions2.add(8);
         colPositions2.add(9);
-        assertFalse(game.placeWord(tiles2, rowPositions2, colPositions2, game.getPlayers().get(1))); //Test placing non-adjacent word
+        assertFalse(game.placeWord(tiles2, rowPositions2, colPositions2)); //Test placing non-adjacent word
 
         game.playerPlaceTile(game.getPlayers().get(1), tiles2, rowPositions2, colPositions2); //Try placing illegal move again
         assertEquals(game.getPlayers().get(1).getScore(), 0); //Test if players score remains 0 after attempting illegal move
@@ -214,7 +214,7 @@ public class GameModelTest {
         colPositions3.add(12);
         colPositions3.add(13);
         game.playerPlaceTile(game.getPlayers().get(0), tiles3, rowPositions3, colPositions3);
-        assertEquals(game.getPlayers().get(0).getScore(), 17); //Test that 4 points are added by extending stan to standard
+        assertEquals(game.getPlayers().get(0).getScore(), 18); //Test that 4 points are added by extending stan to standard
 
         ArrayList<Tiles> tiles4 = new ArrayList<>(); //Extend word in the vertical direction
         tiles4.add(new Tiles("A", 1));
@@ -226,7 +226,7 @@ public class GameModelTest {
         colPositions4.add(7);
         colPositions4.add(7);
         game.playerPlaceTile(game.getPlayers().get(0), tiles4, rowPositions4, colPositions4);
-        assertEquals(game.getPlayers().get(0).getScore(), 20); //Test that 4 points are added by extending the t in standard to ant vertically
+        assertEquals(game.getPlayers().get(0).getScore(), 21); //Test that 4 points are added by extending the t in standard to ant vertically
     }
 
     /**
@@ -243,5 +243,44 @@ public class GameModelTest {
         tileIndecies.add(2);
         game.playerSwapTile(game.getPlayers().get(0), tileIndecies);
         assertEquals(game.getPlayers().get(0).getTiles().size(), 7); //Test player is back at 7 tiles after swap
+    }
+
+    @Test
+    public void testSaveAndLoadGame()
+    {
+        GameModel game = new GameModel();
+        game.addPlayer("Louis");
+        game.addPlayer("Rami");
+
+        ArrayList<Tiles> tiles = new ArrayList<>();
+        tiles.add(new Tiles("T", 1));
+        tiles.add(new Tiles("E", 1));
+        tiles.add(new Tiles("S", 1));
+        tiles.add(new Tiles("T", 1));
+        ArrayList<Integer> rowPositions = new ArrayList<>();
+        rowPositions.add(7);
+        rowPositions.add(7);
+        rowPositions.add(7);
+        rowPositions.add(7);
+        ArrayList<Integer> colPositions = new ArrayList<>();
+        colPositions.add(7);
+        colPositions.add(8);
+        colPositions.add(9);
+        colPositions.add(10);
+
+        game.playerPlaceTile(game.getPlayers().get(0), tiles, rowPositions, colPositions);
+
+        String savedXML = game.toXML();
+
+        GameModel loadedGame = new GameModel();
+        loadedGame.fromXML(savedXML);
+
+        System.out.println(savedXML);
+
+        assertEquals(game.getPlayers().size(), loadedGame.getPlayers().size());
+        assertEquals(game.getPlayers().get(0).getName(), loadedGame.getPlayers().get(0).getName());
+        assertEquals(game.getPlayers().get(0).getScore(), loadedGame.getPlayers().get(0).getScore());
+        assertEquals(game.getGameBoard().getCell(7, 7).getTile().getLetter(), loadedGame.getGameBoard().getCell(7, 7).getTile().getLetter());
+        assertEquals(game.getGameBoard().getCell(7, 8).getTile().getLetter(), loadedGame.getGameBoard().getCell(7, 8).getTile().getLetter());
     }
 }

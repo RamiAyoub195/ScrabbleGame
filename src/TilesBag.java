@@ -73,6 +73,19 @@ public class TilesBag {
     }
 
     /**
+     * Another constructor that creates a next Tiles Bag after the previous one was already created this
+     * ensures that the undo funtion works correctly.
+     * @param tilesBag the bag of tiles
+     */
+    public TilesBag (ArrayList<Tiles> tilesBag) {
+        this.tilesBag = new ArrayList<>(); //creates a new array list bag for the tiles bag
+
+        for (Tiles tile : tilesBag) { //travreses through the previous tiles bag
+            this.tilesBag.add(new Tiles(tile.getLetter(), tile.getNumber())); //stes the new tiles form the old tines into the tiles bag
+        }
+    }
+
+    /**
      * Returns the value associated with the tile letter.
      */
     private int getTileValue(String tileLetter) {
@@ -103,5 +116,51 @@ public class TilesBag {
     public boolean bagOfTileIsEmpty(){
         return tilesBag.isEmpty();
     }
+
+    /**
+     * Sets the array list of tiles.
+     * @param tilesBag the bag of tiles
+     */
+    public void setTilesBag(ArrayList<Tiles> tilesBag) {
+        this.tilesBag = tilesBag;
+    }
+
+
+    /**
+     * Converts the TilesBag object into its XML representation.
+     *
+     * @return A string representing the TilesBag object in XML format.
+     * The XML includes all tiles currently in the bag.
+     */
+    public String toXML() {
+        StringBuilder xml = new StringBuilder("<TilesBag>");
+        for (Tiles tile : tilesBag) {
+            xml.append(tile.toXML());
+        }
+        xml.append("</TilesBag>");
+        return xml.toString();
+    }
+
+    /**
+     * Creates a TilesBag object from its XML representation.
+     *
+     * @param xml The XML string representing the TilesBag object.
+     *            The XML must contain a list of Tile objects.
+     * @return A TilesBag object initialized with the data parsed from the XML.
+     */
+    public static TilesBag fromXML(String xml) {
+        TilesBag tilesBag = new TilesBag();
+        tilesBag.tilesBag.clear(); // Clear default initialization
+
+        String tilesXML = xml.substring(xml.indexOf("<TilesBag>") + 10, xml.indexOf("</TilesBag>"));
+        while (tilesXML.contains("<Tile>")) {
+            int start = tilesXML.indexOf("<Tile>");
+            int end = tilesXML.indexOf("</Tile>") + 7;
+            tilesBag.tilesBag.add(Tiles.fromXML(tilesXML.substring(start, end)));
+            tilesXML = tilesXML.substring(end);
+        }
+        return tilesBag;
+    }
+
 
 }

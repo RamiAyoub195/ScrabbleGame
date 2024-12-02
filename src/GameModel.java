@@ -20,6 +20,13 @@ public class GameModel {
     private Random rand; //to get random tiles from the bag when swapping or replacing placed tiles
     private String statusMessage; //a message that inform the player of an illegal game play move has occured
     private ArrayList<String> placedWords; //keeps an array list of the words placed on the board
+    private Stack<Board> boardsAtEachTurn; //will store the board at each time something is sucessfull placed
+    private Stack<ArrayList<Integer>> previousPlayerScores; //stores the score of the player
+    private Stack<ArrayList<ArrayList<Tiles>>> previousPlayersTiles; //stores the tiles that was previously in the hand of each  as a nested array list
+    private Stack<ArrayList<String>> previousPlacedWords; //stores the words that were previously placed in a previous turn
+    private Stack<TilesBag> previousTilesBags; //stores the previous tiles bag as a player proceeds ti place tiles on the board
+    private Stack<Player> previousPlayers; //stores the previous players that nave placed a turn
+    private Player currentPlayer; //the curent player who is a turn after being poped from the player stack
 
     /**
      * Initializes the list of players, the boards, the user input scanner, the bag of tiles,
@@ -34,6 +41,31 @@ public class GameModel {
         wordList = new WordList();
         rand = new Random();
         placedWords = new ArrayList<>();
+        boardsAtEachTurn = new Stack<>();
+        previousPlayerScores = new Stack<>();
+        previousPlayersTiles = new Stack<>();
+        previousPlacedWords = new Stack<>();
+        previousTilesBags = new Stack<>();
+        previousPlayers = new Stack<>();
+        currentPlayer = null;
+    }
+
+    /**
+     * Pushes a board to the stack of board.
+     */
+    public void saveBoardInStack() {
+        boardsAtEachTurn.push(gameBoard);
+    }
+
+    /**
+     * Stets a board from the stack.
+     */
+    public void setBoardFromStack(){
+        if(!boardsAtEachTurn.isEmpty()){ //checks that the stack is not empty
+            Board boardInStack = boardsAtEachTurn.pop(); //gets the board from the top of the stack
+            gameBoard = boardInStack.copyBoard(); //copys it to the game board
+            checkBoard = boardInStack.copyBoard(); //copies it oto the check board
+        }
     }
 
     /**
@@ -43,6 +75,124 @@ public class GameModel {
     public Board getGameBoard() {
         return gameBoard;
     }
+
+    /**
+     * Saves the tiles of a player before they are played and stores them in a stack. Will store
+     * the based on the players order of names entered at the beginning of the game
+     */
+    public void savePlayerTilesInStack(){
+        ArrayList<ArrayList<Tiles>> allPlayerTiles = new ArrayList<>(); //a nested array list that will store the array list of players and then push it to the stack
+        for(Player player: players){ //traverses through the players
+            ArrayList<Tiles> playerTilesCopy = new ArrayList<>(); //this will hold a copy of players tiles
+            for (Tiles tile : player.getTiles()) { //traverses through the tiles of that specific player
+                playerTilesCopy.add(new Tiles(tile.getLetter(), tile.getNumber())); //creates new Tiles that match the players tiles as a copy
+            }
+            allPlayerTiles.add(playerTilesCopy); //adds the copies tiles of the player to the nexted arratlist of player tiles
+        }
+        previousPlayersTiles.push(allPlayerTiles); //pushes the array list of array list of player tiles to the stack
+    }
+
+    /**
+     * Gets the tile of the players from the stack and updates.
+     */
+    public void setPlayerTilesFromStack() {
+        if (!previousPlayersTiles.empty()) { //checks to make sure that the stack is not empty
+            ArrayList<ArrayList<Tiles>> allPlayerTiles = previousPlayersTiles.pop(); //gets the array list of array list of players tiles form the top of the stack
+            for (int i = 0; i < players.size(); i++) { //traverse though the number of players
+                ArrayList<Tiles> playerTilesCopy = new ArrayList<>(); //this will hold a copy of players tiles
+                for (Tiles tile : allPlayerTiles.get(i)) { //traverses through the nest loop of player tiles
+                    playerTilesCopy.add(new Tiles(tile.getLetter(), tile.getNumber())); //creates a new tiles and save them in a copy array list
+                }
+                players.get(i).setTiles(playerTilesCopy); //sets the copy array list of tiles to the player
+            }
+        }
+    }
+
+    /**
+     * Saves the scores of the players in the stack.
+     */
+    public void savePlayerScoresInStack(){
+        ArrayList<Integer> playerScores = new ArrayList<>(); //creates an array list of integers for the players scores
+        for(Player player: players){ //traverses through the players
+            playerScores.add(player.getScore()); //adds the scores of the players to teh array list
+        }
+        previousPlayerScores.push(playerScores); //pushes the array list to the stack
+    }
+
+    /**
+     * Gets the scores of the players from the stack and updates it.
+     */
+    public void setPlayerScoresFromStack(){
+        if(!previousPlayerScores.isEmpty()){ //checks that the stack is not empty
+            ArrayList<Integer> playerScores = previousPlayerScores.pop(); //pops the scores of the players from the stack
+            for(int i = 0; i < players.size(); i++){ //traverses through the number of players
+                players.get(i).setScore(playerScores.get(i)); //sets the scores of the players
+            }
+        }
+    }
+
+    /**
+     * Saves the tiles bag in the stack.
+     */
+    public void saveTilesBagInStack(){
+        previousTilesBags.push(new TilesBag(tilesBag.bagArraylist())); //pushes a copy of the tiles bag to the stack
+    }
+
+    /**
+     * Gets the tiles bag form the stack and updates it.
+     */
+    public void setTilesBagFromStack(){
+        if(!previousTilesBags.isEmpty()){ //checks to make sure that the stack is not empty
+           TilesBag poppedTileBag = previousTilesBags.pop(); //pops the tiles bag from teh top of the stack
+           tilesBag.setTilesBag(new ArrayList<>(poppedTileBag.bagArraylist())); //updates the array list of tiles for the tiles bag
+        }
+    }
+
+    /**
+     * Saves the list of words that has been placed in the game from the previous round in the stack.
+     */
+    public void savePlacedWordsInStack(){
+        previousPlacedWords.push(new ArrayList<>(placedWords)); //pushes a copy of the words placed in the stack
+    }
+
+    /**
+     * Gets the placed words list from the top of the stack and updates it.
+     */
+    public void setPlacedWordsFromStack(){
+        if(!previousPlacedWords.isEmpty()){ //makes sure that the stack is not empty
+            placedWords = previousPlacedWords.pop(); //gets the list of words from the top of the stack
+        }
+    }
+
+    /**
+     * Saves the player in the stack.
+     * @param player the player being saved in the stack
+     */
+    public void savePlayerInStack(Player player){
+        previousPlayers.push(player); //pushes the player in the stack
+    }
+
+    /**
+     * Gets the player form the top of the stack.
+     */
+    public Player getPlayerFromStack(){
+        if(!previousPlayers.isEmpty()){ //makes suer that the stack is not empty
+            currentPlayer = previousPlayers.pop(); //pops the player from the stack
+            return currentPlayer; //returns the player
+        }
+
+        return null; //returns null if the stack is empty
+    }
+
+    /**
+     * Returns the current player that was popped from the stack.
+     * @return the current player.
+     */
+    public Player getCurrentPlayer(){
+        return currentPlayer;
+    }
+
+
 
     /**
      * Creates and adds a new player to the game storing it in an array list of players.
@@ -106,7 +256,12 @@ public class GameModel {
      * @param player the player's current turn
      */
     public void playerPlaceTile(Player player, ArrayList<Tiles> tiles, ArrayList<Integer> rowPositions,ArrayList<Integer> colPositions){
-        if (placeWord(tiles, rowPositions, colPositions, player)){ //if the word was successfully placed
+        if (placeWord(tiles, rowPositions, colPositions)){ //if the word was successfully place
+            saveBoardInStack(); //calls a function to save the board in the stack
+            savePlayerTilesInStack(); //calls a function to save the player tiles in the stack
+            savePlayerScoresInStack(); //calls a function to save the player scores in the stack
+            saveTilesBagInStack(); //calls a function to save the tiles bag in the stack
+            savePlayerInStack(player); //calls a function to save the player in the stack
             gameBoard = checkBoard.copyBoard(); //real board gets the checked board
             player.addScore(turnScore(tiles, rowPositions, colPositions)); //updates the players score
             for (Tiles tile : tiles) //traverses through the tiles
@@ -139,11 +294,10 @@ public class GameModel {
      * @param tempTiles a list of the tiles
      * @param tempRowPositions a list of row positions for the tiles
      * @param tempColPositions a list of column positions for the tiles
-     * @param player the player who is currently at turn
      *
      * @return boolean true if the word was placed, false otherwise
      */
-    public boolean placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions, Player player) {
+    public boolean placeWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions) {
         Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
         boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
         boolean isAdjacent = false;
@@ -220,7 +374,7 @@ public class GameModel {
      *
      * @return the status message if the word was successfully place or violated a rule.
      */
-    public String checkPlaceableWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions) {
+    public void checkPlaceableWord(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions) {
         Board savedCheckBoard = checkBoard.copyBoard(); // Save the board state for rollback
         boolean isFirstWord = checkBoard.checkMiddleBoardEmpty(); // True if middle cell is empty, indicating the first move
         boolean isAdjacent = false;
@@ -234,7 +388,7 @@ public class GameModel {
             if (!checkBoard.checkBoardTileEmpty(row, col)) {
                 checkBoard = savedCheckBoard.copyBoard(); // Restore board state
                 statusMessage = "Error: Board space already occupied.";
-                return statusMessage;
+                return;
             }
 
             // Temporarily place tile to check adjacency and center coverage
@@ -256,12 +410,12 @@ public class GameModel {
         if (isFirstWord && !isAdjacent) {
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
             statusMessage = "Error: Middle cell not covered for the first word.";
-            return statusMessage;
+            return;
 
         } else if (!isFirstWord && !isAdjacent) {
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
             statusMessage = "Error: Word placement is not adjacent to any existing words.";
-            return statusMessage;
+            return;
         }
 
         for (int i = 0; i < tempTiles.size(); i++)
@@ -278,19 +432,52 @@ public class GameModel {
         {
             checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
             statusMessage = "Error: Invalid word.";
-            return statusMessage;
+            return;
         }
 
-        statusMessage = "Word placed successfully.";
-        if(isFirstWord){
-            for (int i = 0; i < tempTiles.size(); i++){
-                if(!checkBoard.checkAdjacentBoardConnected(tempRowPositions.get(i), tempColPositions.get(i))){
-                    statusMessage = "Error: Word placement is not adjacent.";
+
+        if(isFirstWord){ //If this is the first placed word, we must further explore to check that all placed tiles are adjacent to each other, with no spaces between them
+            ArrayList<Tiles> visitedTiles = new ArrayList<>(); //ArrayList to keep track of all tiles adjacent to the first placed tile
+            visitedTiles.add(tempTiles.get(0)); //We will use the first placed tile , and make sure all other tiles are adjacent to this one
+            for (int i = tempRowPositions.get(0) + 1; i < 15; i++) { //Check every tile placed to the right of tile 0
+                if (checkBoard.getCell(i, tempColPositions.get(0)).getTile() != null){
+                    visitedTiles.add(checkBoard.getCell(i, tempColPositions.get(0)).getTile()); //If there is a tile placed there, add it to the visited tiles list
+                } else{
+                    break;
+                }
+            }
+            for (int i = tempRowPositions.get(0) - 1; i >= 0; i--) { //Check every tile placed to the left of tile 0
+                if (checkBoard.getCell(i, tempColPositions.get(0)).getTile() != null){
+                    visitedTiles.add(checkBoard.getCell(i, tempColPositions.get(0)).getTile()); //If there is a tile placed there, add it to the visited tiles list
+                } else{
+                    break;
+                }
+
+            }
+            for (int i = tempColPositions.get(0) + 1; i < 15; i++) { //Check every tile placed above tile 0
+                if (checkBoard.getCell(tempRowPositions.get(0), i).getTile() != null){
+                    visitedTiles.add(checkBoard.getCell(tempRowPositions.get(0), i).getTile()); //If there is a tile placed there, add it to the visited tiles list
+                } else{
+                    break;
+                }
+            }
+            for (int i = tempColPositions.get(0) - 1; i >= 0; i--) { //Check every tile placed below tile 0
+                if (checkBoard.getCell(tempRowPositions.get(0), i).getTile() != null){
+                    visitedTiles.add(checkBoard.getCell(tempRowPositions.get(0), i).getTile()); //If there is a tile placed there, add it to the visited tiles list
+                } else{
+                    break;
+                }
+            }
+
+            for (Tiles tile : tempTiles){ //Make sure that every placed tile is in the list of tiles adjacent to tile 0
+                if (!visitedTiles.contains(tile)){
+                    statusMessage = "Error: Word placement is not adjacent."; //If there is a tile that is not adjacent to tile 0, the word placement is not adjacent
+                    return;
                 }
             }
         }
         checkBoard = savedCheckBoard.copyBoard(); // Restore original board state
-        return statusMessage;
+        statusMessage = "Word placed successfully."; //If all conditions passed, the word has been placed successfully
     }
 
 
@@ -307,18 +494,18 @@ public class GameModel {
      */
     public int turnScore(ArrayList<Tiles> tempTiles, ArrayList<Integer> tempRowPositions, ArrayList<Integer> tempColPositions){
         int score = 0; //Create a variable for the score to be returned
-        ArrayList<Cell> visitedCells = new ArrayList<>(); //Keep track of cells used to add to score
-        ArrayList<Cell> doubleScoreVisitedCells = new ArrayList<>();
-        ArrayList<Cell> tripleScoreVisitedCells = new ArrayList<>();
-        int wordPointMultiplier;
-        for (int i = 0; i < tempTiles.size(); i++) {
+        ArrayList<Cell> visitedCells = new ArrayList<>(); //Keep track of visited cells that have already had they're scores added
+        ArrayList<Cell> doubleScoreVisitedCells = new ArrayList<>(); //In the case of a DWS, all adjacent tiles will be visited twice
+        ArrayList<Cell> tripleScoreVisitedCells = new ArrayList<>(); //In the case of a TWS, all adjacent tiles will be visited twice
+        int wordPointMultiplier; //Used to identify if a tile is adjacent to newly placed tile on a DWS or TWS
+        for (int i = 0; i < tempTiles.size(); i++) { //loop through each newly placed tile and get their score
             wordPointMultiplier = getWordPointMultiplier(tempRowPositions.get(i), tempColPositions.get(i));
             score += (tempTiles.get(i).getNumber() * getLetterPointMultiplier(tempRowPositions.get(i), tempColPositions.get(i))) * getWordPointMultiplier(tempRowPositions.get(i), tempColPositions.get(i)); //Add the combined score of all the new tiles placed to score
             visitedCells.add(gameBoard.getCell(tempRowPositions.get(i), tempColPositions.get(i)));
-            if (wordPointMultiplier == 2){
+            if (wordPointMultiplier == 2){ //If the tile is placed on a DWS
                 doubleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(i), tempColPositions.get(i)));
             }
-            if (wordPointMultiplier == 3){
+            if (wordPointMultiplier == 3){ //If the tile is placed on a TWS
                 tripleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(i), tempColPositions.get(i)));
             }
         }
@@ -326,78 +513,78 @@ public class GameModel {
             wordPointMultiplier = getWordPointMultiplier(tempRowPositions.get(j), tempColPositions.get(j)); //Get the current cells word score multiplier
             for (int i = tempRowPositions.get(j) + 1; i < 15; i++){ //Starting from the placed tile, look for tiles to the right
                 if (gameBoard.getCell(i, tempColPositions.get(j)).getTile() != null){ //Check that the cell is has a tile placed
-                    if (!(visitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j))))){
-                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
+                    if (!(visitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j))))){ //If the cell has not yet been visited
+                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber(); //Add the tile's score
                         visitedCells.add(gameBoard.getCell(i, tempColPositions.get(j))); //Mark this tile as visited so we don't add it's score twice in one move
                     }
                     if (!(doubleScoreVisitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j)))) && wordPointMultiplier == 2){ //If a tile in this word is placed on a DWS we add the score from it an extra time
-                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
+                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber(); //Add the tile's score for a second time
                         doubleScoreVisitedCells.add(gameBoard.getCell(i, tempColPositions.get(j)));
                     }
                     if (!(tripleScoreVisitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j)))) && wordPointMultiplier == 3){ //If a tile in this word is placed on a tWS we add the score from it an extra 2 times
                         score += 2 * gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
-                        tripleScoreVisitedCells.add(gameBoard.getCell(i, tempColPositions.get(j)));
+                        tripleScoreVisitedCells.add(gameBoard.getCell(i, tempColPositions.get(j))); //Add the tile's score for a third time
                     }
                 }
                 else{
-                    break;
+                    break; //Break if we reach the end of the word
                 }
             }
             for (int i = tempRowPositions.get(j) - 1; i >= 0; i--){ //Starting from the placed tile, look for tiles to the left
                 if (gameBoard.getCell(i, tempColPositions.get(j)).getTile() != null){
-                    if (!(visitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j))))){
-                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
+                    if (!(visitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j))))){ //If the cell has not yet been visited
+                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber(); //Add the tile's score
                         visitedCells.add(gameBoard.getCell(i, tempColPositions.get(j))); //Mark this tile as visited so we don't add it's score twice in one move
                     }
                     if (!(doubleScoreVisitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j)))) && wordPointMultiplier == 2){ //If a tile in this word is placed on a DWS we add the score from it an extra time
-                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
-                        doubleScoreVisitedCells.add(gameBoard.getCell(i, tempColPositions.get(j)));
+                        score += gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber(); //Add the tile's score
+                        doubleScoreVisitedCells.add(gameBoard.getCell(i, tempColPositions.get(j))); //Add the tile's score for a second time
                     }
                     if (!(tripleScoreVisitedCells.contains(gameBoard.getCell(i, tempColPositions.get(j)))) && wordPointMultiplier == 3){ //If a tile in this word is placed on a tWS we add the score from it an extra 2 times
-                        score += 2 * gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber();
+                        score += 2 * gameBoard.getCell(i, tempColPositions.get(j)).getTile().getNumber(); //Add the tile's score for a third time
                         tripleScoreVisitedCells.add(gameBoard.getCell(i, tempColPositions.get(j)));
                     }
                 }
                 else{
-                    break;
+                    break; //Break if we reach the end of the word
                 }
             }
             for (int i = tempColPositions.get(j) + 1; i < 15; i++){ //Starting from the placed tile, look for tiles down
                 if (gameBoard.getCell(tempRowPositions.get(j), i).getTile() != null){
-                    if (!(visitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i)))){
-                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                    if (!(visitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i)))){ //If the cell has not yet been visited
+                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber(); //Add the tile's score
                         visitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i)); //Mark this tile as visited so we don't add it's score twice in one move
                     }
                     if (!(doubleScoreVisitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i))) && wordPointMultiplier == 2){ //If a tile in this word is placed on a DWS we add the score from it an extra time
-                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber(); //Add the tile's score for a second time
                         doubleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i));
                     }
                     if (!(tripleScoreVisitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i))) && wordPointMultiplier == 3){ //If a tile in this word is placed on a tWS we add the score from it an extra 2 times
-                        score += 2 * gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                        score += 2 * gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber(); //Add the tile's score for a third time
                         tripleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i));
                     }
                 }
                 else{
-                    break;
+                    break; //Break if we reach the end of the word
                 }
             }
             for (int i = tempColPositions.get(j) - 1; i >= 0; i--){ //Starting from the placed tile, look for tiles up
                 if (gameBoard.getCell(tempRowPositions.get(j), i).getTile() != null){
-                    if (!(visitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i)))){
-                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                    if (!(visitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i)))){ //If the cell has not yet been visited
+                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber(); //Add the tile's score
                         visitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i)); //Mark this tile as visited so we don't add it's score twice in one move
                     }
                     if (!(doubleScoreVisitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i))) && wordPointMultiplier == 2){ //If a tile in this word is placed on a DWS we add the score from it an extra time
-                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                        score += gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber(); //Add the tile's score for a second time
                         doubleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i));
                     }
                     if (!(tripleScoreVisitedCells.contains(gameBoard.getCell(tempRowPositions.get(j), i))) && wordPointMultiplier == 3){ //If a tile in this word is placed on a tWS we add the score from it an extra 2 times
-                        score += 2 * gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber();
+                        score += 2 * gameBoard.getCell(tempRowPositions.get(j), i).getTile().getNumber(); //Add the tile's score for a third time
                         tripleScoreVisitedCells.add(gameBoard.getCell(tempRowPositions.get(j), i));
                     }
                 }
                 else{
-                    break;
+                    break; //Break if we reach the end of the word
                 }
             }
         }
@@ -587,11 +774,14 @@ public class GameModel {
      * @param word the word to be added
      */
     public void addPlacedWord(StringBuilder word){
-        if (wordList.isValidWord(word.toString())){
+
+        savePlacedWordsInStack(); //calls a function to save the placed words in the stack
+
+        if (wordList.isValidWord(word.toString())){ //If the word is valid the way it was read, add it to the word list
             placedWords.add(word.toString());
         }
         else{
-            placedWords.add(word.reverse().toString());
+            placedWords.add(word.reverse().toString()); //If the word is not valid the way it was read, add it's reverse orientation to the word list
         }
     }
 
@@ -663,13 +853,13 @@ public class GameModel {
      * @return the letter point multiplier of the cell
      */
     public int getWordPointMultiplier(int row, int col){
-        if (gameBoard.getCell(row, col).getSpecialType() == null){
+        if (gameBoard.getCell(row, col).getSpecialType() == null){ //If the cell is not a DWS or TWS
             return 1;
         }
-        else if (gameBoard.getCell(row, col).getSpecialType().equals("DWS")){
+        else if (gameBoard.getCell(row, col).getSpecialType().equals("DWS")){ //If the cell is a DWS
             return 2;
         }
-        else if (gameBoard.getCell(row, col).getSpecialType().equals("TWS")){
+        else if (gameBoard.getCell(row, col).getSpecialType().equals("TWS")){ //If the cell is a TWS
             return 3;
         }
         return 1;
@@ -684,15 +874,149 @@ public class GameModel {
      * @return the letter point multiplier of the cell
      */
     public int getLetterPointMultiplier(int row, int col){
-        if (gameBoard.getCell(row, col).getSpecialType() == null){
+        if (gameBoard.getCell(row, col).getSpecialType() == null){ //If the cell is not a DLS or TLS
             return 1;
         }
-        else if (gameBoard.getCell(row, col).getSpecialType().equals("DLS")){
+        else if (gameBoard.getCell(row, col).getSpecialType().equals("DLS")){ //If the cell is a DLS
             return 2;
         }
-        else if (gameBoard.getCell(row, col).getSpecialType().equals("TLS")){
+        else if (gameBoard.getCell(row, col).getSpecialType().equals("TLS")){ //If the cell is a TLS
             return 3;
         }
         return 1;
+    }
+
+    /**
+     * Checks to see if the stack of board is empty.
+     * @return true if empty false otherwise
+     */
+    public boolean stackOfBoardEmpty(){
+        return boardsAtEachTurn.isEmpty();
+    }
+
+    /**
+     * Checks to see if the stack of player tiles is empty.
+     * @return true is empty false otherwise
+     */
+    public boolean stackOfPlayerTilesEmpty(){
+        return previousPlayersTiles.isEmpty();
+    }
+
+    /**
+     * Checks to see if the stack of the players scores is empty.
+     * @return true if empty false otherwise
+     */
+    public boolean stackOfPlayerScoresEmpty(){
+        return previousPlayerScores.isEmpty();
+    }
+
+    /**
+     * Checks to see if the stack of tile bags is empty.
+     * @return true if empty false otherwise.
+     */
+    public boolean stackOfTilesBagEmpty(){
+        return previousTilesBags.isEmpty();
+    }
+
+    /**
+     * Checks to see if the stack of placed words is empty.
+     * @return true if empty false otherwise
+     */
+    public boolean stackOfPlacedWordsEmpty(){
+        return previousPlacedWords.isEmpty();
+    }
+
+    /**
+     * Checks to see if the stack of players is empty.
+     * @return true if empty false otherwise
+     */
+    public boolean stackOfPlayerEmpty(){
+        return previousPlayers.isEmpty();
+    }
+
+    /**
+     * Converts the entire game state into its XML representation.
+     *
+     * @return A string representing the entire game state in XML format.
+     * The XML includes the players, game board, tiles bag, and placed words.
+     */
+    public String toXML() {
+        StringBuilder xml = new StringBuilder("<GameState>");
+
+        // Players
+        xml.append("<Players>");
+        for (Player player : players) {
+            xml.append(player.toXML());
+        }
+        xml.append("</Players>");
+
+        // GameBoard
+        xml.append(gameBoard.toXML());
+
+        // TilesBag
+        xml.append(tilesBag.toXML());
+
+        // PlacedWords
+        xml.append("<PlacedWords>");
+        for (String word : placedWords) {
+            xml.append("<Word>").append(word).append("</Word>");
+        }
+        xml.append("</PlacedWords>");
+
+        xml.append("</GameState>");
+        return xml.toString();
+    }
+
+    /**
+     * Restores the entire game state from its XML representation.
+     *
+     * @param xml The XML string representing the game state.
+     *            The XML must include the players, game board, tiles bag, and placed words.
+     */
+    public void fromXML(String xml) {
+        players.clear();
+        placedWords.clear();
+
+        // Players
+        String playersXML = xml.substring(xml.indexOf("<Players>") + 9, xml.indexOf("</Players>"));
+        while (playersXML.contains("<Player>")) {
+            int start = playersXML.indexOf("<Player>");
+            int end = playersXML.indexOf("</Player>") + 9;
+            players.add(Player.fromXML(playersXML.substring(start, end)));
+            playersXML = playersXML.substring(end);
+        }
+
+        // GameBoard
+        String boardXML = xml.substring(xml.indexOf("<Board>"), xml.indexOf("</Board>") + 8);
+        gameBoard = Board.fromXML(boardXML);
+
+        // TilesBag
+        String tilesBagXML = xml.substring(xml.indexOf("<TilesBag>"), xml.indexOf("</TilesBag>") + 11);
+        tilesBag = TilesBag.fromXML(tilesBagXML);
+
+        // PlacedWords
+        String placedWordsXML = xml.substring(xml.indexOf("<PlacedWords>") + 13, xml.indexOf("</PlacedWords>"));
+        while (placedWordsXML.contains("<Word>")) {
+            int start = placedWordsXML.indexOf("<Word>") + 6;
+            int end = placedWordsXML.indexOf("</Word>");
+            placedWords.add(placedWordsXML.substring(start, end));
+            placedWordsXML = placedWordsXML.substring(end + 7);
+        }
+    }
+
+
+
+
+    /**
+     * For the custom board.
+     */
+    public void fromCustomBoardXML(String xml) {
+        // First, clear the board to ensure no previous data is carried over
+//        Board.clearBoard();
+
+        gameBoard = Board.fromXML(xml);
+
+        System.out.println(gameBoard.toXML());
+
     }
 }

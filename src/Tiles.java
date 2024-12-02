@@ -56,4 +56,29 @@ public class Tiles{
     public String toString() {
         return this.letter + ":" + this.value + " ";
     }
+
+    /**
+     * Converts the Tiles object into its XML representation.
+     *
+     * @return A string representing the Tiles object in XML format.
+     * The XML includes the tile's letter and value.
+     */
+    public String toXML()
+    {
+        return "<Tile><Letter>" + letter + "</Letter><Value>" + value + "</Value></Tile>";
+    }
+
+    /**
+     * Creates a Tiles object from its XML representation.
+     *
+     * @param xml The XML string representing the Tiles object.
+     *            The XML must contain the tile's letter and value.
+     * @return A Tiles object initialized with the data parsed from the XML.
+     */
+    public static Tiles fromXML(String xml)
+    {
+        String letter = xml.substring(xml.indexOf("<Letter>") + 8, xml.indexOf("</Letter>"));
+        int value = Integer.parseInt(xml.substring(xml.indexOf("<Value>") + 7, xml.indexOf("</Value>")));
+        return new Tiles(letter, value);
+    }
 }

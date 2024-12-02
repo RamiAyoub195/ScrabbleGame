@@ -18,17 +18,17 @@ public class Board {
     private int rows; //rows of the board
     private int cols; //columns of the board
     private Cell[][] board; //the board od cells
-    private final int[][] tripleWordCoords = { //the coordinates for a TWS
+    private int[][] tripleWordCoords = { //the coordinates for a TWS
             {0, 0}, {0, 7}, {0, 14}, {7, 0}, {7, 14}, {14, 0}, {14, 7}, {14, 14}
     };
-    private final int[][] doubleWordCoords = { //the coordinates for a DWS
+    private int[][] doubleWordCoords = { //the coordinates for a DWS
             {1, 1}, {2, 2}, {3, 3}, {4, 4}, {13, 1}, {12, 2}, {11, 3}, {10, 4},
             {1, 13}, {2, 12}, {3, 11}, {4, 10}, {13, 13}, {12, 12}, {11, 11}, {10, 10},
     };
-    private final int[][] tripleLetterCoords = { //the coordinates for a TLS
+    private int[][] tripleLetterCoords = { //the coordinates for a TLS
             {1, 5}, {1, 9}, {5, 1}, {5, 13}, {9, 1}, {9, 13}, {13, 5}, {13, 9}
     };
-    private final int[][] doubleLetterCoords = { //the coordinates for a DLS
+    private int[][] doubleLetterCoords = { //the coordinates for a DLS
             {0, 3}, {0, 11}, {2, 6}, {2, 8}, {3, 0}, {3, 7}, {3, 14}, {6, 2},
     {6, 6}, {6, 8}, {6, 12}, {7, 3}, {7, 11}, {8, 2}, {8, 6}, {8, 8},
     {8, 12}, {11, 0}, {11, 7}, {11, 14}, {12, 6}, {12, 8}, {14, 3}, {14, 11}
@@ -46,6 +46,17 @@ public class Board {
         this.cols = cols;
         board = new Cell[rows][cols];
         setUpBoard();
+    }
+
+    /**
+     * Clears the board by creating a new board.
+     */
+    public void clearBoard() {
+        for (int i = 0; i < rows; i++) { //travreses through the rows
+            for (int j = 0; j < cols; j++) { //travreses through the cols
+                board[i][j] = new Cell(); //creates a new cell
+            }
+        }
     }
 
     /**
@@ -238,6 +249,68 @@ public class Board {
         return board[row][col];
     }
 
+    /**
+     * Converts the Board object into its XML representation.
+     *
+     * @return A string representing the Board object in XML format.
+     * The XML includes all rows and cells on the board.
+     */
+    public String toXML() {
+        StringBuilder xml = new StringBuilder("<Board>");
+        for (int i = 0; i < rows; i++) {
+            xml.append("<Row>");
+            for (int j = 0; j < cols; j++) {
+                xml.append(board[i][j].toXML());
+            }
+            xml.append("</Row>");
+        }
+        xml.append("</Board>");
+        return xml.toString();
+    }
+
+    /**
+     * Creates a Board object from its XML representation.
+     *
+     * @param xml The XML string representing the Board object.
+     *            The XML must include all rows and cells with their respective states.
+     * @return A Board object initialized with the data parsed from the XML.
+     */
+    public static Board fromXML(String xml) {
+        int rows = 15; // Assuming fixed dimensions for Scrabble
+        int cols = 15;
+        Board board = new Board(rows, cols);
+
+        String rowsXML = xml.substring(xml.indexOf("<Board>") + 8, xml.indexOf("</Board>"));
+        String[] rowEntries = rowsXML.split("</Row><Row>");
+        for (int i = 0; i < rowEntries.length; i++) {
+            rowEntries[i] = rowEntries[i].replace("<Row>", "").replace("</Row>", "");
+            String[] cellXMLs = rowEntries[i].split("</Cell><Cell>");
+            for (int j = 0; j < cellXMLs.length; j++) {
+                board.getBoard()[i][j] = Cell.fromXML("<Cell>" + cellXMLs[j] + "</Cell>");
+            }
+        }
+
+        return board;
+    }
+
+
+
+    public static void main(String[] args) {
+        Board board = new Board(15, 15);
+        board.tripleWordCoords = new int[][]{{0, 0}, {0, 14}, {14, 0}, {14, 14}};
+        board.tripleLetterCoords = new int[][]{
+                {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {8, 8}, {9, 9}, {10, 10}, {11, 11}, {12, 12}, {13, 13},
+                {1, 13}, {2, 12}, {3, 11}, {4, 10}, {5, 9}, {6, 8}, {8, 6}, {9, 5}, {10, 4}, {11, 3}, {12, 2}, {1, 13}
+        };
+        board.doubleWordCoords = new int[][]{{0, 7}, {7, 0}, {14, 7}, {7, 14}};
+        board.doubleLetterCoords = new int[][]{
+                {1, 7}, {2, 7}, {3, 7}, {4, 7}, {5, 7}, {6, 7}, {8, 7}, {9, 7}, {10, 7}, {11, 7}, {12, 7}, {13, 7},
+                {7, 1}, {7, 2}, {7, 3}, {7, 4}, {7, 5}, {7, 6}, {7, 8}, {7, 9}, {7, 10}, {7, 11}, {7, 12}, {7, 13},
+        };
+        System.out.println(board.toXML());
+
+
+    }
 }
 
 

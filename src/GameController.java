@@ -1,4 +1,10 @@
+import javax.swing.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.awt.*;
 
@@ -53,8 +59,15 @@ public class GameController implements ActionListener {
                 model.addPlayer(playerName); //creates players in the game model after getting the names from the view
             }
         }
+
         view.setUpPlayerTilesPanel(model.getPlayers().get(0)); // Set up the first player's tiles
+
+        if(view.getLoadCB()){ //if the user wants to load a customizable board
+            handleLoadCustomizableBoard(); //calls a function to load a customizable board
+        }
+
         this.view.setAllButtonsActionListener(this); //sets the controller as the action listener for all buttons in the view
+
     }
 
     /**
@@ -73,6 +86,18 @@ public class GameController implements ActionListener {
         // Pass button
         else if (e.getSource() == view.getPassButton()) {
             passButtonAction();
+        }
+        // Undo button
+        else if(e.getSource() == view.getUndoButton()){
+            undoButtonAction();
+        }
+        // Save button
+        else if (e.getSource() == view.getSaveButton()){
+            saveButtonAction();
+        }
+        // Load button
+        else if (e.getSource() == view.getLoadButton()){
+            loadButtonAction();
         }
         // Gets what tile was selected
         else if (e.getSource() == view.getSpecificPlayerTileButton(0)) {
@@ -169,7 +194,9 @@ public class GameController implements ActionListener {
             }
             // if AI player can't play then swap
             if(!AiPlacedSuccesful){
-                view.getSwapButton().doClick();
+                if(!model.isGameFinished() && !model.getTilesBag().bagOfTileIsEmpty()){ //only swaps if the game is not finished
+                    view.getSwapButton().doClick();
+                }
             }
             // next turn
             nextTurn();
@@ -206,7 +233,7 @@ public class GameController implements ActionListener {
                 }
             }
             // reset lists and buttons
-            view.enableSwapAndPass();
+            view.enableSwapPassUndoSaveLoad();
             listOfTiles.clear();
             listOfRows.clear();
             listOfCols.clear();
@@ -214,11 +241,13 @@ public class GameController implements ActionListener {
 
         // check if the game finishes at the end of this turn
         if (model.isGameFinished()) {
-            view.displayMessageToPlayer("Congrats " + model.getWinner().getName() + " won the game!");
             // Disable game if over
-            view.disablePlayAndPass();
-            view.disableSwapAndPass();
+            view.disableAllButtons();
             view.disableAllBoardCells();
+
+            //Trigger confetti animation
+            view.displayWinnerCelebration(model.getWinner().getName());
+
         }
     }
 
@@ -261,7 +290,7 @@ public class GameController implements ActionListener {
             // first swap button click tells users to select which tiles to swap
             if (numTimesSwapClicked % 2 == 0) {
                 view.displayMessageToPlayer("Select all tiles to swap then click swap button again");
-                view.disablePlayAndPass(); // disable all other buttons
+                view.disableSwapPassUndoSaveLoad(); // disable all other buttons
                 swapTileSelected = true; // set flag
                 view.resetPlayerTile();
             // on second swap button click, swap selected tiles
@@ -270,7 +299,7 @@ public class GameController implements ActionListener {
                 // update views
                 view.resetPlayerTile();
                 view.updatePlayerTiles(getCurrentPlayer());
-                view.enablePlayAndPass();
+                view.enableSwapPassUndoSaveLoad();
                 nextTurn();
                 view.enableAllBoardCells();
                 swapTileSelected = false;
@@ -324,6 +353,131 @@ public class GameController implements ActionListener {
     }
 
     /**
+     * Handles the logic for when an undo button is pressed
+     */
+    public void undoButtonAction(){
+        if(model.stackOfBoardEmpty() || model.stackOfPlayerTilesEmpty() || model.stackOfPlayerScoresEmpty() || model.stackOfTilesBagEmpty() || model.stackOfPlacedWordsEmpty() || model.stackOfPlayerEmpty()){ //if any of the stacks are empty then we are at the beginning of the game and cannot perform undo
+            view.displayMessageToPlayer("Cannot implement undo! Please place tiles first"); //lets the player now that we are at the beginning of teh game again
+        }else{ //there has been at least one played turn
+            currentTurn--; //goes back a turn
+
+            model.setBoardFromStack(); //calls a function to set the board from the stack
+            model.setPlayerTilesFromStack(); //calls a function to set the player tiles from the stack
+            model.setPlayerScoresFromStack(); //calls a function to set the player scores from the stack
+            model.setPlacedWordsFromStack(); //calls a function to set the player scores from the stack
+            model.setTilesBagFromStack(); //calls a function to set the tiles bag from the stack
+
+            if(model.getPlayerFromStack() instanceof AIPlayer){ //if the previous player was an AI Player then update the board and teh AI Player replays
+
+                view.addToWordArea(model.getPlacedWords()); //updates the view for the placeable words
+                view.updateWordCount(model.getPlacedWords()); //updates the word count for the placeable words
+                view.updateGameBoard(model.getGameBoard()); //updates the board to the previous board before it was played
+                view.updateBagTilesCount(model.getTilesBag().bagArraylist().size()); //updates the bag tiles count
+
+                for(Player player: model.getPlayers()){ //traverses through the players in the game
+                    view.updatePlayerScore(player.getName(), player.getScore()); //updates the score for the specific player
+                }
+
+                view.displayMessageToPlayer("AI player is replaying its turn."); //tells the message that the AI Player is replaying its turn
+                view.getPlayButton().doClick(); //simulate a click on the play button to make the AI play again
+            }
+            else{ //the previous player was a real player
+
+                view.addToWordArea(model.getPlacedWords()); //updates the view for the placeable words
+                view.updateWordCount(model.getPlacedWords()); //updates the word count for the placeable words
+                view.updateGameBoard(model.getGameBoard()); //updates the board to the previous board before it was played
+                view.updateBagTilesCount(model.getTilesBag().bagArraylist().size()); //updates the bag tiles count
+
+                for(Player player: model.getPlayers()){ //traverses through the players in the game
+                    view.updatePlayerScore(player.getName(), player.getScore()); //updates the score for the specific player
+                }
+
+                view.updatePlayerTiles(model.getCurrentPlayer()); // Update the tiles of the current player
+
+            }
+        }
+    }
+
+    /**
+     * Handles the logic for when a save button is pressed.
+     */
+    public void saveButtonAction(){
+        // Generate the XML representation of the current game state
+        String xml = model.toXML(); // Assuming `model` is your game model
+
+        // Create a file chooser
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save Game");
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("XML Files", "xml"));
+
+        // Show the save dialog
+        int userSelection = fileChooser.showSaveDialog(null);
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+
+            // Ensure the file has the .xml extension
+            if (!selectedFile.getName().endsWith(".xml")) {
+                selectedFile = new File(selectedFile.getAbsolutePath() + ".xml");
+            }
+
+            try {
+                // Write the XML content to the file
+                Files.write(Paths.get(selectedFile.getAbsolutePath()), xml.getBytes());
+                JOptionPane.showMessageDialog(null, "Game saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException e) {
+                // Show an error message if saving fails
+                JOptionPane.showMessageDialog(null, "Error saving file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    /**
+     * Handles the logic for when a load button is pressed.
+     */
+    public void loadButtonAction(){
+        // Create a file chooser for selecting the XML file to load
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Load Game");
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("XML Files", "xml"));
+
+        // Show the file chooser dialog and check if the user approves the selection
+        int userSelection = fileChooser.showOpenDialog(null);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+
+            try {
+                // Read the XML content from the selected file
+                String xml = Files.readString(Paths.get(selectedFile.getAbsolutePath()));
+
+                // Update the model using the loaded XML
+                model.fromXML(xml);
+
+                // Notify the user of the successful load
+                JOptionPane.showMessageDialog(null, "Game loaded successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                view.updateGameBoard(model.getGameBoard()); //updates the board to the previous board before it was played
+                view.updateBagTilesCount(model.getTilesBag().bagArraylist().size()); //updates the bag tiles count
+
+                for(Player player: model.getPlayers()){ //traverses through the players in the game
+                    view.updatePlayerScore(player.getName(), player.getScore()); //updates the score for the specific player
+                }
+
+                view.updatePlayerTiles(getCurrentPlayer()); //update the tiles of the current player
+
+            } catch (IOException e) {
+                // Handle file access errors and notify the user
+                JOptionPane.showMessageDialog(null, "Error loading the file. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            } catch (Exception e) {
+                // Handle XML parsing or other issues and notify the user
+                JOptionPane.showMessageDialog(null, "Invalid file format. Please select a valid game file.", "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
      * Handles logic when a button on the board is pressed
      * @param row row to add tile to
      * @param col column to add tile to
@@ -343,7 +497,7 @@ public class GameController implements ActionListener {
                 view.setSpecificBoardCellLetter(row, col, tileLetter); // Set button field letter
                 view.setSpecificBoardCellColour(row, col, Color.GRAY); // Set button field colour (temp letter)
                 view.setPlayerTilesColour(selectedTileCol, Color.GRAY); // Mark tile as used on board (gray)
-                view.disableSwapAndPass();
+                view.disableSwapPassUndoSaveLoad();
                 // Set tile colours
                 for (int index = 0; index < 7; index++) {
                     if (view.getSpecificPlayerTileColour(index) != Color.GRAY) {
@@ -375,7 +529,9 @@ public class GameController implements ActionListener {
         view.updatePlayerTiles(getCurrentPlayer());  // update player tiles
         // if it is an AI player's turn, initiate play
         if (isAITurn()) {
-            view.getPlayButton().doClick();
+            if(!model.isGameFinished()){ //only clicks play when the game is not finished
+                view.getPlayButton().doClick();
+            }
         }
     }
 
@@ -394,6 +550,41 @@ public class GameController implements ActionListener {
         }
         view.displayMessageToPlayer(errorMessage); // display error message
         view.resetPlayerTile(); // update view
+    }
+
+    /**
+     * Handles the logic for when players want to load a customizable board.
+     */
+    public void handleLoadCustomizableBoard(){
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Select Custom Board XML File");
+
+        // Filter to allow only XML files
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("XML Files", "xml"));
+
+        int userChoice = fileChooser.showOpenDialog(null);  // Show the file chooser
+
+        if (userChoice == JFileChooser.APPROVE_OPTION) {
+            // Get the selected file
+            File selectedFile = fileChooser.getSelectedFile();
+
+            // Read the content of the file into a string
+            try {
+                String xmlContent = new String(Files.readAllBytes(selectedFile.toPath()), StandardCharsets.UTF_8);
+
+                // Now pass this XML string to the fromXML method to update the board
+                model.fromCustomBoardXML(xmlContent);
+
+                JOptionPane.showMessageDialog(null, "Custom Board Loaded Successfully!");
+
+                view.updateGameBoard(model.getGameBoard()); //updates the board to the previous board before it was played
+
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Error reading the XML file.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "No file selected.");
+        }
     }
 
     /**

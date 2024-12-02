@@ -26,6 +26,14 @@ public class Player {
     }
 
     /**
+     * Sets the tiles of the player.
+     * @param tiles the array list of player tiles to be set
+     */
+    public void setTiles(ArrayList<Tiles> tiles) {
+        this.tiles = tiles;
+    }
+
+    /**
      * Returns the list of the players tiles.
      * @return player tiles
      */
@@ -42,6 +50,14 @@ public class Player {
     }
 
     /**
+     * Sets the score of a player.
+     * @param score the score being set
+     */
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    /**
      * Returns the score of the player.
      * @return player score
      */
@@ -55,6 +71,51 @@ public class Player {
      */
     public void addScore(int score) {
         this.score += score;
+    }
+
+    /**
+     * Converts the Player object into its XML representation.
+     *
+     * @return A string representing the Player object in XML format.
+     * The XML includes the player's name, score, and their tiles.
+     */
+    public String toXML() {
+        StringBuilder xml = new StringBuilder("<Player>");
+        xml.append("<Name>").append(name).append("</Name>")
+                .append("<Score>").append(score).append("</Score>")
+                .append("<Tiles>");
+        for (Tiles tile : tiles) {
+            xml.append(tile.toXML());
+        }
+        xml.append("</Tiles>")
+                .append("</Player>");
+        return xml.toString();
+    }
+
+    /**
+     * Creates a Player object from its XML representation.
+     *
+     * @param xml The XML string representing the Player object.
+     *            The XML must contain the player's name, score, and their tiles.
+     * @return A Player object initialized with the data parsed from the XML.
+     */
+    public static Player fromXML(String xml) {
+        String name = xml.substring(xml.indexOf("<Name>") + 6, xml.indexOf("</Name>"));
+        int score = Integer.parseInt(xml.substring(xml.indexOf("<Score>") + 7, xml.indexOf("</Score>")));
+
+        String tilesXML = xml.substring(xml.indexOf("<Tiles>") + 7, xml.indexOf("</Tiles>"));
+        ArrayList<Tiles> tiles = new ArrayList<>();
+        while (tilesXML.contains("<Tile>")) {
+            int start = tilesXML.indexOf("<Tile>");
+            int end = tilesXML.indexOf("</Tile>") + 7;
+            tiles.add(Tiles.fromXML(tilesXML.substring(start, end)));
+            tilesXML = tilesXML.substring(end);
+        }
+
+        Player player = new Player(name);
+        player.addScore(score);
+        player.tiles.addAll(tiles);
+        return player;
     }
 
 }
