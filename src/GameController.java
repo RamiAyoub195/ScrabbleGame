@@ -402,30 +402,25 @@ public class GameController implements ActionListener {
      * Handles the logic for when a save button is pressed.
      */
     public void saveButtonAction(){
-        // Generate the XML representation of the current game state
-        String xml = model.toXML(); // Assuming `model` is your game model
 
-        // Create a file chooser
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Save Game");
+        String xml = model.toXML(); //generates the XML string in the model
+
+        JFileChooser fileChooser = new JFileChooser(); //creates the popup pane for the player to choose where to put the file
+        fileChooser.setDialogTitle("Save Game"); //names it save the game
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("XML Files", "xml"));
 
-        // Show the save dialog
-        int userSelection = fileChooser.showSaveDialog(null);
+        int userSelection = fileChooser.showSaveDialog(null); //gets the selection of the user of file name
         if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
+            File selectedFile = fileChooser.getSelectedFile(); //the selected file by the users
 
-            // Ensure the file has the .xml extension
-            if (!selectedFile.getName().endsWith(".xml")) {
-                selectedFile = new File(selectedFile.getAbsolutePath() + ".xml");
+            if (!selectedFile.getName().endsWith(".xml")) { //checks if the file is a .XMl file
+                selectedFile = new File(selectedFile.getAbsolutePath() + ".xml"); //makes it an XML file extension and creates a new file with the name chosen
             }
-
             try {
-                // Write the XML content to the file
-                Files.write(Paths.get(selectedFile.getAbsolutePath()), xml.getBytes());
-                JOptionPane.showMessageDialog(null, "Game saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                Files.write(Paths.get(selectedFile.getAbsolutePath()), xml.getBytes()); //writes to the file the XMl
+                JOptionPane.showMessageDialog(null, "Game saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE); //prints a message saying it was successful
             } catch (IOException e) {
-                // Show an error message if saving fails
+                //show an error message if saving the file was unsuccessful
                 JOptionPane.showMessageDialog(null, "Error saving file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -435,46 +430,37 @@ public class GameController implements ActionListener {
      * Handles the logic for when a load button is pressed.
      */
     public void loadButtonAction(){
-        // Create a file chooser for selecting the XML file to load
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Load Game");
+
+        JFileChooser fileChooser = new JFileChooser(); //creates a file chooser popup
+        fileChooser.setDialogTitle("Load Game"); //names it load file
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("XML Files", "xml"));
 
-        // Show the file chooser dialog and check if the user approves the selection
+        //show the file chooser dialog and check if the user approves the selection
         int userSelection = fileChooser.showOpenDialog(null);
 
         if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
+            File selectedFile = fileChooser.getSelectedFile(); //gets the file that the user selected
 
             try {
-                // Read the XML content from the selected file
-                String xml = Files.readString(Paths.get(selectedFile.getAbsolutePath()));
 
-                // Update the model using the loaded XML
-                model.fromXML(xml);
+                String xml = Files.readString(Paths.get(selectedFile.getAbsolutePath())); //reads from the file and sets the xml string
 
-                // Notify the user of the successful load
-                JOptionPane.showMessageDialog(null, "Game loaded successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                model.fromXML(xml); //calls the xml method in the model
+
+                JOptionPane.showMessageDialog(null, "Game loaded successfully!", "Success", JOptionPane.INFORMATION_MESSAGE); //lets the user know that the file was loaded successfully
 
                 view.addToWordArea(model.getPlacedWords()); //updates the view for the placeable words
                 view.updateWordCount(model.getPlacedWords()); //updates the word count for the placeable words
                 view.updateGameBoard(model.getGameBoard()); //updates the board to the previous board before it was played
                 view.updateBagTilesCount(model.getTilesBag().bagArraylist().size()); //updates the bag tiles count
 
-                for(Player player: model.getPlayers()){ //traverses through the players in the game
-                    view.updatePlayerScore(player.getName(), player.getScore()); //updates the score for the specific player
-                }
+                view.updatePlayerPanel(model.getPlayers()); //updates the player panel
 
                 view.updatePlayerTiles(getCurrentPlayer()); //update the tiles of the current player
 
             } catch (IOException e) {
-                // Handle file access errors and notify the user
+                //handles the error if the file could not be loaded
                 JOptionPane.showMessageDialog(null, "Error loading the file. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
-            } catch (Exception e) {
-                // Handle XML parsing or other issues and notify the user
-                JOptionPane.showMessageDialog(null, "Invalid file format. Please select a valid game file.", "Error", JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
             }
         }
     }
@@ -558,34 +544,30 @@ public class GameController implements ActionListener {
      * Handles the logic for when players want to load a customizable board.
      */
     public void handleLoadCustomizableBoard(){
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Select Custom Board XML File");
+        JFileChooser fileChooser = new JFileChooser(); //creates the file chooser pop ou
+        fileChooser.setDialogTitle("Select Custom Board XML File"); //sets the name for the file chooser pop up
 
-        // Filter to allow only XML files
-        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("XML Files", "xml"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("XML Files", "xml")); //sets the file type as XML
 
-        int userChoice = fileChooser.showOpenDialog(null);  // Show the file chooser
+        int userChoice = fileChooser.showOpenDialog(null);  //shows the file chooser
 
         if (userChoice == JFileChooser.APPROVE_OPTION) {
-            // Get the selected file
-            File selectedFile = fileChooser.getSelectedFile();
+            File selectedFile = fileChooser.getSelectedFile();  //gets the file that was selected
 
-            // Read the content of the file into a string
             try {
-                String xmlContent = new String(Files.readAllBytes(selectedFile.toPath()), StandardCharsets.UTF_8);
+                String xmlContent = Files.readString(Paths.get(selectedFile.getAbsolutePath()));  //read the content of the file into a string
 
-                // Now pass this XML string to the fromXML method to update the board
-                model.getGameBoard().fromCustomBoardXML(xmlContent);
+                model.fromCustomBoardXML(xmlContent); //pass the XML string to the fromXML method to update the board
 
-                JOptionPane.showMessageDialog(null, "Custom Board Loaded Successfully!");
+                JOptionPane.showMessageDialog(null, "Custom Board Loaded Successfully!"); //pints a message saying that teh loading of the custom board was successful
 
                 view.updateGameBoard(model.getGameBoard()); //updates the board to the previous board before it was played
 
             } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, "Error reading the XML file.");
+                JOptionPane.showMessageDialog(null, "Error reading the XML file."); //prints a message of there was an error reading from the file
             }
         } else {
-            JOptionPane.showMessageDialog(null, "No file selected.");
+            JOptionPane.showMessageDialog(null, "No file selected."); //prints an error message if there was no file selected
         }
     }
 

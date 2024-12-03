@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 import javax.sound.sampled.*;
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -342,6 +343,30 @@ public class GameView extends JFrame {
             playerScoreFields.put(playerName, playerScoreText); //adds it to the hashmap with the players name and their score
         }
         rightSidePanel.add(playerPanel); //adds the player panel to the right side panel
+    }
+
+    /**
+     * Updates the player pane after a game has been loaded from an XML file.
+     * @param players the list of players
+     */
+    public void updatePlayerPanel(ArrayList<Player> players){
+        playerPanel.removeAll(); //clears the current player panel
+        playerScoreFields.clear(); //clears the current player score
+
+        for(Player player: players){
+            JLabel playerScoreLabel = new JLabel(player.getName() + "'s" + " Score:"); //the label for the player i score
+            JTextField playerScoreText = new JTextField(String.valueOf(player.getScore())); //the actual display for the score
+            playerScoreText.setEditable(false); //disables the text field so that it cant be editable just see the players score
+            playerScoreText.setBackground(Color.WHITE); //makes the background of the text field white
+            playerScoreText.setMaximumSize(new Dimension(30, 30)); // Set a max size to keep it small
+            playerScoreText.setHorizontalAlignment(SwingConstants.CENTER); // centers the text horizontally
+            playerPanel.add(playerScoreLabel); //adds the label
+            playerPanel.add(playerScoreText); //adds the score
+            playerScoreFields.put(player.getName(), playerScoreText); //adds it to the hashmap with the players name and their score
+        }
+
+        playerPanel.revalidate(); //updates the changes that were done
+        playerPanel.repaint(); //updates the changes that were done
     }
 
     /**
@@ -825,30 +850,54 @@ public class GameView extends JFrame {
         }
     }
 
+    /**
+     * Will display a winner message at the end of the game with the winner and will also display statistics at the
+     * end of the game for all players.
+     * @param winnerName the name of the player who won
+     */
     public void displayWinnerCelebration(String winnerName) {
 
-        // Create a celebratory message in a dialog box
-        JDialog celebrationDialog = new JDialog();
-        celebrationDialog.setTitle("Winner Celebration!");
-        celebrationDialog.setSize(1000, 1000);
-        celebrationDialog.setLayout(new BorderLayout());
-        celebrationDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        JDialog celebrationDialog = new JDialog(); //creates a JDialog that will appear to display the message
+        celebrationDialog.setTitle("Winner Celebration!"); //sets the name of the dialog
+        celebrationDialog.setSize(1000, 1000); //sets the open size of the dialog
+        celebrationDialog.setLayout(new BorderLayout()); //sets the dialog have a boarder layout
+        celebrationDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE); //makes it close
 
-            // Message Label
-        JLabel messageLabel = new JLabel("Congrats " + winnerName + ", you won the game!", SwingConstants.CENTER);
-        messageLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        messageLabel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
-        celebrationDialog.add(messageLabel, BorderLayout.NORTH);
+        JLabel messageLabel = new JLabel("Congrats " + winnerName + ", you won the game!", SwingConstants.CENTER); //a label that displays the player who won
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 20)); //sets the font and size of teh label
+        messageLabel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10)); //sets it to be centered
+        celebrationDialog.add(messageLabel, BorderLayout.NORTH); //puts it in the north of the boarder layout
 
-            // Confetti GIF Label
-        JLabel gifLabel = new JLabel();
-        gifLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        gifLabel.setIcon(new ImageIcon("youre-a-winner-winner.gif")); // Path to your confetti GIF file
-        celebrationDialog.add(gifLabel, BorderLayout.CENTER);
+        JLabel gifLabel = new JLabel(); //creates a JLabel
+        gifLabel.setHorizontalAlignment(SwingConstants.CENTER); //makes it centered
+        gifLabel.setIcon(new ImageIcon("youre-a-winner-winner.gif")); //gets the trophy gif
+        celebrationDialog.add(gifLabel, BorderLayout.CENTER); //puts it in the center layout
 
-        // Display the dialog
+        //will be set to flash the label of the winner as appearing and disappearing
+        Timer timer = new Timer(500, e -> { //creates a timer for the counting
+            messageLabel.setVisible(!messageLabel.isVisible()); //toggle visibility of the Label
+        });
+        timer.start(); //begins counting the timer
+
+        //makes sure that the timer stops counting when we close the JDialog
+        celebrationDialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                timer.stop(); //stop the timer when the dialog closes
+            }
+        });
+
+        try {
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(new File("applause.wav")); //opens the audio file with the applause
+            Clip clip = AudioSystem.getClip(); //creates a clip
+            clip.open(audioStream); //opens the file with the audio
+            clip.start(); //plays the clip
+        } catch (Exception e) {
+            e.printStackTrace(); //prints the error message
+        }
+
         celebrationDialog.setLocationRelativeTo(null);
-        celebrationDialog.setVisible(true);
+        celebrationDialog.setVisible(true); //makes it visible
     }
 
     /**

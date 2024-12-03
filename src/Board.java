@@ -18,17 +18,17 @@ public class Board {
     private int rows; //rows of the board
     private int cols; //columns of the board
     private Cell[][] board; //the board od cells
-    private final int[][] tripleWordCoords = { //the coordinates for a TWS
+    private int[][] tripleWordCoords = { //the coordinates for a TWS
             {0, 0}, {0, 7}, {0, 14}, {7, 0}, {7, 14}, {14, 0}, {14, 7}, {14, 14}
     };
-    private final int[][] doubleWordCoords = { //the coordinates for a DWS
+    private int[][] doubleWordCoords = { //the coordinates for a DWS
             {1, 1}, {2, 2}, {3, 3}, {4, 4}, {13, 1}, {12, 2}, {11, 3}, {10, 4},
             {1, 13}, {2, 12}, {3, 11}, {4, 10}, {13, 13}, {12, 12}, {11, 11}, {10, 10},
     };
-    private final int[][] tripleLetterCoords = { //the coordinates for a TLS
+    private int[][] tripleLetterCoords = { //the coordinates for a TLS
             {1, 5}, {1, 9}, {5, 1}, {5, 13}, {9, 1}, {9, 13}, {13, 5}, {13, 9}
     };
-    private final int[][] doubleLetterCoords = { //the coordinates for a DLS
+    private int[][] doubleLetterCoords = { //the coordinates for a DLS
             {0, 3}, {0, 11}, {2, 6}, {2, 8}, {3, 0}, {3, 7}, {3, 14}, {6, 2},
     {6, 6}, {6, 8}, {6, 12}, {7, 3}, {7, 11}, {8, 2}, {8, 6}, {8, 8},
     {8, 12}, {11, 0}, {11, 7}, {11, 14}, {12, 6}, {12, 8}, {14, 3}, {14, 11}
@@ -46,17 +46,6 @@ public class Board {
         this.cols = cols;
         board = new Cell[rows][cols];
         setUpBoard();
-    }
-
-    /**
-     * Clears the board by creating a new board.
-     */
-    public void clearBoard() {
-        for (int i = 0; i < rows; i++) { //travreses through the rows
-            for (int j = 0; j < cols; j++) { //travreses through the cols
-                board[i][j] = new Cell(); //creates a new cell
-            }
-        }
     }
 
     /**
@@ -164,6 +153,15 @@ public class Board {
         return newBoard; //returns the new board
     }
 
+    public void printBoard(){
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                System.out.print(board[i][j].getSpecialType() + " ");
+            }
+            System.out.println();
+        }
+    }
+
     /**
      * Checks to make sure that the tile to be placed is not already existing on the board with
      * another tile.
@@ -256,16 +254,16 @@ public class Board {
      * The XML includes all rows and cells on the board.
      */
     public String toXML() {
-        StringBuilder xml = new StringBuilder("<Board>");
-        for (int i = 0; i < rows; i++) {
-            xml.append("<Row>");
-            for (int j = 0; j < cols; j++) {
-                xml.append(board[i][j].toXML());
+        StringBuilder xml = new StringBuilder("<Board>"); //creates the tag for the board
+        for (int i = 0; i < rows; i++) { //traverses through the rows
+            xml.append("<Row>"); //creates a row tag
+            for (int j = 0; j < cols; j++) { //traverses through the columns
+                xml.append(board[i][j].toXML()); //calls the to xml method in the cell class
             }
-            xml.append("</Row>");
+            xml.append("</Row>"); //closes the tag of the row
         }
-        xml.append("</Board>");
-        return xml.toString();
+        xml.append("</Board>"); //closes the tag of the board
+        return xml.toString(); //returns the string XML
     }
 
     /**
@@ -276,64 +274,20 @@ public class Board {
      * @return A Board object initialized with the data parsed from the XML.
      */
     public static Board fromXML(String xml) {
-        int rows = 15; // Assuming fixed dimensions for Scrabble
-        int cols = 15;
-        Board board = new Board(rows, cols);
+        int rows = 15; //the row
+        int cols = 15; //the columns
+        Board board = new Board(rows, cols); //creates a new board
 
-        String rowsXML = xml.substring(xml.indexOf("<Board>") + 8, xml.indexOf("</Board>"));
-        String[] rowEntries = rowsXML.split("</Row><Row>");
-        for (int i = 0; i < rowEntries.length; i++) {
-            rowEntries[i] = rowEntries[i].replace("<Row>", "").replace("</Row>", "");
-            String[] cellXMLs = rowEntries[i].split("</Cell><Cell>");
-            for (int j = 0; j < cellXMLs.length; j++) {
-                board.getBoard()[i][j] = Cell.fromXML("<Cell>" + cellXMLs[j] + "</Cell>");
+        String rowsXML = xml.substring(xml.indexOf("<Board>") + 8, xml.indexOf("</Board>")); //will represents the XMl between the board for the rows
+        String[] rowEntries = rowsXML.split("</Row><Row>"); //will represent the row entries
+        for (int i = 0; i < rowEntries.length; i++) { //tharverses through the rows
+            rowEntries[i] = rowEntries[i].replace("<Row>", "").replace("</Row>", ""); //gets the row between the tags
+            String[] cellXMLs = rowEntries[i].split("</Cell><Cell>"); //gets the cell tags
+            for (int j = 0; j < cellXMLs.length; j++) { //traverses thr
+                board.getBoard()[i][j] = Cell.fromXML("<Cell>" + cellXMLs[j] + "</Cell>"); //calls the XMl in the cell class to create the cell
             }
         }
-
-        return board;
-    }
-
-    /**
-     * For the custom board.
-     */
-    public void fromCustomBoardXML(String xml) {
-        // First, clear the board to ensure no previous data is carried over
-        clearBoard();
-
-        // Extract the <Board> section from the XML string
-        String boardXML = xml.substring(xml.indexOf("<Board>") + 7, xml.indexOf("</Board>"));
-
-        while (boardXML.contains("<Cell>")) {
-            // Extract each <Cell> element
-            int start = boardXML.indexOf("<Cell>");
-            int end = boardXML.indexOf("</Cell>") + 7; // Include the closing tag
-
-            String cellXML = boardXML.substring(start, end); // Get the full <Cell> XML string
-
-            // Extract row and column from the cell
-            int row = Integer.parseInt(cellXML.substring(cellXML.indexOf("row=\"") + 5, cellXML.indexOf("\"", cellXML.indexOf("row=\"") + 5)));
-            int col = Integer.parseInt(cellXML.substring(cellXML.indexOf("col=\"") + 5, cellXML.indexOf("\"", cellXML.indexOf("col=\"") + 5)));
-
-            // Extract specialType (premium square, etc.)
-            String specialType = null;
-            if (cellXML.contains("<SpecialType>")) {
-                specialType = cellXML.substring(cellXML.indexOf("<SpecialType>") + 13, cellXML.indexOf("</SpecialType>"));
-            }
-
-            // Set the special type on the corresponding cell
-            getCell(row, col).setSpecialType(specialType);
-
-            // Remove the processed <Cell> XML from the string
-            boardXML = boardXML.substring(end);
-        }
-
-        // Debugging: Print the special types of the board to check if they are set correctly
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                System.out.print(board[i][j].getSpecialType() + " "); // Print each specialType
-            }
-            System.out.println(); // Newline after each row
-        }
+        return board; //returns the board after creating it based on the XMl
     }
 }
 

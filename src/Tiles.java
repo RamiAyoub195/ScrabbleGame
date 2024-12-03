@@ -65,7 +65,7 @@ public class Tiles{
      */
     public String toXML()
     {
-        return "<Tile><Letter>" + letter + "</Letter><Value>" + value + "</Value></Tile>";
+        return "<Tile><Letter>" + letter + "</Letter><Value>" + value + "</Value></Tile>"; //the XMl with the players letter and value
     }
 
     /**
@@ -77,8 +77,8 @@ public class Tiles{
      */
     public static Tiles fromXML(String xml)
     {
-        String letter = xml.substring(xml.indexOf("<Letter>") + 8, xml.indexOf("</Letter>"));
-        int value = Integer.parseInt(xml.substring(xml.indexOf("<Value>") + 7, xml.indexOf("</Value>")));
-        return new Tiles(letter, value);
+        String letter = xml.substring(xml.indexOf("<Letter>") + 8, xml.indexOf("</Letter>")); //gets the letter between the tags
+        int value = Integer.parseInt(xml.substring(xml.indexOf("<Value>") + 7, xml.indexOf("</Value>"))); //gets the value beween the tags
+        return new Tiles(letter, value); //returns a new tile created
     }
 }

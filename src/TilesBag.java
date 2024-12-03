@@ -133,12 +133,12 @@ public class TilesBag {
      * The XML includes all tiles currently in the bag.
      */
     public String toXML() {
-        StringBuilder xml = new StringBuilder("<TilesBag>");
-        for (Tiles tile : tilesBag) {
-            xml.append(tile.toXML());
+        StringBuilder xml = new StringBuilder("<TilesBag>"); //creates the tag of teh tile bag
+        for (Tiles tile : tilesBag) { //traverses through the tiles of the tile bag
+            xml.append(tile.toXML()); //appends it and calls the xml method in the tile class
         }
-        xml.append("</TilesBag>");
-        return xml.toString();
+        xml.append("</TilesBag>"); //closes the tag of the tiles bag
+        return xml.toString(); //returns the xml string
     }
 
     /**
@@ -149,17 +149,17 @@ public class TilesBag {
      * @return A TilesBag object initialized with the data parsed from the XML.
      */
     public static TilesBag fromXML(String xml) {
-        TilesBag tilesBag = new TilesBag();
-        tilesBag.tilesBag.clear(); // Clear default initialization
+        TilesBag tilesBag = new TilesBag(); //creates a new tile bag
+        tilesBag.tilesBag.clear();
 
-        String tilesXML = xml.substring(xml.indexOf("<TilesBag>") + 10, xml.indexOf("</TilesBag>"));
+        String tilesXML = xml.substring(xml.indexOf("<TilesBag>") + 10, xml.indexOf("</TilesBag>")); //get the tiles between the tag
         while (tilesXML.contains("<Tile>")) {
-            int start = tilesXML.indexOf("<Tile>");
-            int end = tilesXML.indexOf("</Tile>") + 7;
-            tilesBag.tilesBag.add(Tiles.fromXML(tilesXML.substring(start, end)));
+            int start = tilesXML.indexOf("<Tile>"); //teh start of the tag
+            int end = tilesXML.indexOf("</Tile>") + 7; //the end of the tag
+            tilesBag.tilesBag.add(Tiles.fromXML(tilesXML.substring(start, end))); //creates a new tile and adds it to the tiles bag array list of tiles
             tilesXML = tilesXML.substring(end);
         }
-        return tilesBag;
+        return tilesBag; //returns the created tiles bag
     }
 
 

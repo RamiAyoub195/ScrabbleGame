@@ -716,11 +716,11 @@ public class GameModel {
         if (tilesBag.bagOfTileIsEmpty()) {
             return; // No tiles to swap
         }
-        for (int index : tileIndices) { //gets the tiles the player wants to swap
-            Tiles t = player.getTiles().get(index); //get the tile
-            player.getTiles().remove(index); //removes from the player
-            replaceSwappedTile(player, index); //gets a new tile from array list bag
-            tilesBag.bagArraylist().add(t); //adds it bad to the array list bag
+        for (int index : tileIndices) { // gets the tiles the player wants to swap
+            Tiles t = player.getTiles().get(index); // get the tile
+            player.getTiles().remove(index); // removes from the player
+            replaceSwappedTile(player, index); // gets a new tile from array list bag
+            tilesBag.bagArraylist().add(t); // adds it bad to the array list bag
         }
     }
 
@@ -733,8 +733,8 @@ public class GameModel {
      */
     public void getRandomTiles(int numOfTiles, Player player){
         for (int i = 0; i < numOfTiles; i++){
-            int rnd = rand.nextInt(tilesBag.bagArraylist().size()); //random index
-            player.getTiles().add(tilesBag.bagArraylist().get(rnd)); //gets random tile
+            int rnd = rand.nextInt(tilesBag.bagArraylist().size()); // random index
+            player.getTiles().add(tilesBag.bagArraylist().get(rnd)); // gets random tile
             tilesBag.bagArraylist().remove(rnd); //removes it from bag
         }
     }
@@ -823,25 +823,6 @@ public class GameModel {
             }
         }
         return tempTiles;
-    }
-
-    /**
-     * Gets all possible coordinates to place a tile on the board based on a row or column number and
-     * length of word.
-     * @param number the starting row or column.
-     * @param range the end of row or column.
-     * @return list of range row or column.
-     */
-    public static ArrayList<Integer> getAllPossibleEntries(int number, int range) {
-        ArrayList<Integer> result = new ArrayList<>();
-        for (int i = 0; i <= range; i++) {
-            if (number + i <= 14) {
-                result.add(number + i);
-            } else {
-                break;
-            }
-        }
-        return result;
     }
 
     /**
@@ -941,30 +922,26 @@ public class GameModel {
      * The XML includes the players, game board, tiles bag, and placed words.
      */
     public String toXML() {
-        StringBuilder xml = new StringBuilder("<GameState>");
+        StringBuilder xml = new StringBuilder("<GameState>"); //creates the main tag for the game as a string builder
 
-        // Players
-        xml.append("<Players>");
-        for (Player player : players) {
-            xml.append(player.toXML());
+        xml.append("<Players>"); //creates and appends the players tage
+        for (Player player : players) { //traverses through the players
+            xml.append(player.toXML()); //calls the toXMl method in the players class and appends it
         }
-        xml.append("</Players>");
+        xml.append("</Players>"); //closes the tag for the players
 
-        // GameBoard
-        xml.append(gameBoard.toXML());
+        xml.append(gameBoard.toXML()); //calls the toXMl method for the game boar in the board class
 
-        // TilesBag
-        xml.append(tilesBag.toXML());
+        xml.append(tilesBag.toXML()); //calls the toXMl method for the tiles bag class
 
-        // PlacedWords
-        xml.append("<PlacedWords>");
-        for (String word : placedWords) {
-            xml.append("<Word>").append(word).append("</Word>");
+        xml.append("<PlacedWords>"); //appends the tag of the placed words tag
+        for (String word : placedWords) { //traverses through the list of placed words
+            xml.append("<Word>").append(word).append("</Word>"); //appends the placed word between the tags of a word
         }
-        xml.append("</PlacedWords>");
+        xml.append("</PlacedWords>"); //closes of the tag of the placed word
 
-        xml.append("</GameState>");
-        return xml.toString();
+        xml.append("</GameState>"); //closes of the tag for the main tag of the game
+        return xml.toString(); //returns the XML as a string
     }
 
     /**
@@ -974,33 +951,38 @@ public class GameModel {
      *            The XML must include the players, game board, tiles bag, and placed words.
      */
     public void fromXML(String xml) {
-        players.clear();
-        placedWords.clear();
+        players.clear(); //clears the current players that were in the game
+        placedWords.clear(); //clears the current placed words in the game
 
-        // Players
-        String playersXML = xml.substring(xml.indexOf("<Players>") + 9, xml.indexOf("</Players>"));
-        while (playersXML.contains("<Player>")) {
-            int start = playersXML.indexOf("<Player>");
-            int end = playersXML.indexOf("</Player>") + 9;
-            players.add(Player.fromXML(playersXML.substring(start, end)));
-            playersXML = playersXML.substring(end);
+        String playersXML = xml.substring(xml.indexOf("<Players>") + 9, xml.indexOf("</Players>")); //will be the XML string that recognizes the players
+        while (playersXML.contains("<Player>")) { //traverses through the tags of the player
+            int start = playersXML.indexOf("<Player>"); //the start tag of a player
+            int end = playersXML.indexOf("</Player>") + 9; //the end tag of a player
+            players.add(Player.fromXML(playersXML.substring(start, end))); //creates a player by getting its name between the player tag
+            playersXML = playersXML.substring(end);  //moves to the next tag
         }
 
-        // GameBoard
-        String boardXML = xml.substring(xml.indexOf("<Board>"), xml.indexOf("</Board>") + 8);
-        gameBoard = Board.fromXML(boardXML);
+        String boardXML = xml.substring(xml.indexOf("<Board>"), xml.indexOf("</Board>") + 8); //will be the XML sting that represents the board
+        gameBoard = Board.fromXML(boardXML); //calls the XML method in the board class to load the game board
 
-        // TilesBag
-        String tilesBagXML = xml.substring(xml.indexOf("<TilesBag>"), xml.indexOf("</TilesBag>") + 11);
-        tilesBag = TilesBag.fromXML(tilesBagXML);
+        String tilesBagXML = xml.substring(xml.indexOf("<TilesBag>"), xml.indexOf("</TilesBag>") + 11); //will be the XML sting that represents the tilesBag
+        tilesBag = TilesBag.fromXML(tilesBagXML); //calls the XML method in the tilesBag class to load the game board
 
-        // PlacedWords
-        String placedWordsXML = xml.substring(xml.indexOf("<PlacedWords>") + 13, xml.indexOf("</PlacedWords>"));
-        while (placedWordsXML.contains("<Word>")) {
-            int start = placedWordsXML.indexOf("<Word>") + 6;
-            int end = placedWordsXML.indexOf("</Word>");
-            placedWords.add(placedWordsXML.substring(start, end));
-            placedWordsXML = placedWordsXML.substring(end + 7);
+        String placedWordsXML = xml.substring(xml.indexOf("<PlacedWords>") + 13, xml.indexOf("</PlacedWords>")); //will be the XML sting that represents the placed words
+        while (placedWordsXML.contains("<Word>")) { //travreses through the word tags
+            int start = placedWordsXML.indexOf("<Word>") + 6; //gets the start of a word tag
+            int end = placedWordsXML.indexOf("</Word>"); //gets the end of the word tag
+            placedWords.add(placedWordsXML.substring(start, end)); //gets the word between the tags and adds it to the array list of words
+            placedWordsXML = placedWordsXML.substring(end + 7); //moves to the next tag
         }
+    }
+
+    /**
+     * For the custom board calls the from XML method in the board class to load up the custom board.
+     * @param xml the XMl string for the custom board
+     */
+    public void fromCustomBoardXML(String xml) {
+        gameBoard = Board.fromXML(xml).copyBoard();
+        gameBoard.printBoard();
     }
 }

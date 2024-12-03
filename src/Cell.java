@@ -80,15 +80,15 @@ public class Cell
      * The XML includes the tile (if any) and the special type of the cell (if any).
      */
     public String toXML() {
-        StringBuilder xml = new StringBuilder("<Cell>");
-        if (tile != null) {
-            xml.append(tile.toXML());
+        StringBuilder xml = new StringBuilder("<Cell>"); //creates the cell tag
+        if (tile != null) { //if the cell is occupied
+            xml.append(tile.toXML()); //calls and appends the toXMl from the tile class
         }
-        if (specialType != null) {
-            xml.append("<SpecialType>").append(specialType).append("</SpecialType>");
+        if (specialType != null) { //if it's a special square
+            xml.append("<SpecialType>").append(specialType).append("</SpecialType>"); //appends the special type of the cell
         }
-        xml.append("</Cell>");
-        return xml.toString();
+        xml.append("</Cell>"); //closes of the cell tag
+        return xml.toString(); //returns the XML string
     }
 
     /**
@@ -99,17 +99,17 @@ public class Cell
      * @return A Cell object initialized with the data parsed from the XML.
      */
     public static Cell fromXML(String xml) {
-        Cell cell = new Cell();
+        Cell cell = new Cell(); //creates a new cell
 
-        if (xml.contains("<Tile>")) {
-            String tileXML = xml.substring(xml.indexOf("<Tile>"), xml.indexOf("</Tile>") + 7);
-            cell.placeTile(Tiles.fromXML(tileXML));
+        if (xml.contains("<Tile>")) { //if there is a tile
+            String tileXML = xml.substring(xml.indexOf("<Tile>"), xml.indexOf("</Tile>") + 7); //creates the tile tag with the tile values
+            cell.placeTile(Tiles.fromXML(tileXML)); //calls the XML method of the tile and places that tile
         }
-        if (xml.contains("<SpecialType>")) {
-            String specialType = xml.substring(xml.indexOf("<SpecialType>") + 13, xml.indexOf("</SpecialType>"));
-            cell.setSpecialType(specialType);
+        if (xml.contains("<SpecialType>")) { //if there is a special type
+            String specialType = xml.substring(xml.indexOf("<SpecialType>") + 13, xml.indexOf("</SpecialType>")); //creates the tile tag with the special type
+            cell.setSpecialType(specialType); //sets the special type of the cell
         }
-        return cell;
+        return cell; //returns the created cell
     }
 
 }
