@@ -963,7 +963,7 @@ public class GameModel {
         }
 
         String boardXML = xml.substring(xml.indexOf("<Board>"), xml.indexOf("</Board>") + 8); //will be the XML sting that represents the board
-        gameBoard = Board.fromXML(boardXML); //calls the XML method in the board class to load the game board
+        gameBoard = Board.fromXML(boardXML).copyBoard(); //calls the XML method in the board class to load the game board
 
         String tilesBagXML = xml.substring(xml.indexOf("<TilesBag>"), xml.indexOf("</TilesBag>") + 11); //will be the XML sting that represents the tilesBag
         tilesBag = TilesBag.fromXML(tilesBagXML); //calls the XML method in the tilesBag class to load the game board
@@ -978,7 +978,7 @@ public class GameModel {
     }
 
     /**
-     * For the custom board calls the from XML method in the board class to load up the custom board.
+     * For the custom board calls the XML method in the board class to load up the custom board.
      * @param xml the XMl string for the custom board
      */
     public void fromCustomBoardXML(String xml) {

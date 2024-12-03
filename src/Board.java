@@ -77,6 +77,18 @@ public class Board {
     }
 
     /**
+     * Clears the board by creating a new board.
+     */
+    public void clearBoard() {
+        for (int i = 0; i < rows; i++) { //travreses through the rows
+            for (int j = 0; j < cols; j++) { //travreses through the cols
+                board[i][j] = new Cell(); //creates a new cell
+            }
+        }
+    }
+
+
+    /**
      * Checks if a specific row and col is a TWS square.
      *
      * @param row the row
@@ -278,9 +290,10 @@ public class Board {
         int cols = 15; //the columns
         Board board = new Board(rows, cols); //creates a new board
 
-        String rowsXML = xml.substring(xml.indexOf("<Board>") + 8, xml.indexOf("</Board>")); //will represents the XMl between the board for the rows
+
+        String rowsXML = xml.substring(xml.indexOf("<Board>") + 8, xml.indexOf("</Board>")); //will represent the XMl between the board for the rows
         String[] rowEntries = rowsXML.split("</Row><Row>"); //will represent the row entries
-        for (int i = 0; i < rowEntries.length; i++) { //tharverses through the rows
+        for (int i = 0; i < rowEntries.length; i++) { //traverse through the rows
             rowEntries[i] = rowEntries[i].replace("<Row>", "").replace("</Row>", ""); //gets the row between the tags
             String[] cellXMLs = rowEntries[i].split("</Cell><Cell>"); //gets the cell tags
             for (int j = 0; j < cellXMLs.length; j++) { //traverses thr

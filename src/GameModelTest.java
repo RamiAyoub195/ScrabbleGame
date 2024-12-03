@@ -245,20 +245,75 @@ public class GameModelTest {
         assertEquals(game.getPlayers().get(0).getTiles().size(), 7); //Test player is back at 7 tiles after swap
     }
 
+    /**
+     * Tests the save and load functionality for saving a game and reloading.
+     */
     @Test
     public void testSaveAndLoadGame()
     {
+        GameModel game = new GameModel(); //creates a game
+        game.addPlayer("Louis"); //sets the players name and adds them
+        game.addPlayer("Rami"); //sets the players name and adds them
+
+        ArrayList<Tiles> tiles = new ArrayList<>();
+        tiles.add(new Tiles("T", 1)); //tiles to be places as a test
+        tiles.add(new Tiles("E", 1)); //tiles to be places as a test
+        tiles.add(new Tiles("S", 1)); //tiles to be places as a test
+        tiles.add(new Tiles("T", 1)); //tiles to be places as a test
+        ArrayList<Integer> rowPositions = new ArrayList<>();
+        rowPositions.add(7); //the row position
+        rowPositions.add(7); //the row position
+        rowPositions.add(7); //the row position
+        rowPositions.add(7); //the row position
+        ArrayList<Integer> colPositions = new ArrayList<>();
+        colPositions.add(7); //the col position
+        colPositions.add(8); //the col position
+        colPositions.add(9); //the col position
+        colPositions.add(10); //the col position
+
+        game.playerPlaceTile(game.getPlayers().get(0), tiles, rowPositions, colPositions); //places the tiles
+
+        String savedXML = game.toXML(); //saves the XML
+
+        GameModel loadedGame = new GameModel(); //creates a new game
+        loadedGame.fromXML(savedXML); //applies the XML taht was just created
+
+
+        assertEquals(game.getPlayers().size(), loadedGame.getPlayers().size()); //checks to make sure the sizes of playesr are the same
+
+        assertEquals(game.getPlayers().get(0).getName(), loadedGame.getPlayers().get(0).getName()); //checks the same name
+        assertEquals(game.getPlayers().get(0).getScore(), loadedGame.getPlayers().get(0).getScore()); //checks the score name
+
+        assertEquals(game.getPlayers().get(1).getName(), loadedGame.getPlayers().get(1).getName()); //checks the same name
+        assertEquals(game.getPlayers().get(1).getScore(), loadedGame.getPlayers().get(1).getScore()); //checks the score name
+
+        assertEquals(game.getPlayers().get(0).getTiles().size(), loadedGame.getPlayers().get(0).getTiles().size()); //checks the same tiles size
+        assertEquals(game.getPlayers().get(1).getTiles().size(), loadedGame.getPlayers().get(1).getTiles().size()); //checks the same tiles size
+
+        assertEquals(game.getGameBoard().getCell(7, 7).getTile().getLetter(), loadedGame.getGameBoard().getCell(7, 7).getTile().getLetter()); //checks t placement
+        assertEquals(game.getGameBoard().getCell(7, 8).getTile().getLetter(), loadedGame.getGameBoard().getCell(7, 8).getTile().getLetter()); //checks e placement
+        assertEquals(game.getGameBoard().getCell(7, 9).getTile().getLetter(), loadedGame.getGameBoard().getCell(7, 9).getTile().getLetter()); //checks s placement
+        assertEquals(game.getGameBoard().getCell(7, 10).getTile().getLetter(), loadedGame.getGameBoard().getCell(7, 10).getTile().getLetter()); //checks t placement
+
+        assertEquals(game.getTilesBag().bagArraylist().size(), loadedGame.getTilesBag().bagArraylist().size()); //checks the same size as the array list of tiles
+    }
+
+    /**
+     * Tests the undo functionality in the game.
+     */
+    @Test
+    public void testUndoGame(){
+
         GameModel game = new GameModel();
         game.addPlayer("Louis");
-        game.addPlayer("Rami");
+        assertEquals(game.getPlayers().get(0).getScore(), 0); //Test that new player has 0 score
 
         ArrayList<Tiles> tiles = new ArrayList<>();
         tiles.add(new Tiles("T", 1));
-        tiles.add(new Tiles("E", 1));
-        tiles.add(new Tiles("S", 1));
-        tiles.add(new Tiles("T", 1));
+        tiles.add(new Tiles("A", 1));
+        tiles.add(new Tiles("N", 1));
+
         ArrayList<Integer> rowPositions = new ArrayList<>();
-        rowPositions.add(7);
         rowPositions.add(7);
         rowPositions.add(7);
         rowPositions.add(7);
@@ -266,21 +321,45 @@ public class GameModelTest {
         colPositions.add(7);
         colPositions.add(8);
         colPositions.add(9);
-        colPositions.add(10);
 
         game.playerPlaceTile(game.getPlayers().get(0), tiles, rowPositions, colPositions);
+        assertEquals(game.getPlayers().get(0).getScore(), 3);
 
-        String savedXML = game.toXML();
+        assertFalse(game.stackOfBoardEmpty()); //makes sure it was added to the stack
+        assertFalse(game.stackOfPlayerEmpty()); //makes sure it was added to the stack
+        assertFalse(game.stackOfPlacedWordsEmpty()); //makes sure it was added to the stack
+        assertFalse(game.stackOfPlayerScoresEmpty()); //makes sure it was added to the stack
+        assertFalse(game.stackOfTilesBagEmpty()); //makes sure it was added to the stack
+        assertFalse(game.stackOfPlayerTilesEmpty()); //makes sure it was added to the stack
 
-        GameModel loadedGame = new GameModel();
-        loadedGame.fromXML(savedXML);
+        ArrayList<Tiles> tiles2 = new ArrayList<>(); //Extend tan to stan
+        tiles2.add(new Tiles("S", 1));
+        ArrayList<Integer> rowPositions2 = new ArrayList<>();
+        rowPositions2.add(7);
+        ArrayList<Integer> colPositions2 = new ArrayList<>();
+        colPositions2.add(6);
+        game.playerPlaceTile(game.getPlayers().get(0), tiles2, rowPositions2, colPositions2);
+        assertEquals(game.getPlayers().get(0).getScore(), 7); //Test that 4 points are added by extending tan to stan
 
-        System.out.println(savedXML);
+        assertEquals("Louis", game.getPlayerFromStack().getName());
 
-        assertEquals(game.getPlayers().size(), loadedGame.getPlayers().size());
-        assertEquals(game.getPlayers().get(0).getName(), loadedGame.getPlayers().get(0).getName());
-        assertEquals(game.getPlayers().get(0).getScore(), loadedGame.getPlayers().get(0).getScore());
-        assertEquals(game.getGameBoard().getCell(7, 7).getTile().getLetter(), loadedGame.getGameBoard().getCell(7, 7).getTile().getLetter());
-        assertEquals(game.getGameBoard().getCell(7, 8).getTile().getLetter(), loadedGame.getGameBoard().getCell(7, 8).getTile().getLetter());
+        game.setBoardFromStack(); //sets the board from the stack back to tan only
+
+        assertFalse(game.getGameBoard().getCell(7, 6).isOccupied()); //makes sure that the s is not there
+
+        game.setPlayerScoresFromStack(); //sets the previous score
+
+        assertEquals(game.getPlayers().get(0).getScore(), 3);
+
+        game.setBoardFromStack(); //sets the board from the stack back to tan only
+
+        assertFalse(game.getGameBoard().getCell(7, 7).isOccupied()); //makes sure that the t is not there
+        assertFalse(game.getGameBoard().getCell(7, 8).isOccupied()); //makes sure that the a is not there
+        assertFalse(game.getGameBoard().getCell(7, 9).isOccupied()); //makes sure that the n is not there
+
+        game.setPlayerScoresFromStack(); //sets the previous score
+        assertEquals(game.getPlayers().get(0).getScore(), 0);
+
     }
+
 }

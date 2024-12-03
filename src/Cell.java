@@ -102,7 +102,7 @@ public class Cell
         Cell cell = new Cell(); //creates a new cell
 
         if (xml.contains("<Tile>")) { //if there is a tile
-            String tileXML = xml.substring(xml.indexOf("<Tile>"), xml.indexOf("</Tile>") + 7); //creates the tile tag with the tile values
+            String tileXML = xml.substring(xml.indexOf("<Tile>") + 7, xml.indexOf("</Tile>")); //creates the tile tag with the tile values
             cell.placeTile(Tiles.fromXML(tileXML)); //calls the XML method of the tile and places that tile
         }
         if (xml.contains("<SpecialType>")) { //if there is a special type
