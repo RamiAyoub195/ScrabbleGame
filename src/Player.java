@@ -4,8 +4,8 @@ import java.util.*;
  * a score. Each player can play tile(s), can swap tile(s) or skip their turn.
  *
  * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
- * Version: 3.0
- * Date: Sunday, November 17, 2024
+ * Version: 5.0
+ * Date: Tuesday, December 3, 2024
  *
  */
 

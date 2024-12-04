@@ -6,8 +6,8 @@ import java.util.*;
  * Each word that a player places will be checked for adjacency, valid word etc.
  *
  * Author(s): Rami Ayoub, Louis Pantazopoulos, Andrew Tawfik, Liam Bennet
- * Version: 3.0
- * Date: Sunday, November 17, 2024
+ * Version: 5.0
+ * Date: Tuesday, December 3, 2024
  */
 
 public class GameModel {
@@ -982,7 +982,6 @@ public class GameModel {
      * @param xml the XMl string for the custom board
      */
     public void fromCustomBoardXML(String xml) {
-        gameBoard = Board.fromXML(xml).copyBoard();
-        gameBoard.printBoard();
+        gameBoard.setUpCustomBoard(xml); //sets up the customizable board
     }
 }

@@ -14,8 +14,8 @@ import java.awt.*;
  * also return the logic from the model to the view updating the scores, words placed, etc.
  *
  * Author(s): Rami Ayoub, Louis Pantazopoulos, Andrew Tawfik, Liam Bennet
- * Version: 3.0
- * Date: Sunday, November 24, 2024
+ * Version: 5.0
+ * Date: Tuesday, December 3, 2024
  */
 
 public class GameController implements ActionListener {
@@ -559,9 +559,9 @@ public class GameController implements ActionListener {
 
                 model.fromCustomBoardXML(xmlContent); //pass the XML string to the fromXML method to update the board
 
-                JOptionPane.showMessageDialog(null, "Custom Board Loaded Successfully!"); //pints a message saying that teh loading of the custom board was successful
-
                 view.updateGameBoard(model.getGameBoard()); //updates the board to the previous board before it was played
+
+                JOptionPane.showMessageDialog(null, "Custom Board Loaded Successfully!"); //pints a message saying that teh loading of the custom board was successful
 
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, "Error reading the XML file."); //prints a message of there was an error reading from the file

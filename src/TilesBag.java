@@ -9,8 +9,8 @@ import java.util.*;
  * The value of each tile letter: https://hasbro-new.custhelp.com/app/answers/detail/a_id/55/related/1/session/L2F2LzEvdGltZS8xNzMyMjk4ODc3L2dlbi8xNzMyMjk4ODc3L3NpZC9mVUtjZkRYRUUxS3AlN0VVTEU0Slhidm1TcE5OaWdIOGN5dFVxU2Q1X0tyWFFucFRjZ3ZXdjFmeXQlN0VTSkY0JTdFUUZMMEdoanhaVjU0SjdBRHhYZEZtXzFWN2tuY2M4JTdFcjZLUXZrNXhVX01wN0hGWVRDXzU0bGhjTFJQUSUyMSUyMQ==
  *
  * Author(s): Rami Ayoub, Andrew Tawfik, Louis Pantazopoulos, Liam Bennet
- * Version: 3.0
- * Date: Sunday, November 17, 2024
+ * Version: 5.0
+ * Date: Tuesday, December 3, 2024
  *
  */
 

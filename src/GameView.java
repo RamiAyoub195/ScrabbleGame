@@ -1,6 +1,4 @@
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import javax.sound.sampled.*;
 import javax.swing.*;
@@ -18,8 +16,8 @@ import java.awt.event.*;
  * To pass the turn just press pass.
  *
  * Author(s): Rami Ayoub, Louis Pantazopoulos, Andrew Tawfik, Liam Bennet
- * Version: 3.0
- * Date: Sunday, November 17, 2024
+ * Version: 5.0
+ * Date: Tuesday, December 3, 2024
  */
 
 
@@ -816,21 +814,21 @@ public class GameView extends JFrame {
                     updateBoardCell(board.getBoard()[i][j].getTile(), i, j); //updates it with the tile on there
                 }
                 else{ //if the cell board is not occupied with a tile
-                    if (isTripleWordSquare(i , j)){ //checks to see if it's a triple word square
+                    if (board.getBoard()[i][j].getSpecialType() != null && board.getBoard()[i][j].getSpecialType().equals("TWS")){ //checks to see if it's a triple word square
                         boardCells[i][j].setBackground(Color.RED); // Makes the color of the tile red
                         boardCells[i][j].setText("TWS"); //sets it as a TWS
                         boardCells[i][j].setEnabled(true);
-                    } else if (isDoubleWordSquare(i , j )) { //checks to see if it's a double word square
+                    } else if (board.getBoard()[i][j].getSpecialType() != null && board.getBoard()[i][j].getSpecialType().equals("DWS")) { //checks to see if it's a double word square
                         boardCells[i][j].setBackground(Color.PINK); //makes the color pink
                         boardCells[i][j].setText("DWS"); //sets it as DWS
                         boardCells[i][j].setEnabled(true);
                     }
-                    else if (isTripleLetterSquare(i , j )){ //checks to see if it's triple letter square
+                    else if (board.getBoard()[i][j].getSpecialType() != null && board.getBoard()[i][j].getSpecialType().equals("TLS")){ //checks to see if it's triple letter square
                         boardCells[i][j].setBackground(Color.BLUE); //makes the square blue
                         boardCells[i][j].setText("TLS"); //makes it TWS
                         boardCells[i][j].setEnabled(true);
                     }
-                    else if (isDoubleLetterSquare(i , j )) { //checks to see its it's a double letter square
+                    else if (board.getBoard()[i][j].getSpecialType() != null && board.getBoard()[i][j].getSpecialType().equals("DLS")) { //checks to see its it's a double letter square
                         boardCells[i][j].setBackground(Color.CYAN); //makes the color cyan
                         boardCells[i][j].setText("DLS"); //makes it DWS
                         boardCells[i][j].setEnabled(true);
@@ -849,6 +847,10 @@ public class GameView extends JFrame {
             }
         }
     }
+
+    /**
+     * Displays the custom board that was loaded into the game by the player.
+     */
 
     /**
      * Will display a winner message at the end of the game with the winner and will also display statistics at the

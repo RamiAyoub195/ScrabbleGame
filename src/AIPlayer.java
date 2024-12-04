@@ -6,8 +6,8 @@ import java.util.*;
  * The AI's object just like the players objective is to win the game by gathering the most points.
  *
  * Author(s): Rami Ayoub, Louis Pantazopoulos, Andrew Tawfik, Liam Bennet
- * Version: 3.0
- * Date: Wednesday, November 20th, 2024
+ * Version: 5.0
+ * Date: Tuesday, December 3, 2024
  */
 
 public class AIPlayer extends Player {

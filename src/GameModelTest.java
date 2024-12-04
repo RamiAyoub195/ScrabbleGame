@@ -8,9 +8,9 @@ import static org.junit.Assert.*;
  * These are the test cases for the game ensuring that a word was placed properly and
  * the player scores are adjusted accordingly.
  *
- * Author(s): Louis Pantazopoulos
+ * Author(s): Rami Ayoub, Louis Pantazopoulos, Andrew Tawfik, Liam Bennet
  * Version: 3.0
- * Date: Sunday, November 17, 2024
+ * Date: Tuesday, December 3, 2024
  */
 
 public class GameModelTest {

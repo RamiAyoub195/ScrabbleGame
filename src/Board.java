@@ -8,8 +8,8 @@ import java.util.*;
  * which can be found for the logic in the website page provided.: https://en.wikipedia.org/wiki/Scrabble (section of premium squares gives the coordinates)
  *
  * Author(s): Rami Ayoub, Louis Pantazopoulos, Andrew Tawfik, Liam bennet
- * Version: 3.0
- * Date: Sunday, November 17, 2024
+ * Version: 5.0
+ * Date: Tuesday, December 3, 2024
  *
  */
 
@@ -75,18 +75,6 @@ public class Board {
             }
         }
     }
-
-    /**
-     * Clears the board by creating a new board.
-     */
-    public void clearBoard() {
-        for (int i = 0; i < rows; i++) { //travreses through the rows
-            for (int j = 0; j < cols; j++) { //travreses through the cols
-                board[i][j] = new Cell(); //creates a new cell
-            }
-        }
-    }
-
 
     /**
      * Checks if a specific row and col is a TWS square.
@@ -163,15 +151,6 @@ public class Board {
             }
         }
         return newBoard; //returns the new board
-    }
-
-    public void printBoard(){
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                System.out.print(board[i][j].getSpecialType() + " ");
-            }
-            System.out.println();
-        }
     }
 
     /**
@@ -290,7 +269,6 @@ public class Board {
         int cols = 15; //the columns
         Board board = new Board(rows, cols); //creates a new board
 
-
         String rowsXML = xml.substring(xml.indexOf("<Board>") + 8, xml.indexOf("</Board>")); //will represent the XMl between the board for the rows
         String[] rowEntries = rowsXML.split("</Row><Row>"); //will represent the row entries
         for (int i = 0; i < rowEntries.length; i++) { //traverse through the rows
@@ -301,6 +279,28 @@ public class Board {
             }
         }
         return board; //returns the board after creating it based on the XMl
+    }
+
+    public void setUpCustomBoard(String xml){
+        String rowsXML = xml.substring(xml.indexOf("<Board>") + 8, xml.indexOf("</Board>")); //will represent the XMl between the board for the rows
+        String[] rowEntries = rowsXML.split("</Row><Row>"); //will represent the row entries
+        for (int i = 0; i < rowEntries.length; i++) { //traverse through the rows
+            rowEntries[i] = rowEntries[i].replace("<Row>", "").replace("</Row>", ""); //gets the row between the tags
+            String[] cellXMLs = rowEntries[i].split("</Cell><Cell>"); //gets the cell tags
+
+            for (int j = 0; j < cellXMLs.length; j++) { //traverses through the length of the CellXML
+                String cellXML = "<Cell>" + cellXMLs[j] + "</Cell>"; // Reconstruct the XML for the current cell
+                board[i][j] = new Cell(); //creates a new cell
+
+                if (cellXML.contains("<SpecialType>")) { //check for the SpecialType tag
+                    String specialType = cellXML.substring(
+                            cellXML.indexOf("<SpecialType>") + 13, //start after the opening tag
+                            cellXML.indexOf("</SpecialType>") //end before the closing tag
+                    );
+                    board[i][j].setSpecialType(specialType); //set the special type for the cell
+                }
+            }
+        }
     }
 }
 
